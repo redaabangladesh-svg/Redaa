@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2, Crown, Flower2, Sprout, Frame, Flame, Sparkles, LayoutGrid, Gift } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2, Crown, Flower2, Sprout, Frame, Flame, Sparkles, LayoutGrid, Gift, Info, Truck, RefreshCw, ShieldAlert, Phone, MapPin, PhoneCall, Mail, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -105,18 +105,22 @@ export default function FooterNav() {
             </h4>
             <ul className="space-y-2.5">
               {[
-                { en: 'About Us', bn: 'আমাদের সম্পর্কে' },
-                { en: 'Delivery Policy', bn: 'ডেলিভারি পলিসি' },
-                { en: 'Return & Refund', bn: 'রিটার্ন ও রিফান্ড' },
-                { en: 'Privacy Policy', bn: 'প্রাইভেসি পলিসি' },
-                { en: 'Contact Us', bn: 'যোগাযোগ করুন' },
-              ].map((l, i) => (
-                <li key={i}>
-                  <a href="#" className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200">
-                    {locale === 'bn' ? l.bn : l.en}
-                  </a>
-                </li>
-              ))}
+                { en: 'About Us', bn: 'আমাদের সম্পর্কে', icon: Info },
+                { en: 'Delivery Policy', bn: 'ডেলিভারি পলিসি', icon: Truck },
+                { en: 'Return & Refund', bn: 'রিটার্ন ও রিফান্ড', icon: RefreshCw },
+                { en: 'Privacy Policy', bn: 'প্রাইভেসি পলিসি', icon: ShieldAlert },
+                { en: 'Contact Us', bn: 'যোগাযোগ করুন', icon: Phone },
+              ].map((l, i) => {
+                const Icon = l.icon;
+                return (
+                  <li key={i}>
+                    <Link href="#" className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200 flex items-center gap-2">
+                      <Icon className="h-3.5 w-3.5 text-[#057476] flex-shrink-0" />
+                      <span>{locale === 'bn' ? l.bn : l.en}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -126,20 +130,20 @@ export default function FooterNav() {
               {locale === 'bn' ? 'যোগাযোগ' : 'Contact'}
             </h4>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5">📍</span>
+              <li className="flex items-center gap-2">
+                <MapPin className="h-3.5 w-3.5 text-[#057476] flex-shrink-0" />
                 <span>{locale === 'bn' ? 'ঢাকা, বাংলাদেশ' : 'Dhaka, Bangladesh'}</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span>📞</span>
+              <li className="flex items-center gap-2">
+                <PhoneCall className="h-3.5 w-3.5 text-[#057476] flex-shrink-0" />
                 <span>+880 17XX-XXXXXX</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span>📧</span>
+              <li className="flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 text-[#057476] flex-shrink-0" />
                 <span>hello@sicilydecor.com</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span>🕐</span>
+              <li className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-[#057476] flex-shrink-0" />
                 <span>{locale === 'bn' ? 'শনি–বৃহঃ, সকাল ১০টা–রাত ৮টা' : 'Sat–Thu, 10am–8pm'}</span>
               </li>
             </ul>
