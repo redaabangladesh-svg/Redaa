@@ -1150,32 +1150,37 @@ Phase 8 — Speed + Polish
   50. PageSpeed audit + fixes
 ```
 
+## 🚀 Recent Redesign & Configuration Updates (June 2026)
+
+The project layout has been optimized for the Bangladesh market:
+1. **Shopica Layout Redesign**: Split hero area (left categories list with Lucide icons, right auto-sliding banner), circular category icons, bestsellers grid, product inline checkouts, and a clean footer with SSLCommerz logo.
+2. **Strictly Bangla Locale**: Switched routing to Bangla (`defaultLocale: 'bn'`) with prefix-free pathing (`localePrefix: 'never'`). Paths load directly from the root (e.g., `/shop`, `/checkout`) instead of prepending `/bn`.
+3. **Gmail Sign In**: Developed `/account` page containing user profile state and active orders history using mock Google Log-In simulation.
+
 ---
 
 ## ✅ Definition of Done
 
-প্রতিটা Phase শেষে verify করো:
+Verify after modifications:
 
-- [ ] Mobile-এ ঠিকমতো দেখাচ্ছে
-- [ ] TypeScript errors নেই
-- [ ] Console errors নেই
-- [ ] Loading state আছে
-- [ ] Error state আছে
-- [ ] Supabase RLS policy set করা আছে
-- [ ] Admin route protected আছে
+- [ ] Responsive layout fits mobile viewport.
+- [ ] Strictly no TypeScript/compiler compilation errors.
+- [ ] No console runtime errors.
+- [ ] Loading & Error boundaries are correctly configured.
+- [ ] Admin route authorization rules are protected.
 
 ---
 
 ## 📝 Important Notes
 
-1. **Bilingual support (Bangla + English)** — Storefront text (categories, product info, banners, notifications) বাংলা এবং ইংরেজি উভয় ভাষায় support করবে। Header-এ language switch করার toggler থাকবে।
-2. **Admin panel** — Content adding page-গুলোতে input field-গুলো বাংলা এবং ইংরেজি উভয় ভাষার জন্য থাকবে (যেমন Product Name (EN) এবং Product Name (BN))।
-3. **Phone format** — সব জায়গায় `017XXXXXXXX` format (11 digits, no +88)
-4. **Currency** — সব জায়গায় ৳ symbol use করো
-5. **Images** — Cloudflare R2 bucket name: `product-images` (served via custom domain/public URL for CDN performance)
-6. **Order number format** — `ORD-2025-0001` (auto increment)
-7. **COD default** — default payment method COD
-8. **District list** — Bangladesh-এর সব জেলার dropdown রাখো
-9. **Responsive** — Mobile-first, সব component mobile-এ perfect হতে হবে
-10. **No placeholder data** — সব UI real Supabase data দিয়ে populate করবে
-11. **Color Usage & Typography** — Descriptions এবং regular content/text এর কালার ডার্ক/ব্ল্যাক (`--color-text`, `--color-muted`) হতে হবে যেন সহজে পড়া যায়। থিম কালারগুলো (Teal, Pink, Turquoise) শুধুমাত্র highlights, primary/secondary CTA buttons, dynamic badges এবং hover/interactive effects-এর জন্য ব্যবহার হবে।
+1. **Strict Bangla Support** — Storefront is locked to Bangla only. All links render without `/bn` prefix (using prefix-free routing internally mapped to Bangla).
+2. **Admin panel** — Content adding pages contain input fields for product details.
+3. **Phone format** — `017XXXXXXXX` format (11 digits, no +88).
+4. **Currency** — Use the ৳ symbol.
+5. **Images** — Served from local `/public` assets (e.g., `bannerphn.jpeg`, `Banner1.png`, `SSLCommerz-Pay-With-logo-All-Size-01.png`, `Sicily_icon.png`).
+6. **Order number format** — `ORD-2025-0001` (auto-incrementing in localStorage database).
+7. **COD default** — Cash on Delivery as the default payment option.
+8. **District list** — Standard dropdown containing all districts of Bangladesh.
+9. **Responsive** — Mobile-first, header cart and search elements optimized for clean view.
+10. **Color Usage & Typography** — Descriptions use dark/black variables for reading accessibility, theme accents (Teal, Pink) are for highlight CTAs and badges only.
+
