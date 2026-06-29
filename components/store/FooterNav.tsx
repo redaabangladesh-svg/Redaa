@@ -72,19 +72,22 @@ export default function FooterNav() {
           {/* Quick links */}
           <div className="space-y-4">
             <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
-              {locale === 'bn' ? 'শপ করুন' : 'Shop'}
+              {locale === 'bn' ? 'ক্যাটাগরি' : 'Categories'}
             </h4>
             <ul className="space-y-2.5">
               {[
-                { en: 'All Products', bn: 'সব পণ্য', href: `/${currentLocale}/shop` },
-                { en: 'Premium Flower Tub', bn: 'প্রিমিয়াম ফ্লাওয়ার টাব', href: `/${currentLocale}/shop` },
-                { en: 'Premium Tree Plant', bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', href: `/${currentLocale}/shop` },
-                { en: 'Premium Wall Stand', bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', href: `/${currentLocale}/shop` },
-                { en: 'New Arrivals', bn: 'নতুন পণ্য', href: `/${currentLocale}/shop` },
+                { en: '👑 All Categories', bn: '👑 সব ক্যাটাগরি', href: `/${currentLocale}/shop` },
+                { en: '🌺 Premium Flower Tub', bn: '🌺 প্রিমিয়াম ফ্লাওয়ার টাব', href: `/${currentLocale}/shop` },
+                { en: '🌳 Premium Tree Plant', bn: '🌳 প্রিমিয়াম ট্রি প্ল্যান্ট', href: `/${currentLocale}/shop` },
+                { en: '🖼️ Premium Wall Stand', bn: '🖼️ প্রিমিয়াম ওয়াল স্ট্যান্ড', href: `/${currentLocale}/shop` },
+                { en: '🕯️ Candles & Holders', bn: '🕯️ ক্যান্ডেল ও হোল্ডার', href: `/${currentLocale}/shop` },
+                { en: '🪞 Mirror & Frames', bn: '🪞 আয়না ও ফ্রেম', href: `/${currentLocale}/shop` },
+                { en: '🪴 Vases & Pots', bn: '🪴 ভেজ ও পট', href: `/${currentLocale}/shop` },
+                { en: '🎁 Gift Sets', bn: '🎁 গিফট সেট', href: `/${currentLocale}/shop` },
               ].map((l, i) => (
                 <li key={i}>
-                  <Link href={l.href} className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200">
-                    {locale === 'bn' ? l.bn : l.en}
+                  <Link href={l.href} className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200 flex items-center gap-1.5">
+                    <span>{locale === 'bn' ? l.bn : l.en}</span>
                   </Link>
                 </li>
               ))}
@@ -113,7 +116,7 @@ export default function FooterNav() {
             </ul>
           </div>
 
-          {/* Contact & coupon */}
+          {/* Contact & info */}
           <div className="space-y-5">
             <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
               {locale === 'bn' ? 'যোগাযোগ' : 'Contact'}
@@ -136,34 +139,20 @@ export default function FooterNav() {
                 <span>{locale === 'bn' ? 'শনি–বৃহঃ, সকাল ১০টা–রাত ৮টা' : 'Sat–Thu, 10am–8pm'}</span>
               </li>
             </ul>
-
-            {/* Coupon highlight */}
-            <div className="rounded-xl border border-[#057476]/40 bg-[#057476]/10 px-4 py-3 space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#00f0d2]">
-                {locale === 'bn' ? 'প্রথম অর্ডারে ছাড়' : 'First Order Discount'}
-              </p>
-              <p className="text-white font-mono font-black text-sm tracking-widest">WELCOME10</p>
-              <p className="text-gray-500 text-[10px]">
-                {locale === 'bn' ? '১০% ছাড় পাবেন চেকআউটে' : '10% off at checkout'}
-              </p>
-            </div>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div className="border-t border-white/8 py-5">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-5">
             <p className="text-[11px] text-gray-500">
               © 2026 Sicily Decor. {locale === 'bn' ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
             </p>
-            <div className="flex items-center gap-4 text-[11px] text-gray-500">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                {locale === 'bn' ? 'ক্যাশ অন ডেলিভারি উপলব্ধ' : 'Cash on Delivery available'}
-              </span>
-              <span>·</span>
-              <span>{locale === 'bn' ? 'বিকাশ গ্রহণযোগ্য' : 'bKash accepted'}</span>
-            </div>
+            <img 
+              src="/SSLCommerz-Pay-With-logo-All-Size-01.png" 
+              alt="SSLCommerz Payment Methods" 
+              className="h-10 md:h-12 object-contain bg-white rounded-lg p-1.5"
+            />
           </div>
         </div>
       </footer>

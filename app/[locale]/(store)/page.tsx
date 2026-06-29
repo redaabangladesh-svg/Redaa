@@ -44,7 +44,7 @@ const SLIDES = [
 
 /* ── SIDEBAR CATEGORIES ────────────────────────────── */
 const SIDEBAR_CATS = [
-  { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: '🏠' },
+  { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: '👑' },
   { en: 'Premium Flower Tub', bn: 'প্রিমিয়াম ফ্লাওয়ার টাব', icon: '🌺' },
   { en: 'Premium Tree Plant', bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', icon: '🌳' },
   { en: 'Premium Wall Stand', bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', icon: '🖼️' },
