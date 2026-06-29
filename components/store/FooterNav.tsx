@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2 } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2, Crown, Flower2, Sprout, Frame, Flame, Sparkles, LayoutGrid, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -76,21 +76,25 @@ export default function FooterNav() {
             </h4>
             <ul className="space-y-2.5">
               {[
-                { en: '👑 All Categories', bn: '👑 সব ক্যাটাগরি', href: `/${currentLocale}/shop` },
-                { en: '🌺 Premium Flower Tub', bn: '🌺 প্রিমিয়াম ফ্লাওয়ার টাব', href: `/${currentLocale}/shop` },
-                { en: '🌳 Premium Tree Plant', bn: '🌳 প্রিমিয়াম ট্রি প্ল্যান্ট', href: `/${currentLocale}/shop` },
-                { en: '🖼️ Premium Wall Stand', bn: '🖼️ প্রিমিয়াম ওয়াল স্ট্যান্ড', href: `/${currentLocale}/shop` },
-                { en: '🕯️ Candles & Holders', bn: '🕯️ ক্যান্ডেল ও হোল্ডার', href: `/${currentLocale}/shop` },
-                { en: '🪞 Mirror & Frames', bn: '🪞 আয়না ও ফ্রেম', href: `/${currentLocale}/shop` },
-                { en: '🪴 Vases & Pots', bn: '🪴 ভেজ ও পট', href: `/${currentLocale}/shop` },
-                { en: '🎁 Gift Sets', bn: '🎁 গিফট সেট', href: `/${currentLocale}/shop` },
-              ].map((l, i) => (
-                <li key={i}>
-                  <Link href={l.href} className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200 flex items-center gap-1.5">
-                    <span>{locale === 'bn' ? l.bn : l.en}</span>
-                  </Link>
-                </li>
-              ))}
+                { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: Crown, href: `/${currentLocale}/shop` },
+                { en: 'Premium Flower Tub', bn: 'প্রিমিয়াম ফ্লাওয়ার টাব', icon: Flower2, href: `/${currentLocale}/shop` },
+                { en: 'Premium Tree Plant', bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', icon: Sprout, href: `/${currentLocale}/shop` },
+                { en: 'Premium Wall Stand', bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', icon: Frame, href: `/${currentLocale}/shop` },
+                { en: 'Candles & Holders', bn: 'ক্যান্ডেল ও হোল্ডার', icon: Flame, href: `/${currentLocale}/shop` },
+                { en: 'Mirror & Frames', bn: 'আয়না ও ফ্রেম', icon: Sparkles, href: `/${currentLocale}/shop` },
+                { en: 'Vases & Pots', bn: 'ভেজ ও পট', icon: LayoutGrid, href: `/${currentLocale}/shop` },
+                { en: 'Gift Sets', bn: 'গিফট সেট', icon: Gift, href: `/${currentLocale}/shop` },
+              ].map((l, i) => {
+                const Icon = l.icon;
+                return (
+                  <li key={i}>
+                    <Link href={l.href} className="text-xs text-gray-400 hover:text-[#00f0d2] transition-colors duration-200 flex items-center gap-2">
+                      <Icon className="h-3.5 w-3.5 text-[#057476]" />
+                      <span>{locale === 'bn' ? l.bn : l.en}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
