@@ -49,5 +49,5 @@ export default async function LocaleLayout({
   );
 }
 export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'bn' }];
+  return [{ locale: 'bn' }];
 }

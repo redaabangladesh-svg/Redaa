@@ -5,5 +5,5 @@ export default createMiddleware(routing);
 
 export const config = {
   // Match dynamic routes and avoid static files
-  matcher: ['/', '/(bn|en)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
+  matcher: ['/', '/(bn)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
 };

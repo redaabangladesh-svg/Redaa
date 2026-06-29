@@ -48,13 +48,9 @@ export default function Navbar() {
           🚚 {locale === 'bn' ? 'ঢাকায় ৳৫০০+ অর্ডারে ফ্রি ডেলিভারি' : 'Free Delivery in Dhaka on orders above ৳500'}
         </span>
         <div className="hidden sm:flex items-center gap-4 text-white/80 flex-shrink-0">
-          <a href="#" className="hover:text-white transition-colors">{locale === 'bn' ? 'সাহায্য ও সহায়তা' : 'Help & Support'}</a>
+          <a href="#" className="hover:text-white transition-colors">সাহায্য ও সহায়তা</a>
           <span>·</span>
-          <a href={`/${currentLocale}/admin/orders`} className="hover:text-white transition-colors">{locale === 'bn' ? 'অর্ডার ট্র্যাক করুন' : 'Track Order'}</a>
-          <span>·</span>
-          <button onClick={toggleLanguage} className="hover:text-white transition-colors font-bold">
-            {currentLocale === 'bn' ? '🇺🇸 English' : '🇧🇩 বাংলা'}
-          </button>
+          <a href={`/${currentLocale}/admin/orders`} className="hover:text-white transition-colors">অর্ডার ট্র্যাক করুন</a>
         </div>
       </div>
 
