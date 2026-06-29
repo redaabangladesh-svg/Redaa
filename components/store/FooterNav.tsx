@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Home, Search, ShoppingCart, Heart, Grid2X2 } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -16,7 +16,7 @@ export default function FooterNav() {
   /* ── Mobile bottom nav items ── */
   const mobileNav = [
     { label_en: 'Home',  label_bn: 'হোম',  icon: Home,      href: `/${currentLocale}` },
-    { label_en: 'Shop',  label_bn: 'শপ',   icon: Search,    href: `/${currentLocale}/shop` },
+    { label_en: 'Shop',  label_bn: 'শপ',   icon: ShoppingBag,    href: `/${currentLocale}/shop` },
     { label_en: 'Cart',  label_bn: 'কার্ট', icon: ShoppingCart, href: null },          // opens drawer
     { label_en: 'Deals', label_bn: 'অফার',  icon: Heart,     href: `/${currentLocale}/shop` },
     { label_en: 'More',  label_bn: 'আরো',  icon: Grid2X2,   href: `/${currentLocale}/shop` },
@@ -25,9 +25,9 @@ export default function FooterNav() {
   return (
     <>
       {/* ════════════════════════════════════════════
-          DESKTOP FOOTER
+          DESKTOP FOOTER (Also visible on Mobile)
       ════════════════════════════════════════════ */}
-      <footer className="hidden md:block bg-[#111] text-white mt-0">
+      <footer className="bg-[#111] text-white mt-0 mb-16 md:mb-0">
         {/* Top section */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10 grid grid-cols-1 md:grid-cols-4 gap-10">
 

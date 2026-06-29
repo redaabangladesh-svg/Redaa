@@ -129,7 +129,7 @@ export default function Navbar() {
               {/* Cart */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#057476] hover:bg-gray-50 transition-all duration-200 relative"
+                className="hidden sm:flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#057476] hover:bg-gray-50 transition-all duration-200 relative"
               >
                 <div className="relative">
                   <ShoppingCart className="h-5 w-5" />
@@ -150,22 +150,6 @@ export default function Navbar() {
                 {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
-          </div>
-
-          {/* Mobile search */}
-          <div className="sm:hidden pb-3">
-            <form onSubmit={handleSearch} className="flex rounded-xl border border-gray-200 overflow-hidden focus-within:border-[#057476] transition-all">
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={locale === 'bn' ? 'পণ্য খুঁজুন...' : 'Search for products...'}
-                className="flex-1 px-4 py-2.5 text-sm outline-none placeholder:text-gray-400"
-              />
-              <button type="submit" className="px-4 bg-[#057476] text-white">
-                <Search className="h-4.5 w-4.5" />
-              </button>
-            </form>
           </div>
         </div>
 
