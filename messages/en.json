@@ -1,0 +1,26 @@
+{
+  "Navbar": {
+    "searchPlaceholder": "Search for flowers, hangers, decor...",
+    "searchButton": "Search",
+    "cart": "Cart",
+    "admin": "Admin Dashboard",
+    "language": "Language",
+    "toggleLanguage": "বাংলা"
+  },
+  "Footer": {
+    "home": "Home",
+    "search": "Search",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "account": "Account"
+  },
+  "Home": {
+    "announcementText": "🚚 Free Delivery in Dhaka on Orders Above ৳500+",
+    "heroTitle": "Beautiful Custom Home Decor",
+    "heroSubtitle": "Handcrafted flowers, hangers, and unique sets tailored for your home.",
+    "shopNow": "Shop Now",
+    "bestsellers": "Best Sellers",
+    "categories": "Categories",
+    "flashSale": "Flash Sale"
+  }
+}

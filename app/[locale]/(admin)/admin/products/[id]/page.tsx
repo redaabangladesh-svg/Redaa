@@ -1,0 +1,283 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+interface Product {
+  id: string;
+  name_en: string;
+  name_bn: string;
+  price: number;
+  sale_price: number | null;
+  image: string;
+  category: string;
+  stock: number;
+  desc_en?: string;
+  desc_bn?: string;
+  colors?: any[];
+  sizes?: any[];
+}
+
+export default function AdminEditProductPage({ params }: { params: { id: string } }) {
+  const locale = useLocale();
+  const router = useRouter();
+
+  const [productsList, setProductsList] = useState<Product[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
+
+  const [nameEn, setNameEn] = useState('');
+  const [nameBn, setNameBn] = useState('');
+  const [price, setPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
+  const [image, setImage] = useState('');
+  const [category, setCategory] = useState('flowers');
+  const [stock, setStock] = useState('10');
+  const [descEn, setDescEn] = useState('');
+  const [descBn, setDescBn] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('sicily_products_list');
+    if (stored) {
+      try {
+        const parsed: Product[] = JSON.parse(stored);
+        setProductsList(parsed);
+        
+        const matched = parsed.find(p => p.id === params.id);
+        if (matched) {
+          setProduct(matched);
+          setNameEn(matched.name_en);
+          setNameBn(matched.name_bn);
+          setPrice(String(matched.price));
+          setSalePrice(matched.sale_price !== null ? String(matched.sale_price) : '');
+          setImage(matched.image);
+          setCategory(matched.category);
+          setStock(String(matched.stock));
+          setDescEn(matched.desc_en || '');
+          setDescBn(matched.desc_bn || '');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [params.id]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !nameEn || !nameBn || !price || !image) {
+      alert(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    setTimeout(() => {
+      // Update the product inside the cached productsList state
+      const updatedList = productsList.map((p) => {
+        if (p.id === product.id) {
+          return {
+            ...p,
+            name_en: nameEn,
+            name_bn: nameBn,
+            price: Number(price),
+            sale_price: salePrice ? Number(salePrice) : null,
+            image: image,
+            category: category,
+            stock: Number(stock),
+            desc_en: descEn,
+            desc_bn: descBn
+          };
+        }
+        return p;
+      });
+
+      localStorage.setItem('sicily_products_list', JSON.stringify(updatedList));
+
+      setIsSaving(false);
+      router.push(`/${locale}/admin/products`);
+    }, 800);
+  };
+
+  if (!product) {
+    return (
+      <div className="py-20 text-center font-sans text-brand-muted font-bold">
+        {locale === 'bn' ? 'প্রোডাক্ট তথ্য লোড হচ্ছে...' : 'Loading product details...'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl space-y-6 font-sans">
+      {/* Back Button */}
+      <Link
+        href={`/${locale}/admin/products`}
+        className="inline-flex items-center gap-2 text-xs font-bold text-brand-muted hover:text-brand-primary transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span>{locale === 'bn' ? 'প্রোডাক্টস তালিকায় ফিরে যান' : 'Back to Products'}</span>
+      </Link>
+
+      {/* Header */}
+      <div className="border-b border-brand-border pb-4">
+        <h1 className="text-xl md:text-2xl font-black text-brand-text">
+          {locale === 'bn' ? `প্রোডাক্ট এডিট করুন: ${nameBn}` : `Edit Product: ${nameEn}`}
+        </h1>
+        <p className="text-xs text-brand-muted mt-1.5 font-medium">
+          {locale === 'bn' ? 'প্রোডাক্টের বিবরণ, স্টক বা প্রাইস এডিট করে সেভ করুন।' : 'Modify product pricing, description copy or stock counts.'}
+        </p>
+      </div>
+
+      {/* Form Card */}
+      <form onSubmit={handleSubmit} className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        
+        {/* Name Fields EN & BN */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Product Name (English) <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              placeholder="e.g. Handmade Ceramic Flower Vase"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              প্রোডাক্টের নাম (বাংলা) <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={nameBn}
+              onChange={(e) => setNameBn(e.target.value)}
+              placeholder="যেমন: হাতে তৈরি সিরামিক ফুলদানি"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Pricing, Category & Stock */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Price (৳) <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="1200"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Sale Price (৳)
+            </label>
+            <input
+              type="number"
+              value={salePrice}
+              onChange={(e) => setSalePrice(e.target.value)}
+              placeholder="990"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Category <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+            >
+              <option value="flowers">{locale === 'bn' ? 'ফুল (Flowers)' : 'Handmade Flowers'}</option>
+              <option value="hangers">{locale === 'bn' ? 'হ্যাঙ্গার (Hangers)' : 'Metal Hangers'}</option>
+              <option value="frames">{locale === 'bn' ? 'ফ্রেম (Frames)' : 'Wooden Frames'}</option>
+              <option value="vases">{locale === 'bn' ? 'ফুলদানি (Vases)' : 'Vases & Pots'}</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Stock Quantity <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              placeholder="10"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Image URL Input */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-brand-muted uppercase">
+            Image URL <span className="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="https://images.unsplash.com/photo-..."
+            className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+            required
+          />
+        </div>
+
+        {/* Descriptions */}
+        <div className="space-y-6 pt-4 border-t border-brand-border">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              Description (English)
+            </label>
+            <textarea
+              value={descEn}
+              onChange={(e) => setDescEn(e.target.value)}
+              placeholder="Write product detailed specifications..."
+              rows={4}
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              বিবরণ (বাংলা)
+            </label>
+            <textarea
+              value={descBn}
+              onChange={(e) => setDescBn(e.target.value)}
+              placeholder="পণ্যের বিস্তারিত বিবরণ ও বৈশিষ্ট্য লিখুন..."
+              rows={4}
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
+            />
+          </div>
+        </div>
+
+        {/* Save CTA */}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="w-full py-3.5 rounded-2xl bg-brand-primary text-white font-extrabold text-xs hover:bg-brand-primary-alt shadow-lg shadow-brand-primary/25 transition-all-custom flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
+        >
+          {isSaving ? (
+            <Sparkles className="h-4.5 w-4.5 animate-spin" />
+          ) : (
+            <Save className="h-4.5 w-4.5" />
+          )}
+          <span>{locale === 'bn' ? 'পরিবর্তনগুলো সংরক্ষণ করুন' : 'Save Changes'}</span>
+        </button>
+      </form>
+    </div>
+  );
+}

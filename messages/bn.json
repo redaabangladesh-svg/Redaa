@@ -1,0 +1,26 @@
+{
+  "Navbar": {
+    "searchPlaceholder": "ফুল, হ্যাঙ্গার, ঘর সাজানোর জিনিস খুঁজুন...",
+    "searchButton": "খুঁজুন",
+    "cart": "কার্ট",
+    "admin": "অ্যাডমিন ড্যাশবোর্ড",
+    "language": "ভাষা",
+    "toggleLanguage": "English"
+  },
+  "Footer": {
+    "home": "হোম",
+    "search": "খুঁজুন",
+    "cart": "কার্ট",
+    "wishlist": "উইশলিস্ট",
+    "account": "অ্যাকাউন্ট"
+  },
+  "Home": {
+    "announcementText": "🚚 ঢাকায় ফ্রি ডেলিভারি ৳৫০০+ অর্ডারে",
+    "heroTitle": "অপূর্ব কাস্টম হোম ডেকোর",
+    "heroSubtitle": "আপনার ঘরের জন্য বিশেষভাবে তৈরি হাতে বানানো ফুল, হ্যাঙ্গার এবং অনন্য সেট।",
+    "shopNow": "এখনই কিনুন",
+    "bestsellers": "বেস্ট সেলার",
+    "categories": "ক্যাটাগরি সমূহ",
+    "flashSale": "ফ্ল্যাশ সেল"
+  }
+}

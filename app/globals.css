@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #111111;
+
+  --color-bg:        #FFFFFF;  /* Clean white background */
+  --color-surface:   #FAFDFD;  /* Soft teal-tinted white surface */
+  --color-primary:   #057476;  /* Deep Teal — Primary buttons & headers */
+  --color-primary-alt: #008B8B; /* Dark Cyan — Alternate primary elements */
+  --color-secondary: #D80064;  /* Deep Pink — Secondary actions/prominent highlights */
+  --color-secondary-dark: #A9004B; /* Darker Pink — Accent highlights */
+  --color-secondary-light: #FF3385; /* Rose Pink — Interactive badges */
+  --color-accent:    #00f0d2;  /* Neon Turquoise — Interactive icons/micro-highlights */
+  --color-text:      #111111;  /* Rich black for maximum readability */
+  --color-muted:     #4A4A4A;  /* Dark gray for secondary descriptions */
+  --color-border:    #E5EEEE;  /* Light teal-tinted borders */
+}
+
+body {
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Micro-animations and transitions */
+.transition-all-custom {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glassmorphism-dark {
+  background: rgba(5, 116, 118, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(5, 116, 118, 0.2);
+}
+
+/* Marquee animation for announcement strip */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Banner slide-up content animation */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
