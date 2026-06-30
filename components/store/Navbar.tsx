@@ -2,22 +2,11 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { ShoppingCart, Heart, User, Search, ChevronDown, Menu, X } from 'lucide-react';
+import { ShoppingCart, Heart, Search, Menu, X, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 import CartDrawer from '@/components/store/CartDrawer';
 import { useState } from 'react';
-
-const CATEGORIES = [
-  { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: '🏠' },
-  { en: 'Premium Flower Tub', bn: 'প্রিমিয়াম ফ্লাওয়ার টাব', icon: '🌺' },
-  { en: 'Premium Tree Plant', bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', icon: '🌳' },
-  { en: 'Premium Wall Stand', bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', icon: '🖼️' },
-  { en: 'Candles & Holders', bn: 'ক্যান্ডেল ও হোল্ডার', icon: '🕯️' },
-  { en: 'Mirror & Frames', bn: 'আয়না ও ফ্রেম', icon: '🪞' },
-  { en: 'Vases & Pots', bn: 'ভেজ ও পট', icon: '🪴' },
-  { en: 'Gift Sets', bn: 'গিফট সেট', icon: '🎁' },
-];
 
 export default function Navbar() {
   const locale = useLocale();
@@ -29,15 +18,11 @@ export default function Navbar() {
 
   const currentLocale = pathname.split('/')[1] === 'en' ? 'en' : 'bn';
 
-  const toggleLanguage = () => {
-    const segments = pathname.split('/');
-    segments[1] = segments[1] === 'en' ? 'bn' : 'en';
-    router.push(segments.join('/'));
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (search.trim()) router.push(`/${currentLocale}/shop?q=${encodeURIComponent(search.trim())}`);
+    if (search.trim()) {
+      router.push(`/${currentLocale}/shop?q=${encodeURIComponent(search.trim())}`);
+    }
   };
 
   return (
@@ -48,126 +33,114 @@ export default function Navbar() {
           🚚 {locale === 'bn' ? 'ঢাকায় ৳৫০০+ অর্ডারে ফ্রি ডেলিভারি' : 'Free Delivery in Dhaka on orders above ৳500'}
         </span>
         <div className="hidden sm:flex items-center gap-4 text-white/80 flex-shrink-0">
-          <a href="#" className="hover:text-white transition-colors">সাহায্য ও সহায়তা</a>
+          <a href="#" className="hover:text-white transition-colors">{locale === 'bn' ? 'সাহায্য ও সহায়তা' : 'Help & Support'}</a>
           <span>·</span>
-          <a href={`/${currentLocale}/admin/orders`} className="hover:text-white transition-colors">অর্ডার ট্র্যাক করুন</a>
+          <a href={`/${currentLocale}/admin/orders`} className="hover:text-white transition-colors">{locale === 'bn' ? 'অর্ডার ট্র্যাক করুন' : 'Track Order'}</a>
         </div>
       </div>
 
       {/* ── MAIN HEADER ── */}
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 h-16">
+      <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-100/80 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          
+          {/* Header Row: Hamburger | Logo | Action Buttons (Heart, Cart) */}
+          <div className="flex items-center justify-between gap-4">
+            
+            {/* Left: Mobile hamburger */}
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="p-2 -ml-2 rounded-xl text-gray-500 hover:bg-gray-50 focus:outline-none transition-colors"
+            >
+              {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
 
-            {/* Logo */}
-            <Link href={`/${currentLocale}`} className="flex items-center gap-2.5 flex-shrink-0 group">
+            {/* Center: Brand Logo & Tagline */}
+            <Link href={`/${currentLocale}`} className="flex items-center gap-2 group select-none">
               <img
                 src="/Sicily_icon.png"
                 alt="Sicily Decor"
-                className="h-10 w-10 object-contain group-hover:scale-105 transition-transform duration-200"
+                className="h-9 w-9 object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <div className="leading-none space-y-0.5">
-                <span className="block text-[22px] font-black tracking-tight text-[#111] leading-none">Sicily</span>
-                <span className="block text-[7px] font-bold tracking-[0.15em] uppercase text-[#057476]">Focus On Quality</span>
+              <div className="leading-none text-left">
+                <span className="block text-[17px] font-black tracking-tight text-[#111]">Sicily Decor</span>
+                <span className="block text-[9px] font-semibold text-gray-400 mt-0.5">
+                  {locale === 'bn' ? 'কোয়ালিটি ও নান্দনিকতা' : 'Shop More, Save More'}
+                </span>
               </div>
             </Link>
 
-            {/* Desktop Nav links */}
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-600 flex-shrink-0">
-              <Link href={`/${currentLocale}`} className="hover:text-[#057476] transition-colors">
-                {locale === 'bn' ? 'হোম' : 'Home'}
+            {/* Right: Wishlist & Cart Actions */}
+            <div className="flex items-center gap-1">
+              {/* Wishlist Link */}
+              <Link 
+                href={`/${currentLocale}/shop`} 
+                className="p-2 rounded-xl text-gray-500 hover:text-[#D80064] hover:bg-gray-50 transition-all duration-200 relative"
+                title="Wishlist"
+              >
+                <Heart className="h-5.5 w-5.5" />
               </Link>
-              <Link href={`/${currentLocale}/shop`} className="hover:text-[#057476] transition-colors">
-                {locale === 'bn' ? 'শপ' : 'Shop'}
-              </Link>
-              <button className="flex items-center gap-1 hover:text-[#057476] transition-colors">
-                {locale === 'bn' ? 'ক্যাটাগরি' : 'Categories'}
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-              <Link href={`/${currentLocale}/shop`} className="hover:text-[#057476] transition-colors text-[#D80064] font-bold">
-                {locale === 'bn' ? 'অফার' : 'Deals'}
-              </Link>
-            </nav>
 
-            {/* Search bar */}
-            <form onSubmit={handleSearch} className="flex-1 hidden sm:flex">
-              <div className="flex w-full max-w-xl rounded-xl border border-gray-200 overflow-hidden hover:border-[#057476]/50 focus-within:border-[#057476] focus-within:ring-2 focus-within:ring-[#057476]/10 transition-all duration-200">
+              {/* Shopping Cart Drawer Trigger */}
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="p-2 rounded-xl text-gray-500 hover:text-[#057476] hover:bg-gray-50 transition-all duration-200 relative"
+                title="Cart"
+              >
+                <ShoppingCart className="h-5.5 w-5.5" />
+                {cartCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-[#057476] text-white text-[9px] font-black h-4.5 w-4.5 rounded-full flex items-center justify-center border border-white">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Search Input Bar with Filter Icon (Matches reference UI exactly) */}
+          <div className="mt-3.5">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="flex-1 flex items-center rounded-xl bg-gray-50/80 border border-gray-200/60 overflow-hidden hover:border-[#057476]/30 focus-within:border-[#057476] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#057476]/10 transition-all duration-200">
+                <div className="pl-3.5 text-gray-400">
+                  <Search className="h-4.5 w-4.5" />
+                </div>
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder={locale === 'bn' ? 'পণ্য খুঁজুন...' : 'Search for products...'}
-                  className="flex-1 px-4 py-2.5 text-sm text-gray-700 bg-white outline-none placeholder:text-gray-400"
+                  placeholder={locale === 'bn' ? 'পণ্য, ক্যাটাগরি বা ব্র্যান্ড খুঁজুন...' : 'Search for products, categories...'}
+                  className="flex-1 px-3 py-2.5 text-xs sm:text-sm text-gray-700 bg-transparent outline-none placeholder:text-gray-400"
                 />
-                <button
-                  type="submit"
-                  className="px-4 bg-[#057476] text-white flex items-center justify-center hover:bg-[#008B8B] transition-colors"
-                >
-                  <Search className="h-4.5 w-4.5" />
-                </button>
               </div>
+              <button
+                type="button"
+                className="p-3 bg-gray-50/80 hover:bg-gray-100/80 text-gray-500 rounded-xl border border-gray-200/60 hover:text-[#057476] transition-all flex items-center justify-center"
+                title="Filters"
+              >
+                <SlidersHorizontal className="h-4.5 w-4.5" />
+              </button>
             </form>
-
-            {/* Right actions */}
-            <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto lg:ml-0">
-              {/* Account */}
-              <Link href={`/${currentLocale}`} className="hidden md:flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#057476] hover:bg-gray-50 transition-all duration-200 group">
-                <User className="h-5 w-5" />
-                <span className="text-[10px] font-semibold">{locale === 'bn' ? 'অ্যাকাউন্ট' : 'Account'}</span>
-              </Link>
-
-              {/* Wishlist */}
-              <Link href={`/${currentLocale}/shop`} className="hidden md:flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#D80064] hover:bg-gray-50 transition-all duration-200 relative">
-                <Heart className="h-5 w-5" />
-                <span className="text-[10px] font-semibold">{locale === 'bn' ? 'উইশলিস্ট' : 'Wishlist'}</span>
-              </Link>
-
-              {/* Cart */}
-              <button
-                onClick={() => setIsCartOpen(true)}
-                className="hidden sm:flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-[#057476] hover:bg-gray-50 transition-all duration-200 relative"
-              >
-                <div className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#D80064] text-white text-[9px] font-black h-4 w-4 rounded-full flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-semibold">{locale === 'bn' ? 'কার্ট' : 'Cart'}</span>
-              </button>
-
-              {/* Mobile hamburger */}
-              <button
-                onClick={() => setMenuOpen(o => !o)}
-                className="sm:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-50"
-              >
-                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
           </div>
+
         </div>
 
-        {/* Mobile nav menu */}
+        {/* Mobile Navigation Drawer Menu */}
         {menuOpen && (
-          <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
+          <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1 shadow-lg absolute w-full left-0 z-30">
             {[
               { en: 'Home', bn: 'হোম', href: `/${currentLocale}` },
               { en: 'Shop', bn: 'শপ', href: `/${currentLocale}/shop` },
-              { en: 'Deals 🔥', bn: 'অফার 🔥', href: `/${currentLocale}/shop` },
+              { en: 'Wishlist', bn: 'উইশলিস্ট', href: `/${currentLocale}/shop` },
+              { en: 'Profile', bn: 'প্রোফাইল', href: `/${currentLocale}/account` },
             ].map((l, i) => (
-              <Link key={i} href={l.href} onClick={() => setMenuOpen(false)}
-                className="block py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-[#057476]/5 hover:text-[#057476] transition-colors"
+              <Link
+                key={i}
+                href={l.href}
+                onClick={() => setMenuOpen(false)}
+                className="block py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-700 hover:bg-[#057476]/5 hover:text-[#057476] transition-colors"
               >
                 {locale === 'bn' ? l.bn : l.en}
               </Link>
             ))}
-            <div className="pt-2 border-t border-gray-100">
-              <button onClick={toggleLanguage} className="py-2.5 px-3 text-sm font-bold text-[#057476]">
-                {currentLocale === 'bn' ? '🇺🇸 Switch to English' : '🇧🇩 বাংলায় দেখুন'}
-              </button>
-            </div>
           </div>
         )}
       </header>

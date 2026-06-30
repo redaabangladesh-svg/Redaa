@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Home, ShoppingBag, ShoppingCart, Heart, Grid2X2, Crown, Flower2, Sprout, Frame, Flame, Sparkles, LayoutGrid, Gift, Info, Truck, RefreshCw, ShieldAlert, Phone, MapPin, PhoneCall, Mail, Clock, User } from 'lucide-react';
+import { Home, ShoppingBag, Crown, Flower2, Sprout, Frame, Flame, Sparkles, LayoutGrid, Gift, Info, Truck, RefreshCw, ShieldAlert, Phone, MapPin, PhoneCall, Mail, Clock, User, Package } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -13,13 +13,13 @@ export default function FooterNav() {
 
   const currentLocale = pathname.split('/')[1] === 'en' ? 'en' : 'bn';
 
-  /* ── Mobile bottom nav items ── */
+  /* ── Mobile bottom nav items (Matches reference UI exactly) ── */
   const mobileNav = [
-    { label_en: 'Home',  label_bn: 'হোম',  icon: Home,      href: `/${currentLocale}` },
-    { label_en: 'Shop',  label_bn: 'শপ',   icon: ShoppingBag,    href: `/${currentLocale}/shop` },
-    { label_en: 'Cart',  label_bn: 'কার্ট', icon: ShoppingCart, href: null },          // opens drawer
-    { label_en: 'Wishlist', label_bn: 'উইশলিস্ট', icon: Heart,  href: `/${currentLocale}/shop` },
-    { label_en: 'Account',  label_bn: 'প্রোফাইল', icon: User,   href: `/${currentLocale}/account` },
+    { label_en: 'Home',       label_bn: 'হোম',        icon: Home,         href: `/${currentLocale}`, isCenter: false },
+    { label_en: 'Categories', label_bn: 'ক্যাটাগরি',   icon: LayoutGrid,   href: `/${currentLocale}/shop`, isCenter: false },
+    { label_en: 'Deals',      label_bn: 'ডিলস',       icon: ShoppingBag,  href: `/${currentLocale}/shop`, isCenter: true },
+    { label_en: 'Orders',     label_bn: 'অর্ডারসমূহ',  icon: Package,      href: `/${currentLocale}/admin/orders`, isCenter: false },
+    { label_en: 'Account',    label_bn: 'প্রোফাইল',     icon: User,         href: `/${currentLocale}/account`, isCenter: false },
   ];
 
   return (
@@ -40,7 +40,7 @@ export default function FooterNav() {
                 alt="Sicily Decor"
                 className="h-10 w-10 object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <div className="leading-none">
+              <div className="leading-none text-left">
                 <span className="block text-[17px] font-black tracking-tight text-white">Sicily</span>
                 <span className="block text-[7px] font-bold tracking-[0.08em] uppercase text-[#057476]">Focus On Quality</span>
               </div>
@@ -158,46 +158,39 @@ export default function FooterNav() {
       </footer>
 
       {/* ════════════════════════════════════════════
-          MOBILE BOTTOM NAV BAR
+          MOBILE BOTTOM NAV BAR (Floating center layout)
       ════════════════════════════════════════════ */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center justify-around px-2 h-16">
+        <div className="flex items-center justify-around px-2 h-16 relative">
           {mobileNav.map((item, i) => {
             const Icon = item.icon;
             const label = locale === 'bn' ? item.label_bn : item.label_en;
-            const isCart = item.href === null;
-            const isActive = item.href ? pathname === item.href : false;
+            const isActive = pathname === item.href;
 
-            if (isCart) {
+            if (item.isCenter) {
               return (
-                <button
+                <Link
                   key={i}
-                  onClick={() => setIsCartOpen(true)}
-                  className="relative flex flex-col items-center justify-center flex-1 gap-1 text-[#057476]"
+                  href={item.href}
+                  className="relative flex flex-col items-center justify-center -mt-6 z-10"
                 >
-                  {/* pill highlight */}
-                  <div className="relative p-2 rounded-2xl bg-[#057476] shadow-md shadow-[#057476]/30">
-                    <Icon className="h-5 w-5 text-white" />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-[#D80064] text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center">
-                        {cartCount}
-                      </span>
-                    )}
+                  {/* Floating Circular Center Button */}
+                  <div className="h-13 w-13 rounded-full bg-[#057476] hover:bg-[#008B8B] shadow-lg shadow-[#057476]/35 flex items-center justify-center text-white border-4 border-white transition-transform duration-200 hover:scale-105 active:scale-95">
+                    <Icon className="h-6 w-6 stroke-[2.2]" />
                   </div>
-                  <span className="text-[9px] font-bold text-[#057476]">{label}</span>
-                </button>
+                  <span className="text-[9px] font-black text-[#057476] mt-1">{label}</span>
+                </Link>
               );
             }
 
             return (
               <Link
                 key={i}
-                href={item.href!}
+                href={item.href}
                 className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors duration-200 ${isActive ? 'text-[#057476]' : 'text-gray-400 hover:text-[#057476]'}`}
               >
                 <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-                <span className={`text-[9px] font-bold ${isActive ? 'text-[#057476]' : ''}`}>{label}</span>
-                {isActive && <span className="absolute bottom-0 h-0.5 w-5 rounded-full bg-[#057476]" />}
+                <span className={`text-[9px] font-extrabold ${isActive ? 'text-[#057476]' : ''}`}>{label}</span>
               </Link>
             );
           })}
