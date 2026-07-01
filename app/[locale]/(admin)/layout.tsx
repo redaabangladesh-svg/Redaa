@@ -1,13 +1,14 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Layers, 
-  Users, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Layers,
+  Users,
+  BarChart3,
+  Settings,
+  Tag,
   LogOut,
   ChevronRight,
   Globe
@@ -28,6 +29,7 @@ export default function AdminLayout({
     { label: 'Products', icon: Layers, href: `/${currentLocale}/admin/products` },
     { label: 'Customers', icon: Users, href: `/${currentLocale}/admin/customers` },
     { label: 'Reports', icon: BarChart3, href: `/${currentLocale}/admin/reports` },
+    { label: 'Offers', icon: Tag, href: `/${currentLocale}/admin/offers` },
     { label: 'Settings', icon: Settings, href: `/${currentLocale}/admin/settings` },
   ];
 
