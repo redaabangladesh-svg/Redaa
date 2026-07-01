@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { ArrowRight, Star, Heart, Crown, Flower2, Sprout, Frame, Timer, Sparkles, ShoppingCart, Percent, Gift } from 'lucide-react';
+import { ArrowRight, Star, Heart, Crown, Flower2, Sprout, Frame, Sparkles, ShoppingCart, Percent, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 
@@ -77,6 +77,44 @@ function HeroSlider({ locale }: { locale: string }) {
   );
 }
 
+/* ── FLASH DEALS COUNTDOWN ──────────────────────────── */
+function FlashCountdown({ locale }: { locale: string }) {
+  const [seconds, setSeconds] = useState(2 * 3600 + 45 * 60 + 30);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSeconds(s => (s > 0 ? s - 1 : 9 * 3600 + 59 * 60 + 59));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const hh = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const ss = String(seconds % 60).padStart(2, '0');
+
+  const units = [
+    { value: hh, label_en: 'HRS', label_bn: 'ঘণ্টা' },
+    { value: mm, label_en: 'MIN', label_bn: 'মিনিট' },
+    { value: ss, label_en: 'SEC', label_bn: 'সেকেন্ড' },
+  ];
+
+  return (
+    <div className="flex items-center gap-1">
+      {units.map((u, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <div className="flex flex-col items-center bg-[#14201D] rounded-md px-2 py-1 min-w-[34px]">
+            <span className="text-xs font-bold text-[#C6A15B] font-mono leading-none tabular-nums">{u.value}</span>
+            <span className="text-[6.5px] font-semibold text-[#C6A15B]/60 uppercase tracking-wider mt-0.5">
+              {locale === 'bn' ? u.label_bn : u.label_en}
+            </span>
+          </div>
+          {i < units.length - 1 && <span className="text-[#C6A15B] font-bold text-xs">:</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── PRODUCT CARD ───────────────────────────────────── */
 function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
   const [liked, setLiked] = useState(false);
@@ -84,16 +122,16 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
   const price = p.sale_price ?? p.price;
 
   return (
-    <div className="group bg-white rounded-xl border border-brand-border hover:border-[#C6A15B]/40 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
+    <div className="group bg-white rounded-2xl border border-brand-border hover:border-[#C6A15B]/50 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
       {/* Product Image Wrapper */}
       <div className="relative aspect-square bg-brand-surface overflow-hidden">
         <Link href={`/${locale}/p/${p.id}`} className="block h-full w-full">
-          <img src={p.image} alt={name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={p.image} alt={name} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" />
         </Link>
 
-        {/* Discount Badge (Top-left corner) */}
+        {/* Discount Ribbon (Top-left corner) */}
         {p.discount && (
-          <span className="absolute top-2 left-2 bg-[#14201D] text-[#C6A15B] text-[9px] font-bold px-2 py-0.5 rounded-md tracking-wide">
+          <span className="absolute top-2.5 left-2.5 bg-brand-secondary text-white text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
             {p.discount}
           </span>
         )}
@@ -101,32 +139,41 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
         {/* Wishlist Heart Icon (Top-right corner) */}
         <button
           onClick={() => setLiked(l => !l)}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 shadow-sm hover:scale-110 transition-transform"
+          className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-white/95 shadow-sm border border-brand-border hover:scale-110 hover:border-brand-secondary/40 transition-all"
         >
           <Heart className={`h-3.5 w-3.5 ${liked ? 'fill-brand-secondary text-brand-secondary' : 'text-brand-muted'}`} strokeWidth={1.75} />
         </button>
+
+        {/* Quick-add overlay (appears on hover) */}
+        <Link
+          href={`/${locale}/p/${p.id}`}
+          className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-[#14201D]/90 backdrop-blur-sm text-[#C6A15B] text-[10px] font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-1.5 transition-transform duration-300"
+        >
+          <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+        </Link>
       </div>
 
       {/* Product Details Section */}
-      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-1.5">
+      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
         <div>
           <h3 className="text-xs sm:text-sm font-semibold text-brand-text leading-snug line-clamp-2 hover:text-brand-primary transition-colors">
             <Link href={`/${locale}/p/${p.id}`}>{name}</Link>
           </h3>
 
           {/* Star rating info */}
-          <div className="flex items-center gap-0.5 text-[#C6A15B] mt-1">
+          <div className="flex items-center gap-0.5 text-[#C6A15B] mt-1.5">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-2.5 w-2.5 fill-current" />
+              <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round(p.rating) ? 'fill-current' : 'fill-none text-brand-border'}`} strokeWidth={1.5} />
             ))}
             <span className="text-[9px] text-brand-muted font-semibold ml-1">({p.reviews})</span>
           </div>
         </div>
 
         {/* Price & Cart button row */}
-        <div className="flex items-center justify-between gap-1 pt-1">
-          <div>
-            <span className="text-xs sm:text-sm font-bold text-brand-text block">৳{price}</span>
+        <div className="flex items-center justify-between gap-1 pt-1 border-t border-brand-border/70">
+          <div className="pt-1.5">
+            <span className="text-sm sm:text-base font-bold text-brand-secondary block">৳{price}</span>
             {p.sale_price && (
               <span className="text-[10px] text-brand-muted line-through block mt-0.5">৳{p.price}</span>
             )}
@@ -135,7 +182,7 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
           {/* Circular Shopping Cart Button */}
           <Link
             href={`/${locale}/p/${p.id}`}
-            className="h-8.5 w-8.5 rounded-full bg-brand-primary text-white hover:bg-brand-primary-alt shadow-sm flex items-center justify-center hover:-translate-y-0.5 transition-transform flex-shrink-0"
+            className="h-9 w-9 rounded-full bg-brand-primary text-white hover:bg-brand-primary-alt shadow-sm flex items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-all flex-shrink-0 mt-1.5"
           >
             <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
           </Link>
@@ -197,27 +244,24 @@ export default function HomePage() {
           4. FLASH DEALS WITH COUNTDOWN TIMER
       ══════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
-              <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
-            </h2>
-
-            {/* Countdown timer widget */}
-            <div className="flex items-center gap-1.5 bg-[#14201D] px-2.5 py-1 rounded-full text-[10px] font-bold text-[#C6A15B] tracking-wide">
-              <Timer className="h-3 w-3" />
-              <span>02 : 45 : 30</span>
+        <div className="rounded-2xl border border-brand-border bg-gradient-to-br from-brand-surface to-white p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
+                <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
+              </h2>
+              <FlashCountdown locale={locale} />
             </div>
+
+            <Link href={`/${locale}/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-[#C6A15B] transition-colors uppercase tracking-wide self-start sm:self-auto">
+              {locale === 'bn' ? 'সব দেখুন' : 'View all'}
+            </Link>
           </div>
 
-          <Link href={`/${locale}/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-[#C6A15B] transition-colors uppercase tracking-wide">
-            {locale === 'bn' ? 'সব দেখুন' : 'View all'}
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {PRODUCTS.slice(0, 3).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            {PRODUCTS.slice(0, 3).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
+          </div>
         </div>
       </section>
 
