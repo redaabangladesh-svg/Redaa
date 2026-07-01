@@ -162,12 +162,11 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
             <Link href={`/${locale}/p/${p.id}`}>{name}</Link>
           </h3>
 
-          {/* Star rating info */}
+          {/* Star rating */}
           <div className="flex items-center gap-0.5 text-[#C6A15B] mt-1.5">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className={`h-2.5 w-2.5 ${i < Math.round(p.rating) ? 'fill-current' : 'fill-none text-brand-border'}`} strokeWidth={1.5} />
             ))}
-            <span className="text-[9px] text-brand-muted font-semibold ml-1">({p.reviews})</span>
           </div>
 
           {/* Available sizes */}
