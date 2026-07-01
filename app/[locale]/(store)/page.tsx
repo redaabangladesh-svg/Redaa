@@ -102,13 +102,13 @@ function FlashCountdown({ locale }: { locale: string }) {
     <div className="flex items-center gap-1">
       {units.map((u, i) => (
         <div key={i} className="flex items-center gap-1">
-          <div className="flex flex-col items-center bg-[#14201D] rounded-md px-2 py-1 min-w-[34px]">
-            <span className="text-xs font-bold text-[#C6A15B] font-mono leading-none tabular-nums">{u.value}</span>
-            <span className="text-[6.5px] font-semibold text-[#C6A15B]/60 uppercase tracking-wider mt-0.5">
+          <div className="flex flex-col items-center min-w-[30px]">
+            <span className="text-xs font-bold text-brand-secondary font-mono leading-none tabular-nums">{u.value}</span>
+            <span className="text-[6.5px] font-semibold text-brand-muted uppercase tracking-wider mt-0.5">
               {locale === 'bn' ? u.label_bn : u.label_en}
             </span>
           </div>
-          {i < units.length - 1 && <span className="text-[#C6A15B] font-bold text-xs">:</span>}
+          {i < units.length - 1 && <span className="text-brand-muted font-bold text-xs">:</span>}
         </div>
       ))}
     </div>
@@ -244,24 +244,22 @@ export default function HomePage() {
           4. FLASH DEALS WITH COUNTDOWN TIMER
       ══════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="rounded-2xl border border-brand-border bg-gradient-to-br from-brand-surface to-white p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
-                <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
-              </h2>
-              <FlashCountdown locale={locale} />
-            </div>
-
-            <Link href={`/${locale}/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-brand-secondary transition-colors uppercase tracking-wide self-start sm:self-auto">
-              {locale === 'bn' ? 'সব দেখুন' : 'View all'}
-            </Link>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
+              <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
+            </h2>
+            <FlashCountdown locale={locale} />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-            {PRODUCTS.slice(0, 3).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
-          </div>
+          <Link href={`/${locale}/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-brand-secondary transition-colors uppercase tracking-wide self-start sm:self-auto">
+            {locale === 'bn' ? 'সব দেখুন' : 'View all'}
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+          {PRODUCTS.slice(0, 3).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
         </div>
       </section>
 
