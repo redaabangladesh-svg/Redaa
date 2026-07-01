@@ -56,8 +56,8 @@ function HeroSlider({ locale }: { locale: string }) {
           key={i}
           src={slide.image}
           alt={locale === 'bn' ? slide.alt_bn : slide.alt_en}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-800"
-          style={{ opacity: active === i ? 1 : 0 }}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ opacity: active === i ? 1 : 0, transition: 'opacity 900ms ease-in-out' }}
         />
       ))}
 
