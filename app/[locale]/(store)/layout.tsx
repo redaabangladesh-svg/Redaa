@@ -1,6 +1,7 @@
 import Navbar from '@/components/store/Navbar';
 import FooterNav from '@/components/store/FooterNav';
 import ExitIntentPopup from '@/components/store/ExitIntentPopup';
+import CartDrawer from '@/components/store/CartDrawer';
 
 export default function StoreLayout({
   children,
@@ -15,6 +16,7 @@ export default function StoreLayout({
       </main>
       <FooterNav />
       <ExitIntentPopup />
+      <CartDrawer />
     </>
   );
 }

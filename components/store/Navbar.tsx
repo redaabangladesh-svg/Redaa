@@ -1,28 +1,34 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Heart, Menu, X, Home, LayoutGrid, ShoppingCart, Package, User } from 'lucide-react';
+import { Heart, Menu, X, Search, Crown, Flower2, Sprout, Frame } from 'lucide-react';
 import Link from 'next/link';
-import { useCart } from '@/lib/cart';
-import CartDrawer from '@/components/store/CartDrawer';
 import { useState } from 'react';
 
 export default function Navbar() {
   const locale = useLocale();
   const pathname = usePathname();
-  const { setIsCartOpen } = useCart();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [search, setSearch] = useState('');
 
   const currentLocale = pathname.split('/')[1] === 'en' ? 'en' : 'bn';
 
-  const menuItems = [
-    { en: 'Home',      bn: 'হোম',        icon: Home,         href: `/${currentLocale}` },
-    { en: 'Shop',      bn: 'শপ',         icon: LayoutGrid,   href: `/${currentLocale}/shop` },
-    { en: 'Wishlist',  bn: 'উইশলিস্ট',    icon: Heart,        href: `/${currentLocale}/shop` },
-    { en: 'Orders',    bn: 'অর্ডারসমূহ',  icon: Package,      href: `/${currentLocale}/account` },
-    { en: 'Account',   bn: 'প্রোফাইল',     icon: User,         href: `/${currentLocale}/account` },
+  const categories = [
+    { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: Crown },
+    { en: 'Flower Tub',     bn: 'ফ্লাওয়ার টাব',  icon: Flower2 },
+    { en: 'Tree Plant',     bn: 'ট্রি প্ল্যান্ট', icon: Sprout },
+    { en: 'Wall Stand',     bn: 'ওয়াল স্ট্যান্ড', icon: Frame },
   ];
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/${currentLocale}/shop?q=${encodeURIComponent(search.trim())}`);
+      setMenuOpen(false);
+    }
+  };
 
   return (
     <>
@@ -72,35 +78,49 @@ export default function Navbar() {
 
         </div>
 
-        {/* Dropdown Navigation Menu */}
+        {/* Dropdown Menu: Search first, then Categories */}
         {menuOpen && (
-          <div className="border-t border-brand-border bg-white px-4 py-4 space-y-1 shadow-lg absolute w-full left-0 z-30">
-            {menuItems.map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold text-brand-text hover:bg-brand-surface hover:text-brand-primary transition-colors"
-                >
-                  <Icon className="h-4.5 w-4.5 text-[#C6A15B]" strokeWidth={1.75} />
-                  <span>{locale === 'bn' ? item.bn : item.en}</span>
-                </Link>
-              );
-            })}
-            <button
-              onClick={() => { setIsCartOpen(true); setMenuOpen(false); }}
-              className="w-full flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold text-brand-text hover:bg-brand-surface hover:text-brand-primary transition-colors"
-            >
-              <ShoppingCart className="h-4.5 w-4.5 text-[#C6A15B]" strokeWidth={1.75} />
-              <span>{locale === 'bn' ? 'কার্ট' : 'Cart'}</span>
-            </button>
+          <div className="border-t border-brand-border bg-white px-4 py-4 space-y-4 shadow-lg absolute w-full left-0 z-30">
+            {/* Search */}
+            <form onSubmit={handleSearch} className="flex items-center rounded-full bg-brand-surface border border-brand-border overflow-hidden focus-within:border-[#C6A15B] focus-within:ring-1 focus-within:ring-[#C6A15B]/40 transition-all duration-200">
+              <div className="pl-4 text-brand-muted">
+                <Search className="h-4 w-4" strokeWidth={1.75} />
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={locale === 'bn' ? 'পণ্য, ক্যাটাগরি বা ব্র্যান্ড খুঁজুন...' : 'Search for products, categories...'}
+                className="flex-1 px-3 py-2.5 text-xs sm:text-sm text-brand-text bg-transparent outline-none placeholder:text-brand-muted/70"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2.5 text-[11px] font-semibold tracking-wide uppercase text-brand-primary hover:text-brand-primary-alt transition-colors"
+              >
+                {locale === 'bn' ? 'খুঁজুন' : 'Search'}
+              </button>
+            </form>
+
+            {/* Categories */}
+            <div className="space-y-1">
+              {categories.map((cat, i) => {
+                const Icon = cat.icon;
+                return (
+                  <Link
+                    key={i}
+                    href={`/${currentLocale}/shop`}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold text-brand-text hover:bg-brand-surface hover:text-brand-primary transition-colors"
+                  >
+                    <Icon className="h-4.5 w-4.5 text-[#C6A15B]" strokeWidth={1.75} />
+                    <span>{locale === 'bn' ? cat.bn : cat.en}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
       </header>
-
-      <CartDrawer />
     </>
   );
 }
