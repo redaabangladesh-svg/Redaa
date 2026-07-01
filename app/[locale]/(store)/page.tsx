@@ -22,12 +22,12 @@ const CAT_ICONS = [
 
 /* ── PRODUCTS ── */
 const PRODUCTS = [
-  { id:'1', name_en:'Premium Metal Flower Hanger', name_bn:'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার', price:1250, sale_price:990,  image:'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:24, discount:'-21%' },
-  { id:'2', name_en:'Pastel Tulip Bouquet',        name_bn:'পেস্টেল টিউলিপ তোড়া',               price:850,  sale_price:null,  image:'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=500', rating:4.9, reviews:18, discount:null },
-  { id:'3', name_en:'Vintage Wooden Wall Frame',   name_bn:'ভিন্টেজ কাঠের ওয়াল ফ্রেম',          price:1500, sale_price:1200,  image:'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=500', rating:4.7, reviews:32, discount:'-20%' },
-  { id:'4', name_en:'Rose Gold Candle Set',        name_bn:'রোজ গোল্ড ক্যান্ডেল সেট',           price:680,  sale_price:540,   image:'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=500', rating:5.0, reviews:9,  discount:'-21%' },
-  { id:'5', name_en:'Ceramic Flower Vase',         name_bn:'সিরামিক ফ্লাওয়ার ভেজ',              price:920,  sale_price:750,   image:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&q=80&w=500', rating:4.6, reviews:14, discount:'-18%' },
-  { id:'6', name_en:'Macrame Wall Hanging',        name_bn:'ম্যাক্রামে ওয়াল হ্যাঙ্গিং',         price:1100, sale_price:null,  image:'https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:21, discount:null },
+  { id:'1', name_en:'Premium Metal Flower Hanger', name_bn:'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার', price:1250, sale_price:990,  image:'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:24, discount:'-21%', sizes:['S','M','L'] },
+  { id:'2', name_en:'Pastel Tulip Bouquet',        name_bn:'পেস্টেল টিউলিপ তোড়া',               price:850,  sale_price:null,  image:'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=500', rating:4.9, reviews:18, discount:null,   sizes:['Standard'] },
+  { id:'3', name_en:'Vintage Wooden Wall Frame',   name_bn:'ভিন্টেজ কাঠের ওয়াল ফ্রেম',          price:1500, sale_price:1200,  image:'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=500', rating:4.7, reviews:32, discount:'-20%', sizes:['S','M','L'] },
+  { id:'4', name_en:'Rose Gold Candle Set',        name_bn:'রোজ গোল্ড ক্যান্ডেল সেট',           price:680,  sale_price:540,   image:'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=500', rating:5.0, reviews:9,  discount:'-21%', sizes:['One Size'] },
+  { id:'5', name_en:'Ceramic Flower Vase',         name_bn:'সিরামিক ফ্লাওয়ার ভেজ',              price:920,  sale_price:750,   image:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&q=80&w=500', rating:4.6, reviews:14, discount:'-18%', sizes:['S','M'] },
+  { id:'6', name_en:'Macrame Wall Hanging',        name_bn:'ম্যাক্রামে ওয়াল হ্যাঙ্গিং',         price:1100, sale_price:null,  image:'https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:21, discount:null,   sizes:['S','M','L'] },
 ];
 
 /* ── HERO SLIDER ────────────────────────────────────── */
@@ -118,6 +118,7 @@ function FlashCountdown({ locale }: { locale: string }) {
 /* ── PRODUCT CARD ───────────────────────────────────── */
 function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
   const [liked, setLiked] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(p.sizes[0]);
   const name = locale === 'bn' ? p.name_bn : p.name_en;
   const price = p.sale_price ?? p.price;
 
@@ -131,7 +132,7 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
 
         {/* Discount Ribbon (Top-left corner) */}
         {p.discount && (
-          <span className="absolute top-2.5 left-2.5 bg-brand-secondary text-white text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
+          <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
             {p.discount}
           </span>
         )}
@@ -139,15 +140,15 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
         {/* Wishlist Heart Icon (Top-right corner) */}
         <button
           onClick={() => setLiked(l => !l)}
-          className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-white/95 shadow-sm border border-brand-border hover:scale-110 hover:border-brand-secondary/40 transition-all"
+          className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center rounded-full bg-white/95 shadow-sm border border-brand-border hover:scale-110 hover:border-brand-secondary/50 hover:shadow-md transition-all duration-200"
         >
-          <Heart className={`h-3.5 w-3.5 ${liked ? 'fill-brand-secondary text-brand-secondary' : 'text-brand-muted'}`} strokeWidth={1.75} />
+          <Heart className={`h-3.5 w-3.5 transition-colors ${liked ? 'fill-brand-secondary text-brand-secondary' : 'text-brand-muted'}`} strokeWidth={1.75} />
         </button>
 
         {/* Quick-add overlay (appears on hover) */}
         <Link
           href={`/${locale}/p/${p.id}`}
-          className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-[#14201D]/90 backdrop-blur-sm text-[#C6A15B] text-[10px] font-bold uppercase tracking-widest py-2 flex items-center justify-center gap-1.5 transition-transform duration-300"
+          className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-gradient-to-r from-[#14201D] via-[#1B2925] to-[#14201D] text-[#C6A15B] text-[10px] font-bold uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5 transition-transform duration-300 ease-out"
         >
           <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
           <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
@@ -168,10 +169,27 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
             ))}
             <span className="text-[9px] text-brand-muted font-semibold ml-1">({p.reviews})</span>
           </div>
+
+          {/* Available sizes */}
+          <div className="flex items-center flex-wrap gap-1 mt-2">
+            {p.sizes.map((size) => (
+              <button
+                key={size}
+                onClick={(e) => { e.preventDefault(); setSelectedSize(size); }}
+                className={`px-2 py-0.5 rounded-md text-[9px] font-bold border transition-all duration-150 ${
+                  selectedSize === size
+                    ? 'bg-brand-primary border-brand-primary text-white'
+                    : 'bg-white border-brand-border text-brand-muted hover:border-brand-primary/40'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Price & Cart button row */}
-        <div className="flex items-center justify-between gap-1 pt-1 border-t border-brand-border/70">
+        <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-brand-border/70">
           <div className="pt-1.5">
             <span className="text-sm sm:text-base font-bold text-brand-secondary block">৳{price}</span>
             {p.sale_price && (
@@ -182,7 +200,7 @@ function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
           {/* Circular Shopping Cart Button */}
           <Link
             href={`/${locale}/p/${p.id}`}
-            className="h-9 w-9 rounded-full bg-brand-primary text-white hover:bg-brand-primary-alt shadow-sm flex items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-all flex-shrink-0 mt-1.5"
+            className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white shadow-sm flex items-center justify-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-primary/30 hover:scale-105 transition-all duration-200 flex-shrink-0 mt-1.5"
           >
             <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
           </Link>
