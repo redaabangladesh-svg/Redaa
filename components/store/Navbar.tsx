@@ -16,10 +16,10 @@ export default function Navbar() {
   const currentLocale = pathname.split('/')[1] === 'en' ? 'en' : 'bn';
 
   const categories = [
-    { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: Crown },
-    { en: 'Flower Tub',     bn: 'ফ্লাওয়ার টাব',  icon: Flower2 },
-    { en: 'Tree Plant',     bn: 'ট্রি প্ল্যান্ট', icon: Sprout },
-    { en: 'Wall Stand',     bn: 'ওয়াল স্ট্যান্ড', icon: Frame },
+    { en: 'All Categories',      bn: 'সব ক্যাটাগরি',            icon: Crown },
+    { en: 'Premium Flower Tub',  bn: 'প্রিমিয়াম ফ্লাওয়ার টাব',  icon: Flower2 },
+    { en: 'Premium Tree Plant',  bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', icon: Sprout },
+    { en: 'Premium Wall Stand',  bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', icon: Frame },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
