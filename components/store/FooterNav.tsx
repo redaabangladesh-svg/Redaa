@@ -15,11 +15,11 @@ export default function FooterNav() {
 
   /* ── Mobile bottom nav items (Matches reference UI exactly) ── */
   const mobileNav = [
-    { label_en: 'Home',       label_bn: 'হোম',        icon: Home,         href: `/${currentLocale}`, isCenter: false },
-    { label_en: 'Categories', label_bn: 'ক্যাটাগরি',   icon: LayoutGrid,   href: `/${currentLocale}/shop`, isCenter: false },
-    { label_en: 'Deals',      label_bn: 'ডিলস',       icon: ShoppingBag,  href: `/${currentLocale}/shop`, isCenter: true },
-    { label_en: 'Orders',     label_bn: 'অর্ডারসমূহ',  icon: Package,      href: `/${currentLocale}/admin/orders`, isCenter: false },
-    { label_en: 'Account',    label_bn: 'প্রোফাইল',     icon: User,         href: `/${currentLocale}/account`, isCenter: false },
+    { label_en: 'Home',       label_bn: 'হোম',        icon: Home,         href: `/${currentLocale}` },
+    { label_en: 'Shop',       label_bn: 'শপ',         icon: LayoutGrid,   href: `/${currentLocale}/shop` },
+    { label_en: 'Deals',      label_bn: 'ডিলস',       icon: ShoppingBag,  href: `/${currentLocale}/shop` },
+    { label_en: 'Orders',     label_bn: 'অর্ডারসমূহ',  icon: Package,      href: `/${currentLocale}/admin/orders` },
+    { label_en: 'Account',    label_bn: 'প্রোফাইল',     icon: User,         href: `/${currentLocale}/account` },
   ];
 
   return (
@@ -158,30 +158,14 @@ export default function FooterNav() {
       </footer>
 
       {/* ════════════════════════════════════════════
-          MOBILE BOTTOM NAV BAR (Floating center layout)
+          MOBILE BOTTOM NAV BAR (Flat card layout)
       ════════════════════════════════════════════ */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-brand-border shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center justify-around px-2 h-16 relative">
+        <div className="flex items-center justify-around px-2 h-16">
           {mobileNav.map((item, i) => {
             const Icon = item.icon;
             const label = locale === 'bn' ? item.label_bn : item.label_en;
             const isActive = pathname === item.href;
-
-            if (item.isCenter) {
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className="relative flex flex-col items-center justify-center -mt-6 z-10"
-                >
-                  {/* Floating Circular Center Button */}
-                  <div className="h-13 w-13 rounded-full bg-[#14201D] hover:bg-[#0B5D5C] shadow-lg shadow-[#14201D]/30 flex items-center justify-center text-[#C6A15B] border-4 border-white transition-transform duration-200 hover:scale-105 active:scale-95">
-                    <Icon className="h-6 w-6 stroke-[1.75]" />
-                  </div>
-                  <span className="text-[9px] font-bold text-brand-text mt-1">{label}</span>
-                </Link>
-              );
-            }
 
             return (
               <Link

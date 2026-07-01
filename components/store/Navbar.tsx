@@ -27,19 +27,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── TOP ANNOUNCEMENT BAR ── */}
-      <div className="w-full bg-[#14201D] text-[#F2EDE3] py-2 px-4 text-[10.5px] font-medium tracking-wide flex items-center justify-between">
-        <span className="flex-1 text-center sm:text-left">
-          <span className="text-[#C6A15B]">—</span>{' '}
-          {locale === 'bn' ? 'ঢাকায় ৳৫০০+ অর্ডারে ফ্রি ডেলিভারি' : 'Complimentary delivery in Dhaka on orders above ৳500'}
-        </span>
-        <div className="hidden sm:flex items-center gap-4 text-[#F2EDE3]/60 flex-shrink-0">
-          <a href="#" className="hover:text-[#C6A15B] transition-colors">{locale === 'bn' ? 'সাহায্য ও সহায়তা' : 'Help & Support'}</a>
-          <span className="text-[#F2EDE3]/25">|</span>
-          <a href={`/${currentLocale}/admin/orders`} className="hover:text-[#C6A15B] transition-colors">{locale === 'bn' ? 'অর্ডার ট্র্যাক করুন' : 'Track Order'}</a>
-        </div>
-      </div>
-
       {/* ── MAIN HEADER ── */}
       <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-sm border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
