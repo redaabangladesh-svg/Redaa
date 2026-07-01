@@ -11,9 +11,9 @@
   --color-surface:   #FAF7F1;  /* Warm ivory surface */
   --color-primary:   #0B5D5C;  /* Deep muted teal — primary buttons & headers */
   --color-primary-alt: #0F7573; /* Slightly lifted teal — hover state */
-  --color-secondary: #7D1F3D;  /* Deep wine/berry — secondary accents */
-  --color-secondary-dark: #5C1730; /* Darker wine — pressed state */
-  --color-secondary-light: #9C2E4E; /* Lifted wine — hover state */
+  --color-secondary: #E6027C;  /* Bright pink/magenta (client-approved) — secondary accents */
+  --color-secondary-dark: #B80260; /* Darker pink — pressed state */
+  --color-secondary-light: #FF3D9A; /* Lighter pink — hover state */
   --color-accent:    #C6A15B;  /* Warm gold — hairline accents, premium micro-highlights */
   --color-ink:       #14201D;  /* Near-black ink for dark sections (footer, hero) */
   --color-text:      #16130F;  /* Rich warm black for maximum readability */

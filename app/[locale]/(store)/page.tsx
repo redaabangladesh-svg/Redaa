@@ -68,7 +68,7 @@ function HeroSlider({ locale }: { locale: string }) {
             className="h-1 rounded-full transition-all duration-300"
             style={{
               width: active === i ? 22 : 6,
-              background: active === i ? '#7D1F3D' : 'rgba(255,255,255,0.6)',
+              background: active === i ? '#E6027C' : 'rgba(255,255,255,0.6)',
             }}
           />
         ))}
