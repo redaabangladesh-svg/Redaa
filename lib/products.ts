@@ -58,8 +58,8 @@ export const PRODUCTS: HomeProduct[] = [
   },
   { 
     id: '5', 
-    name_en: 'Ceramic Flower Vase', 
-    name_bn: 'সিরামিক ফ্লাওয়ার ভেজ', 
+    name_en: 'Premium Orchid in Ceramic Pot', 
+    name_bn: 'সিরামিক টবে প্রিমিয়াম অর্কিড – ঘরের আভিজাত্য!', 
     price: 920, 
     sale_price: 750, 
     image: '/47-3.jpg', 
