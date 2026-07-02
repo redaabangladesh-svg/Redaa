@@ -1,9 +1,11 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { ArrowRight, Heart, Crown, Flower2, Sprout, Frame, Sparkles, ShoppingCart, Percent, Gift } from 'lucide-react';
+import { ArrowRight, Crown, Flower2, Sprout, Frame, Sparkles, Percent, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { PRODUCTS } from '@/lib/products';
+import ProductCard from '@/components/store/ProductCard';
 
 /* ── BANNER SLIDES (image-only — all copy/CTA lives inside the banner artwork) ── */
 const SLIDES = [
@@ -20,16 +22,6 @@ const CAT_ICONS = [
   { en: 'Flower Tub',  bn: 'ফ্লাওয়ার টাব',  icon: Flower2, bg: 'bg-brand-surface text-brand-secondary' },
   { en: 'Tree Plant',  bn: 'ট্রি প্ল্যান্ট', icon: Sprout, bg: 'bg-brand-surface text-brand-primary' },
   { en: 'Wall Stand',  bn: 'ওয়াল স্ট্যান্ড', icon: Frame, bg: 'bg-brand-surface text-[#8A6A2E]' },
-];
-
-/* ── PRODUCTS ── */
-const PRODUCTS = [
-  { id:'1', name_en:'Premium Metal Flower Hanger', name_bn:'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার', price:1250, sale_price:990,  image:'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:24, discount:'-21%', sizes:['12"','18"','24"'], stock:8 },
-  { id:'2', name_en:'Pastel Tulip Bouquet',        name_bn:'পেস্টেল টিউলিপ তোড়া',               price:850,  sale_price:null,  image:'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=500', rating:4.9, reviews:18, discount:null,   sizes:['14"'], stock:20 },
-  { id:'3', name_en:'Vintage Wooden Wall Frame',   name_bn:'ভিন্টেজ কাঠের ওয়াল ফ্রেম',          price:1500, sale_price:1200,  image:'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=500', rating:4.7, reviews:32, discount:'-20%', sizes:['12"','16"','20"'], stock:4 },
-  { id:'4', name_en:'Rose Gold Candle Set',        name_bn:'রোজ গোল্ড ক্যান্ডেল সেট',           price:680,  sale_price:540,   image:'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=500', rating:5.0, reviews:9,  discount:'-21%', sizes:['6"'], stock:12 },
-  { id:'5', name_en:'Ceramic Flower Vase',         name_bn:'সিরামিক ফ্লাওয়ার ভেজ',              price:920,  sale_price:750,   image:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&q=80&w=500', rating:4.6, reviews:14, discount:'-18%', sizes:['8"','10"'], stock:3 },
-  { id:'6', name_en:'Macrame Wall Hanging',        name_bn:'ম্যাক্রামে ওয়াল হ্যাঙ্গিং',         price:1100, sale_price:null,  image:'https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?auto=format&fit=crop&q=80&w=500', rating:4.8, reviews:21, discount:null,   sizes:['24"','30"','36"'], stock:0 },
 ];
 
 /* ── HERO SLIDER ────────────────────────────────────── */
@@ -113,99 +105,6 @@ function FlashCountdown({ locale }: { locale: string }) {
           {i < units.length - 1 && <span className="text-brand-muted font-bold text-xs">:</span>}
         </div>
       ))}
-    </div>
-  );
-}
-
-/* ── PRODUCT CARD ───────────────────────────────────── */
-function ProductCard({ p, locale }: { p: typeof PRODUCTS[0]; locale: string }) {
-  const [liked, setLiked] = useState(false);
-  const name = locale === 'bn' ? p.name_bn : p.name_en;
-  const price = p.sale_price ?? p.price;
-
-  return (
-    <div className="group bg-white rounded-2xl border border-brand-border [@media(hover:hover)]:hover:border-[#C6A15B]/50 overflow-hidden shadow-sm [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
-      {/* Product Image Wrapper */}
-      <div className="relative aspect-square bg-brand-surface overflow-hidden">
-        <Link href={`/${locale}/product/${p.id}`} className="block h-full w-full">
-          <img src={p.image} alt={name} className="h-full w-full object-cover [@media(hover:hover)]:group-hover:scale-110 transition-transform duration-500 ease-out" />
-        </Link>
-
-        {/* Discount Ribbon (Top-left corner) */}
-        {p.discount && (
-          <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
-            {p.discount}
-          </span>
-        )}
-
-        {/* Wishlist Heart Icon (Top-right corner) */}
-        <button
-          onClick={() => setLiked(l => !l)}
-          className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center rounded-full bg-white/95 shadow-sm border border-brand-border [@media(hover:hover)]:hover:scale-110 [@media(hover:hover)]:hover:border-brand-secondary/50 [@media(hover:hover)]:hover:shadow-md transition-all duration-200"
-        >
-          <Heart className={`h-3.5 w-3.5 transition-colors ${liked ? 'fill-brand-secondary text-brand-secondary' : 'text-brand-muted'}`} strokeWidth={1.75} />
-        </button>
-
-        {/* Quick-add overlay (appears on hover) */}
-        <Link
-          href={`/${locale}/product/${p.id}`}
-          className="absolute inset-x-0 bottom-0 translate-y-full [@media(hover:hover)]:group-hover:translate-y-0 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[10px] font-bold uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5 transition-transform duration-300 ease-out"
-        >
-          <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
-          <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
-        </Link>
-      </div>
-
-      {/* Product Details Section */}
-      <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-        <div className="space-y-1.5">
-          <h3 className="text-xs sm:text-sm font-semibold text-brand-text leading-snug line-clamp-2 [@media(hover:hover)]:hover:text-brand-primary transition-colors">
-            <Link href={`/${locale}/product/${p.id}`}>{name}</Link>
-          </h3>
-
-          {/* Price + Stock */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm sm:text-base font-bold text-brand-secondary">৳{price}</span>
-            {p.sale_price && (
-              <span className="text-[10px] text-brand-muted line-through">৳{p.price}</span>
-            )}
-            <span className="text-brand-border">|</span>
-            {p.stock === 0 ? (
-              <span className="text-[10px] font-bold text-brand-muted">
-                {locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}
-              </span>
-            ) : p.stock <= 5 ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-brand-primary whitespace-nowrap">
-                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary flex-shrink-0" />
-                {locale === 'bn' ? `${p.stock}টি বাকি` : `${p.stock} left`}
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold text-brand-primary">
-                {locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Add to Cart Button (full-width, with Bangla label) — disabled when out of stock */}
-        {p.stock === 0 ? (
-          <button
-            disabled
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-brand-surface text-brand-muted text-[11px] font-bold cursor-not-allowed"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
-            <span>{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
-          </button>
-        ) : (
-          <Link
-            href={`/${locale}/product/${p.id}`}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white text-[11px] font-bold shadow-sm [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-brand-primary/30 [@media(hover:hover)]:hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
-            <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
-          </Link>
-        )}
-      </div>
     </div>
   );
 }

@@ -189,7 +189,7 @@ export default function FooterNav() {
                 >
                   <Icon className="h-5 w-5 stroke-[1.6]" />
                   {cartCount > 0 && (
-                    <span className="absolute top-0 right-1/2 translate-x-3 bg-[#C6A15B] text-[#14201D] text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center">
+                    <span className="absolute top-0 right-1/2 translate-x-3 bg-brand-secondary text-white text-[8px] font-black h-3.5 w-3.5 rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}

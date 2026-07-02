@@ -27,9 +27,11 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "sans-serif"],
+        // Bangla fallback included so Bengali glyphs (unsupported by Inter/Playfair)
+        // render in Hind Siliguri instead of a random system font.
+        sans: ["var(--font-sans)", "var(--font-bangla)", "sans-serif"],
         bangla: ["var(--font-bangla)", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
+        serif: ["var(--font-serif)", "var(--font-bangla)", "Georgia", "serif"],
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',

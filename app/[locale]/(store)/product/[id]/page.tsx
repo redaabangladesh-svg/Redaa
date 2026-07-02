@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
 import { ShoppingCart, Zap, ArrowLeft, Plus, Minus, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { PRODUCTS } from '@/lib/products';
+import ProductCard from '@/components/store/ProductCard';
 
 interface SizeOption { en: string; bn: string; price: number; sale_price: number | null; }
 
@@ -84,7 +86,6 @@ const mockProducts: Record<string, Product> = {
   },
 };
 
-const ALL_PRODUCTS = Object.values(mockProducts);
 const WHATSAPP_NUMBER = '8801700000000';
 
 export default function ProductViewPage({ params }: { params: { id: string } }) {
@@ -145,7 +146,7 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     : `Hi, I'd like to order "${nameLabel}" (${selectedSize?.en ?? ''}). Price: ৳${activePrice}`;
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
 
-  const relatedProducts = ALL_PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
+  const otherProducts = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
 
   return (
     <div className="space-y-10 pb-16 px-4 sm:px-0">
@@ -191,13 +192,14 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             <p className="text-xs md:text-sm text-brand-muted leading-relaxed">{shortDesc}</p>
           </div>
 
-          {/* Price + Stock + Quick Add */}
-          <div className="flex items-center gap-2 p-4 rounded-xl bg-brand-surface border border-brand-border flex-wrap">
-            <span className="text-2xl font-bold text-brand-secondary">৳{activePrice}</span>
-            {salePrice !== null && (
-              <span className="text-sm text-brand-muted line-through">৳{price}</span>
-            )}
-            <span className="text-brand-border">|</span>
+          {/* Price + Stock */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-secondary/5 to-brand-surface border border-brand-secondary/15 space-y-1.5">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-3xl font-bold text-brand-secondary">৳{activePrice}</span>
+              {salePrice !== null && (
+                <span className="text-sm text-brand-muted line-through">৳{price}</span>
+              )}
+            </div>
             {stockCount === 0 ? (
               <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
             ) : stockCount <= 5 ? (
@@ -208,15 +210,6 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             ) : (
               <span className="text-xs font-bold text-brand-primary">{locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}</span>
             )}
-
-            <button
-              onClick={handleAddToCart}
-              disabled={stockCount === 0}
-              title={locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
-              className="ml-auto h-9 w-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white shadow-sm flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
-            </button>
           </div>
 
           {/* Size selector */}
@@ -241,9 +234,8 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             </div>
           )}
 
-          {/* Quantity */}
+          {/* Quantity + Add to Cart */}
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'পরিমাণ:' : 'Quantity:'}</span>
             <div className="flex items-center justify-between rounded-lg border border-brand-border bg-white p-2 w-28 flex-shrink-0">
               <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="p-2 text-brand-muted hover:text-brand-primary transition-colors">
                 <Minus className="h-4 w-4" />
@@ -253,6 +245,15 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
                 <Plus className="h-4 w-4" />
               </button>
             </div>
+
+            <button
+              onClick={handleAddToCart}
+              disabled={stockCount === 0}
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
+              <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+            </button>
           </div>
 
           {/* Two CTA buttons: Direct Order + WhatsApp */}
@@ -311,31 +312,16 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
         <p className="text-xs md:text-sm text-brand-muted leading-relaxed">{fullDesc}</p>
       </div>
 
-      {/* Suggested Products */}
-      {relatedProducts.length > 0 && (
+      {/* Suggested Products (same card style as homepage) */}
+      {otherProducts.length > 0 && (
         <div className="space-y-4 pt-6 border-t border-brand-border">
           <h3 className="font-serif font-semibold text-base text-brand-text">
-            {locale === 'bn' ? 'সম্পর্কিত প্রোডাক্ট' : 'Suggested Products'}
+            {locale === 'bn' ? 'আরও প্রোডাক্ট' : 'Other Products'}
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {relatedProducts.map((rp) => {
-              const rpName = locale === 'bn' ? rp.name_bn : rp.name_en;
-              return (
-                <Link
-                  key={rp.id}
-                  href={`/${locale}/product/${rp.id}`}
-                  className="group bg-white rounded-xl border border-brand-border overflow-hidden hover:border-[#C6A15B]/50 transition-colors"
-                >
-                  <div className="aspect-square bg-brand-surface overflow-hidden">
-                    <img src={rp.images[0]} alt={rpName} className="h-full w-full object-cover [@media(hover:hover)]:group-hover:scale-105 transition-transform duration-300" />
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-xs font-semibold text-brand-text line-clamp-2 leading-snug">{rpName}</p>
-                    <p className="text-sm font-bold text-brand-secondary mt-1">৳{rp.sale_price ?? rp.price}</p>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+            {otherProducts.map((p) => (
+              <ProductCard key={p.id} p={p} locale={locale} />
+            ))}
           </div>
         </div>
       )}

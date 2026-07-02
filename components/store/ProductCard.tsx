@@ -1,0 +1,98 @@
+'use client';
+
+import { Heart, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
+import type { HomeProduct } from '@/lib/products';
+
+export default function ProductCard({ p, locale }: { p: HomeProduct; locale: string }) {
+  const [liked, setLiked] = useState(false);
+  const name = locale === 'bn' ? p.name_bn : p.name_en;
+  const price = p.sale_price ?? p.price;
+
+  return (
+    <div className="group bg-white rounded-2xl border border-brand-border [@media(hover:hover)]:hover:border-[#C6A15B]/50 overflow-hidden shadow-sm [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+      {/* Product Image Wrapper */}
+      <div className="relative aspect-square bg-brand-surface overflow-hidden">
+        <Link href={`/${locale}/product/${p.id}`} className="block h-full w-full">
+          <img src={p.image} alt={name} className="h-full w-full object-cover [@media(hover:hover)]:group-hover:scale-110 transition-transform duration-500 ease-out" />
+        </Link>
+
+        {/* Discount Ribbon (Top-left corner) */}
+        {p.discount && (
+          <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[9px] font-bold px-2.5 py-1 rounded-full tracking-wide shadow-sm">
+            {p.discount}
+          </span>
+        )}
+
+        {/* Wishlist Heart Icon (Top-right corner) */}
+        <button
+          onClick={() => setLiked((l) => !l)}
+          className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center rounded-full bg-white/95 shadow-sm border border-brand-border [@media(hover:hover)]:hover:scale-110 [@media(hover:hover)]:hover:border-brand-secondary/50 [@media(hover:hover)]:hover:shadow-md transition-all duration-200"
+        >
+          <Heart className={`h-3.5 w-3.5 transition-colors ${liked ? 'fill-brand-secondary text-brand-secondary' : 'text-brand-muted'}`} strokeWidth={1.75} />
+        </button>
+
+        {/* Quick-add overlay (appears on hover) */}
+        <Link
+          href={`/${locale}/product/${p.id}`}
+          className="absolute inset-x-0 bottom-0 translate-y-full [@media(hover:hover)]:group-hover:translate-y-0 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[10px] font-bold uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5 transition-transform duration-300 ease-out"
+        >
+          <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+        </Link>
+      </div>
+
+      {/* Product Details Section */}
+      <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+        <div className="space-y-1.5">
+          <h3 className="text-xs sm:text-sm font-semibold text-brand-text leading-snug line-clamp-2 [@media(hover:hover)]:hover:text-brand-primary transition-colors">
+            <Link href={`/${locale}/product/${p.id}`}>{name}</Link>
+          </h3>
+
+          {/* Price + Stock */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm sm:text-base font-bold text-brand-secondary">৳{price}</span>
+            {p.sale_price && (
+              <span className="text-[10px] text-brand-muted line-through">৳{p.price}</span>
+            )}
+            <span className="text-brand-border">|</span>
+            {p.stock === 0 ? (
+              <span className="text-[10px] font-bold text-brand-muted">
+                {locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}
+              </span>
+            ) : p.stock <= 5 ? (
+              <span className="flex items-center gap-1 text-[10px] font-bold text-brand-primary whitespace-nowrap">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary flex-shrink-0" />
+                {locale === 'bn' ? `${p.stock}টি বাকি` : `${p.stock} left`}
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-brand-primary">
+                {locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Add to Cart Button (full-width, with Bangla label) — disabled when out of stock */}
+        {p.stock === 0 ? (
+          <button
+            disabled
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-brand-surface text-brand-muted text-[11px] font-bold cursor-not-allowed"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
+            <span>{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
+          </button>
+        ) : (
+          <Link
+            href={`/${locale}/product/${p.id}`}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white text-[11px] font-bold shadow-sm [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-brand-primary/30 [@media(hover:hover)]:hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
+            <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
