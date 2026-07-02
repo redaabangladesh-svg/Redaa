@@ -118,8 +118,8 @@ const mockProducts: Record<string, Product> = {
   },
   '8': {
     id: '8',
-    name_en: 'Pastel Rose Bouquet',
-    name_bn: 'পেস্টেল গোলাপ তোড়া',
+    name_en: 'Eye-catching Premium Orchid',
+    name_bn: 'নজরকাড়া প্রিমিয়াম অর্কিড, আকর্ষণীয় সিরামিক টব সহ!',
     price: 950,
     sale_price: 850,
     images: ['/55-3.jpg'],
