@@ -9,10 +9,7 @@ import ProductCard from '@/components/store/ProductCard';
 /* Shop catalog — shares the same card/shape as the homepage, with an
    added category field matching the site's real categories (Flower
    Tub / Tree Plant / Wall Stand, same as the homepage and footer). */
-const SHOP_PRODUCTS = PRODUCTS.map((p, i) => ({
-  ...p,
-  category: ['wall-stand', 'flower-tub', 'wall-stand', 'flower-tub', 'flower-tub', 'wall-stand'][i] as 'flower-tub' | 'tree-plant' | 'wall-stand',
-}));
+const SHOP_PRODUCTS = PRODUCTS;
 
 export default function ShopPage() {
   const locale = useLocale();

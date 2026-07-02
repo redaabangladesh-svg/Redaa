@@ -31,7 +31,7 @@ const mockProducts: Record<string, Product> = {
     name_bn: 'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার',
     price: 1250,
     sale_price: 990,
-    image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=600',
+    image: '/02.09.23.jpg',
     category: 'hangers',
     rating: 4.8,
     reviews: 24,
@@ -39,14 +39,13 @@ const mockProducts: Record<string, Product> = {
     desc_bn: 'আপনার দেয়ালের সৌন্দর্য বাড়াতে আমাদের হাতে তৈরি এই প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গারটি অনন্য। মরিচা-প্রতিরোধক পেইন্ট করা উচ্চ মানের লোহা দ্বারা তৈরি। দীর্ঘস্থায়ী এবং আধুনিক জ্যামিতিক নকশা।',
     colors: [
       { en: 'Matte Black', bn: 'ম্যাট ব্ল্যাক', hex: '#111827' },
-      { en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' },
-      { en: 'Rose Gold', bn: 'রোজ গোল্ড', hex: '#F43F5E' }
+      { en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' }
     ],
     sizes: [
       { en: 'Small (12")', bn: 'ছোট (১২ ইঞ্চি)' },
       { en: 'Medium (18")', bn: 'মাঝারি (১৮ ইঞ্চি)' }
     ],
-    stock: 2
+    stock: 8
   },
   '2': {
     id: '2',
@@ -54,7 +53,7 @@ const mockProducts: Record<string, Product> = {
     name_bn: 'হ্যান্ডক্রাফটেড পেস্টেল টিউলিপ তোড়া',
     price: 850,
     sale_price: null,
-    image: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&q=80&w=600',
+    image: '/37-5.jpg',
     category: 'flowers',
     rating: 4.9,
     reviews: 18,
@@ -62,10 +61,9 @@ const mockProducts: Record<string, Product> = {
     desc_bn: 'চমৎকারভাবে মোড়ানো হাতে তৈরি পেস্টেল কাগজের টিউলিপের তোড়া। ডাইনিং টেবিল, স্টাডি ডেস্ক বা বিশেষ অনুষ্ঠানে উপহার দেয়ার জন্য আদর্শ। এর সাথে রয়েছে দীর্ঘস্থায়ী র‍্যাপিং শিট।',
     colors: [
       { en: 'Pastel Pink', bn: 'পেস্টেল পিঙ্ক', hex: '#F472B6' },
-      { en: 'Soft Yellow', bn: 'সফট ইয়েলো', hex: '#FDE047' },
-      { en: 'Pure White', bn: 'হোয়াইট', hex: '#FFFFFF' }
+      { en: 'Soft Yellow', bn: 'সফট ইয়েলো', hex: '#FDE047' }
     ],
-    stock: 8
+    stock: 20
   },
   '3': {
     id: '3',
@@ -73,7 +71,7 @@ const mockProducts: Record<string, Product> = {
     name_bn: 'ভিন্টেজ কাঠের ওয়াল ফ্লাওয়ার ফ্রেম',
     price: 1500,
     sale_price: 1200,
-    image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=600',
+    image: '/38-7.jpg',
     category: 'frames',
     rating: 4.7,
     reviews: 32,
@@ -83,7 +81,142 @@ const mockProducts: Record<string, Product> = {
       { en: 'Rustic Oak', bn: 'রাস্টিক ওক', hex: '#78350F' },
       { en: 'Dark Mahogany', bn: 'ডার্ক মেহগনি', hex: '#451A03' }
     ],
+    stock: 4
+  },
+  '5': {
+    id: '5',
+    name_en: 'Ceramic Flower Vase',
+    name_bn: 'সিরামিক ফ্লাওয়ার ভেজ',
+    price: 920,
+    sale_price: 750,
+    image: '/47-3.jpg',
+    category: 'flowers',
+    rating: 4.6,
+    reviews: 14,
+    desc_en: 'Premium ceramic vase with minimal modern lines, ideal for showing off fresh or dry floral bouquets.',
+    desc_bn: 'আধুনিক ডিজাইনের মিনিমাল সিরামিক ফুলদানি, যা সতেজ বা শুকানো ফুলের তোড়া সাজিয়ে রাখার জন্য আদর্শ।',
+    colors: [{ en: 'Milky White', bn: 'মিল্কি হোয়াইট', hex: '#FFFFFF' }],
     stock: 3
+  },
+  '6': {
+    id: '6',
+    name_en: 'Macrame Wall Hanging',
+    name_bn: 'ম্যাক্রামে ওয়াল হ্যাঙ্গিং',
+    price: 1100,
+    sale_price: null,
+    image: '/49.jpg',
+    category: 'hangers',
+    rating: 4.8,
+    reviews: 21,
+    desc_en: 'Boho style macrame wall hanging handcrafted with 100% natural cotton cord on driftwood.',
+    desc_bn: '১০০% প্রাকৃতিক সুতি সুতা দিয়ে তৈরি বোহো স্টাইলের ম্যাক্রামে দেয়াল সজ্জা শোপিস।',
+    colors: [{ en: 'Off White', bn: 'অফ হোয়াইট', hex: '#F9F6F0' }],
+    stock: 5
+  },
+  '7': {
+    id: '7',
+    name_en: 'Premium Metal Flower Stand',
+    name_bn: 'প্রিমিয়াম মেটাল ফ্লাওয়ার স্ট্যান্ড',
+    price: 1550,
+    sale_price: 1390,
+    image: '/51-2.jpg',
+    category: 'hangers',
+    rating: 4.9,
+    reviews: 15,
+    desc_en: 'Double decker anti-rust metal plant stand for organizing multiple tubs.',
+    desc_bn: 'মরিচা-প্রতিরোধক মেটাল ডাবল ডেকার প্ল্যান্ট স্ট্যান্ড, যা একসাথে কয়েকটি টব রাখার জন্য চমৎকার।',
+    colors: [{ en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' }],
+    stock: 15
+  },
+  '8': {
+    id: '8',
+    name_en: 'Pastel Rose Bouquet',
+    name_bn: 'পেস্টেল গোলাপ তোড়া',
+    price: 950,
+    sale_price: 850,
+    image: '/55-3.jpg',
+    category: 'flowers',
+    rating: 4.7,
+    reviews: 28,
+    desc_en: 'Gorgeous handcrafted pastel roses bundle with premium gift wrapping sheets.',
+    desc_bn: 'হাতে তৈরি আকর্ষণীয় পেস্টেল গোলাপের তোড়া, বিশেষ গিফট র‍্যাপিং পেপার সহ মোড়ানো।',
+    colors: [{ en: 'Pastel Rose Pink', bn: 'গোলাপী', hex: '#FDA4AF' }],
+    stock: 12
+  },
+  '9': {
+    id: '9',
+    name_en: 'Handcrafted Mahogany Frame',
+    name_bn: 'হ্যান্ডক্রাফটেড মেহগনি ফ্রেম',
+    price: 1800,
+    sale_price: 1490,
+    image: '/38-7.jpg',
+    category: 'frames',
+    rating: 4.8,
+    reviews: 19,
+    desc_en: 'Luxury mahogany wooden frame with glass front and dried botanicals detail.',
+    desc_bn: 'আকর্ষণীয় মেহগনি কাঠের শৌখিন ফ্রেম, সামনের কাচ ও ভেতর সুরক্ষিত প্রাকৃতিক শুকনো ফুল সহ।',
+    colors: [{ en: 'Mahogany Brown', bn: 'মেহগনি ব্রাউন', hex: '#451A03' }],
+    stock: 9
+  },
+  '10': {
+    id: '10',
+    name_en: 'Modern Glass Vase',
+    name_bn: 'মডার্ন গ্লাস ভেজ',
+    price: 1150,
+    sale_price: 990,
+    image: '/47-3.jpg',
+    category: 'flowers',
+    rating: 4.5,
+    reviews: 11,
+    desc_en: 'Minimalist translucent glass vase with dynamic ribbing texture, looks gorgeous anywhere.',
+    desc_bn: 'সূক্ষ্ম নকশাদার মিনিমাল কাচের ফুলদানি, ডাইনিং টেবিল বা ড্রয়িং রুমে সাজিয়ে রাখার জন্য একদম পারফেক্ট।',
+    colors: [{ en: 'Transparent', bn: 'স্বচ্ছ কাচ', hex: '#E5E7EB' }],
+    stock: 6
+  },
+  '11': {
+    id: '11',
+    name_en: 'Hanging Macrame Shelf',
+    name_bn: 'ঝুলন্ত ম্যাক্রামে শেলফ',
+    price: 1350,
+    sale_price: null,
+    image: '/49.jpg',
+    category: 'hangers',
+    rating: 4.7,
+    reviews: 13,
+    desc_en: 'Single tier hanging wood shelf supported by detailed boho macrame cotton braids.',
+    desc_bn: 'প্রাকৃতিক সুতার বুননে তৈরি ঝুলন্ত কাঠের তাক, যা ছোট ইনডোর গাছ বা শোপিস রাখার জন্য খুবই আকর্ষণীয়।',
+    colors: [{ en: 'Natural Wood & Off-White', bn: 'কাঠ ও সাদা', hex: '#F9F6F0' }],
+    stock: 7
+  },
+  '12': {
+    id: '12',
+    name_en: 'Premium Tree Plant Tub',
+    name_bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট টাব',
+    price: 2200,
+    sale_price: 1890,
+    image: '/37-5.jpg',
+    category: 'plants',
+    rating: 4.9,
+    reviews: 22,
+    desc_en: 'Premium geometric ceramic plant pot, extremely stylish and suitable for large plants.',
+    desc_bn: 'আকর্ষণীয় জ্যামিতিক সিরামিক টব, যা আপনার ঘরের বড় বড় ইনডোর গাছের জন্য দারুণ মানানসই।',
+    colors: [{ en: 'Charcoal Black', bn: 'কয়লা কালো', hex: '#1E293B' }],
+    stock: 5
+  },
+  '13': {
+    id: '13',
+    name_en: 'Green Fern Plant',
+    name_bn: 'সবুজ ফার্ন প্ল্যান্ট',
+    price: 1200,
+    sale_price: 990,
+    image: '/55-3.jpg',
+    category: 'plants',
+    rating: 4.6,
+    reviews: 17,
+    desc_en: 'Lush green artificial fern plant in simple white pot, maintenance free.',
+    desc_bn: 'আকর্ষণীয় চিরসবুজ কৃত্রিম ফার্ন গাছ ও সাদা টব, যা পানি বা রোদের কোনো ঝামেলা ছাড়াই সতেজ দেখাবে।',
+    colors: [{ en: 'Green', bn: 'সবুজ', hex: '#10B981' }],
+    stock: 14
   }
 };
 
