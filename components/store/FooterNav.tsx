@@ -157,15 +157,12 @@ export default function FooterNav() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/8 py-5">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-5">
-            <p className="text-[11px] text-[#F2EDE3]/35">
-              © 2026 Sicily Decor. {locale === 'bn' ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
-            </p>
+        <div className="border-t border-white/8 py-6">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-center">
             <img
               src="/SSLCommerz-Pay-With-logo-All-Size-01.png"
               alt="SSLCommerz Payment Methods"
-              className="h-10 md:h-12 object-contain bg-white rounded-lg p-1.5"
+              className="h-16 md:h-20 object-contain"
             />
           </div>
         </div>
