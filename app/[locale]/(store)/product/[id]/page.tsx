@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
-import { ShoppingCart, Zap, ArrowLeft, Plus, Minus, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Zap, ArrowLeft, Plus, Minus, ShieldCheck, Truck, RefreshCw, PackageCheck, PackageX, Flame } from 'lucide-react';
 import Link from 'next/link';
 import { PRODUCTS } from '@/lib/products';
 import ProductCard from '@/components/store/ProductCard';
@@ -208,14 +208,20 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
                 </span>
               )}
               {stockCount === 0 ? (
-                <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
+                <span className="flex items-center gap-1 text-xs font-bold text-brand-muted whitespace-nowrap">
+                  <PackageX className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
+                  {locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}
+                </span>
               ) : stockCount <= 5 ? (
                 <span className="flex items-center gap-1 text-xs font-bold text-brand-primary whitespace-nowrap">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-primary flex-shrink-0" />
+                  <Flame className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
                   {locale === 'bn' ? `${stockCount}টি বাকি` : `${stockCount} left`}
                 </span>
               ) : (
-                <span className="text-xs font-bold text-brand-primary">{locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}</span>
+                <span className="flex items-center gap-1 text-xs font-bold text-brand-primary whitespace-nowrap">
+                  <PackageCheck className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
+                  {locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}
+                </span>
               )}
             </div>
           </div>
@@ -244,13 +250,13 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
 
           {/* Quantity + Add to Cart */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-between rounded-lg border border-brand-border bg-white p-2 w-28 flex-shrink-0">
-              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="p-2 text-brand-muted hover:text-brand-primary transition-colors">
-                <Minus className="h-4 w-4" />
+            <div className="flex items-center justify-between rounded-lg border border-brand-border bg-white px-1 py-2.5 w-24 flex-shrink-0">
+              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="p-1 text-brand-muted hover:text-brand-primary transition-colors">
+                <Minus className="h-3.5 w-3.5" />
               </button>
               <span className="font-bold text-sm text-brand-text">{quantity}</span>
-              <button onClick={() => setQuantity((q) => q + 1)} className="p-2 text-brand-muted hover:text-brand-primary transition-colors">
-                <Plus className="h-4 w-4" />
+              <button onClick={() => setQuantity((q) => q + 1)} className="p-1 text-brand-muted hover:text-brand-primary transition-colors">
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
 
