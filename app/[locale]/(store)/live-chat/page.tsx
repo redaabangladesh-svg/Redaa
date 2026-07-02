@@ -1,9 +1,9 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { Clock, ShieldCheck } from 'lucide-react';
+import { Clock, ShieldCheck, MessageCircle, ArrowRight, PhoneCall, Sparkles } from 'lucide-react';
 
-const WHATSAPP_NUMBER = '8801700000000';
+const WHATSAPP_NUMBER = '8801700000000'; // Target client phone number
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -22,44 +22,124 @@ export default function LiveChatPage() {
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
   return (
-    <div className="max-w-md mx-auto py-16 px-4 min-h-[60vh] flex flex-col items-center justify-center text-center">
-      <div className="bg-white border border-brand-border rounded-2xl shadow-xl p-8 space-y-6 w-full">
-        {/* Icon badge — gold ring, matching sign-in/popup icon treatment */}
-        <div className="h-14 w-14 rounded-full border-2 border-[#C6A15B] flex items-center justify-center text-[#C6A15B] mx-auto">
-          <WhatsAppIcon className="h-6 w-6" />
+    <div className="relative min-h-[65vh] flex flex-col items-center justify-center py-10 px-4 overflow-hidden font-sans">
+      
+      {/* Background Decorative Chat Bubble Vector Circles */}
+      <div className="absolute top-1/2 left-10 -translate-y-1/2 w-48 h-48 rounded-full bg-[#057476]/5 blur-3xl -z-10 hidden md:block" />
+      <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-[#D80064]/5 blur-3xl -z-10 hidden md:block" />
+
+      {/* Main Luxury Support Card */}
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-xl shadow-gray-100/60 max-w-md w-full relative space-y-6">
+        
+        {/* Support Online Banner Badge */}
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center gap-2 shadow-sm animate-pulse">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="text-[10px] font-black tracking-wider uppercase text-emerald-700">
+            {locale === 'bn' ? 'অনলাইন সাপোর্ট' : 'Online Support'}
+          </span>
         </div>
 
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-[#C6A15B] uppercase">
-            <span className="h-px w-4 bg-[#C6A15B]" />
-            {locale === 'bn' ? 'সাপোর্ট' : 'Support'}
-            <span className="h-px w-4 bg-[#C6A15B]" />
+        {/* Support Agent Avatars Stack */}
+        <div className="pt-2 flex items-center justify-center">
+          <div className="flex -space-x-3.5">
+            {[
+              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100', // Nusrat
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100', // Robiul
+              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100', // Tania
+            ].map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt="Support Agent"
+                className="h-12 w-12 rounded-full object-cover border-2 border-white ring-2 ring-gray-50 flex-shrink-0"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Text descriptions */}
+        <div className="space-y-2.5 text-center">
+          <span className="inline-flex items-center gap-1.5 text-[9px] font-black tracking-[0.2em] text-[#057476] uppercase">
+            <Sparkles className="h-3 w-3" />
+            {locale === 'bn' ? 'কাস্টমার কেয়ার' : 'Customer Care'}
           </span>
-          <h1 className="font-serif text-xl md:text-2xl font-semibold text-brand-text">
+          <h1 className="text-xl sm:text-2xl font-black text-[#111] leading-tight">
             {locale === 'bn' ? 'লাইভ চ্যাট সাপোর্ট' : 'Live Chat Support'}
           </h1>
-          <p className="text-sm text-brand-muted leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm mx-auto">
             {locale === 'bn'
-              ? 'আমাদের কাস্টমার সাপোর্ট টিম হোয়াটসঅ্যাপে সরাসরি আপনার সব প্রশ্নের উত্তর দিতে প্রস্তুত। নিচের বাটনে ক্লিক করে চ্যাট শুরু করুন।'
-              : "Our customer support team is ready to answer your questions directly on WhatsApp. Tap the button below to start chatting."}
+              ? 'আমাদের কাস্টমার সাপোর্ট টিম সরাসরি হোয়াটসঅ্যাপে আপনার সকল প্রশ্ন, ডেলিভারি আপডেট বা অর্ডারের সহায়তায় প্রস্তুত। চ্যাট শুরু করতে নিচের বাটনে ক্লিক করুন।'
+              : 'Our dedicated customer care team is online to answer your questions, handle deliveries or assist with orders on WhatsApp.'}
           </p>
         </div>
 
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3.5 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-sm shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-200"
-        >
-          <WhatsAppIcon className="h-4.5 w-4.5" />
-          <span>{locale === 'bn' ? 'হোয়াটসঅ্যাপে চ্যাট করুন' : 'Chat on WhatsApp'}</span>
-        </a>
+        {/* Interactive CTA buttons */}
+        <div className="space-y-3 pt-2">
+          
+          {/* Main WhatsApp Button */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2.5 w-full py-4.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-[#057476] text-white font-black text-xs hover:scale-[1.01] hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all duration-200"
+          >
+            <WhatsAppIcon className="h-5 w-5 fill-current" />
+            <span>{locale === 'bn' ? 'হোয়াটসঅ্যাপে চ্যাট করুন' : 'Chat on WhatsApp'}</span>
+          </a>
 
-        {/* Trust strip */}
-        <div className="border-t border-brand-border pt-4 flex items-center justify-around text-[10px] text-brand-muted font-semibold">
-          <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand-primary" strokeWidth={1.75} /> {locale === 'bn' ? 'দ্রুত রেসপন্স' : 'Fast Response'}</span>
-          <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-brand-secondary" strokeWidth={1.75} /> {locale === 'bn' ? 'নিরাপদ ও গোপনীয়' : 'Safe & Private'}</span>
+          {/* Secondary Direct Call Button */}
+          <a
+            href="tel:+8801700000000"
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl border border-gray-150 text-gray-600 hover:bg-gray-50/50 text-xs font-extrabold transition-all"
+          >
+            <PhoneCall className="h-4 w-4 text-[#057476]" />
+            <span>{locale === 'bn' ? 'সরাসরি কল করুন' : 'Call Directly'}</span>
+          </a>
         </div>
+
+        {/* Benefits bullets list */}
+        <ul className="border-t border-gray-50 pt-5 space-y-2.5 text-xs text-gray-500 text-left px-1">
+          <li className="flex items-center gap-3">
+            <div className="h-6 w-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-3.5 w-3.5" />
+            </div>
+            <div>
+              <span className="font-bold text-gray-800 block">
+                {locale === 'bn' ? '৫ মিনিটে রেসপন্স' : '5-Minute Response'}
+              </span>
+              <span className="text-[10px] text-gray-400 block mt-0.5">
+                {locale === 'bn' ? 'সরাসরি এজেন্টদের কাছ থেকে তাৎক্ষণিক উত্তর' : 'Get immediate answers from live staff'}
+              </span>
+            </div>
+          </li>
+          <li className="flex items-center gap-3">
+            <div className="h-6 w-6 rounded-lg bg-[#057476]/5 text-[#057476] flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="h-3.5 w-3.5" />
+            </div>
+            <div>
+              <span className="font-bold text-gray-800 block">
+                {locale === 'bn' ? 'নিরাপদ ও এনক্রিপ্টেড' : 'Secure & Encrypted'}
+              </span>
+              <span className="text-[10px] text-gray-400 block mt-0.5">
+                {locale === 'bn' ? 'আপনার ব্যক্তিগত তথ্য ও চ্যাট সম্পূর্ণ গোপন থাকবে' : 'Your personal chats & detail remain private'}
+              </span>
+            </div>
+          </li>
+          <li className="flex items-center gap-3">
+            <div className="h-6 w-6 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center flex-shrink-0">
+              <MessageCircle className="h-3.5 w-3.5" />
+            </div>
+            <div>
+              <span className="font-bold text-gray-800 block">
+                {locale === 'bn' ? 'চ্যাটে অর্ডার সুবিধা' : 'Easy Ordering via Chat'}
+              </span>
+              <span className="text-[10px] text-gray-400 block mt-0.5">
+                {locale === 'bn' ? 'হোয়াটসঅ্যাপ মেসেজে প্রোডাক্টের নাম দিয়ে সহজে অর্ডার করুন' : 'Simply send product names to place an order'}
+              </span>
+            </div>
+          </li>
+        </ul>
+
       </div>
     </div>
   );
