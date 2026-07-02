@@ -181,7 +181,7 @@ export default function ShopPage() {
   });
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8">
       {/* Header Banner */}
       <div className="relative rounded-2xl overflow-hidden bg-[#0B5D5C] p-8 md:p-12 text-white flex flex-col justify-center min-h-[160px] md:min-h-[220px] border border-white/10">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />

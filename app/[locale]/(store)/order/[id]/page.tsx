@@ -40,7 +40,7 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
   const shipping = order?.shippingCharge !== undefined ? order.shippingCharge : 80;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 font-sans pb-16 pt-4 text-center">
+    <div className="max-w-2xl mx-auto space-y-8 pb-16 pt-4 text-center">
       {/* Success Badge Banner */}
       <div className="space-y-4">
         <div className="inline-flex p-3 rounded-full bg-brand-primary/10 text-brand-primary animate-bounce">

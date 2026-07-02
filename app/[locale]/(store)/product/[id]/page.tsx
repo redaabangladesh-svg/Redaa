@@ -21,7 +21,6 @@ interface Product {
   short_desc_bn: string;
   desc_en: string;
   desc_bn: string;
-  colors: { en: string; bn: string; hex: string }[];
   sizes?: SizeOption[];
   stock?: number;
 }
@@ -43,11 +42,6 @@ const mockProducts: Record<string, Product> = {
     short_desc_bn: 'হাতে তৈরি মরিচা-প্রতিরোধক মেটাল হ্যাঙ্গার, আধুনিক জ্যামিতিক ডিজাইনে।',
     desc_en: 'Enhance your wall aesthetics with this handcrafted premium metal flower hanger. Sourced from high-grade anti-rust painted iron, it is extremely durable and built to withstand Bangladesh\'s humid climate. The modern geometric design blends effortlessly with both minimalist and classic home interiors. Each unit is finished by hand and comes with a complete wall-mounting kit, so setup takes under a minute — no extra tools needed.',
     desc_bn: 'আপনার দেয়ালের সৌন্দর্য বাড়াতে আমাদের হাতে তৈরি এই প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গারটি অনন্য। মরিচা-প্রতিরোধক পেইন্ট করা উচ্চ মানের লোহা দ্বারা তৈরি, যা বাংলাদেশের আর্দ্র আবহাওয়াতেও দীর্ঘস্থায়ী থাকে। আধুনিক জ্যামিতিক নকশা যেকোনো ঘরের সাজে সহজেই মানিয়ে যায়। প্রতিটি ইউনিট হাতে ফিনিশ করা এবং সম্পূর্ণ ওয়াল-মাউন্টিং কিট সহ আসে, তাই বসাতে ১ মিনিটেরও কম সময় লাগে।',
-    colors: [
-      { en: 'Matte Black', bn: 'ম্যাট ব্ল্যাক', hex: '#111827' },
-      { en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' },
-      { en: 'Rose Gold', bn: 'রোজ গোল্ড', hex: '#F43F5E' },
-    ],
     sizes: [
       { en: '12"', bn: '১২ ইঞ্চি', price: 1250, sale_price: 990 },
       { en: '18"', bn: '১৮ ইঞ্চি', price: 1550, sale_price: 1250 },
@@ -70,11 +64,6 @@ const mockProducts: Record<string, Product> = {
     short_desc_bn: 'হাতে তৈরি পেস্টেল কাগজের টিউলিপ, টেবিল সাজানো ও উপহারের জন্য উপযুক্ত।',
     desc_en: 'Beautifully wrapped handcrafted pastel paper tulips. Perfect for dining tables, study desks, or gifting on special occasions. Includes high-durability wrapping sheets that keep their shape and color for years — no watering or sunlight needed, so it stays fresh-looking indefinitely.',
     desc_bn: 'চমৎকারভাবে মোড়ানো হাতে তৈরি পেস্টেল কাগজের টিউলিপের তোড়া। ডাইনিং টেবিল, স্টাডি ডেস্ক বা বিশেষ অনুষ্ঠানে উপহার দেয়ার জন্য আদর্শ। এতে দীর্ঘস্থায়ী র‍্যাপিং শিট রয়েছে যা বছরের পর বছর রঙ ও আকৃতি ধরে রাখে — পানি বা রোদের প্রয়োজন নেই।',
-    colors: [
-      { en: 'Pastel Pink', bn: 'পেস্টেল পিঙ্ক', hex: '#F472B6' },
-      { en: 'Soft Yellow', bn: 'সফট ইয়েলো', hex: '#FDE047' },
-      { en: 'Pure White', bn: 'হোয়াইট', hex: '#FFFFFF' },
-    ],
     stock: 20,
   },
   '3': {
@@ -91,15 +80,12 @@ const mockProducts: Record<string, Product> = {
     short_desc_bn: 'সলিড মেহগনি ফ্রেমে শুকানো ফুল, ভিন্টেজ কান্ট্রি লুক।',
     desc_en: 'Hand-polished solid mahogany wood frames carrying preserved dry flowers. Gives an organic vintage country look to any home interior decoration. Each frame is sealed to prevent moisture damage, keeping the dried florals intact for years without fading.',
     desc_bn: 'প্রাকৃতিক শুকানো ফুল ধরে রাখা হাতে পালিশ করা সলিড মেহগনি কাঠের তৈরি ফ্রেম। যেকোনো বাড়ির ঘরের ভেতরে চমৎকার ভিন্টেজ লুক এনে দেয়। প্রতিটি ফ্রেম আর্দ্রতা প্রতিরোধী সিল করা, যা বছরের পর বছর ফুলের রঙ অক্ষুণ্ণ রাখে।',
-    colors: [
-      { en: 'Rustic Oak', bn: 'রাস্টিক ওক', hex: '#78350F' },
-      { en: 'Dark Mahogany', bn: 'ডার্ক মেহগনি', hex: '#451A03' },
-    ],
     stock: 4,
   },
 };
 
 const ALL_PRODUCTS = Object.values(mockProducts);
+const WHATSAPP_NUMBER = '8801700000000';
 
 export default function ProductViewPage({ params }: { params: { id: string } }) {
   const locale = useLocale();
@@ -108,7 +94,6 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
 
   const [product, setProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState<{ en: string; bn: string; hex: string } | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [quantity, setQuantity] = useState(1);
 
@@ -116,15 +101,12 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     const matched = mockProducts[params.id] || mockProducts['1'];
     setProduct(matched);
     setActiveImage(0);
-    if (matched) {
-      setSelectedColor(matched.colors[0]);
-      if (matched.sizes) setSelectedSize(matched.sizes[0]);
-    }
+    if (matched?.sizes) setSelectedSize(matched.sizes[0]);
   }, [params.id]);
 
   if (!product) {
     return (
-      <div className="py-20 text-center font-sans text-brand-muted font-bold">
+      <div className="py-20 text-center text-brand-muted font-bold">
         {locale === 'bn' ? 'লোড হচ্ছে...' : 'Loading product details...'}
       </div>
     );
@@ -146,8 +128,6 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     price,
     sale_price: salePrice,
     variant: {
-      color_en: selectedColor?.en,
-      color_bn: selectedColor?.bn,
       size_en: selectedSize?.en,
       size_bn: selectedSize?.bn,
     },
@@ -160,10 +140,15 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     router.push(`/${locale}/checkout`);
   };
 
+  const whatsappMessage = locale === 'bn'
+    ? `আসসালামুয়ালাইকুম, আমি "${nameLabel}" (${selectedSize ? (locale === 'bn' ? selectedSize.bn : selectedSize.en) : ''}) প্রোডাক্টটি অর্ডার করতে চাই। দাম: ৳${activePrice}`
+    : `Hi, I'd like to order "${nameLabel}" (${selectedSize?.en ?? ''}). Price: ৳${activePrice}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+
   const relatedProducts = ALL_PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
 
   return (
-    <div className="space-y-10 font-sans pb-16 px-4 sm:px-0">
+    <div className="space-y-10 pb-16 px-4 sm:px-0">
       {/* Back Link */}
       <Link
         href={`/${locale}/shop`}
@@ -200,19 +185,14 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
         {/* Info */}
         <div className="space-y-5">
           <div className="space-y-2">
-            {salePrice !== null && (
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r from-brand-secondary to-brand-secondary-dark uppercase tracking-wider">
-                {locale === 'bn' ? 'সেল' : 'Sale'}
-              </span>
-            )}
             <h1 className="font-serif text-2xl md:text-3xl font-semibold text-brand-text leading-tight">
               {nameLabel}
             </h1>
             <p className="text-xs md:text-sm text-brand-muted leading-relaxed">{shortDesc}</p>
           </div>
 
-          {/* Price + Stock */}
-          <div className="flex items-center gap-2 p-4 rounded-xl bg-brand-surface border border-brand-border">
+          {/* Price + Stock + Quick Add */}
+          <div className="flex items-center gap-2 p-4 rounded-xl bg-brand-surface border border-brand-border flex-wrap">
             <span className="text-2xl font-bold text-brand-secondary">৳{activePrice}</span>
             {salePrice !== null && (
               <span className="text-sm text-brand-muted line-through">৳{price}</span>
@@ -228,59 +208,41 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             ) : (
               <span className="text-xs font-bold text-brand-primary">{locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}</span>
             )}
+
+            <button
+              onClick={handleAddToCart}
+              disabled={stockCount === 0}
+              title={locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}
+              className="ml-auto h-9 w-9 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white shadow-sm flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
+            </button>
           </div>
 
-          {/* Options */}
-          <div className="space-y-4 pt-4 border-t border-brand-border">
-            {selectedColor && (
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-brand-muted">
-                  {locale === 'bn' ? `কালার: ${selectedColor.bn}` : `Color: ${selectedColor.en}`}
-                </span>
-                <div className="flex gap-3">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color.en}
-                      onClick={() => setSelectedColor(color)}
-                      className={`h-8 w-8 rounded-full border-2 transition-all duration-150 flex items-center justify-center ${
-                        selectedColor.en === color.en ? 'border-brand-primary scale-110 shadow-sm' : 'border-transparent'
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={locale === 'bn' ? color.bn : color.en}
-                    >
-                      {selectedColor.en === color.en && (
-                        <span className={`h-2 w-2 rounded-full ${color.hex === '#FFFFFF' ? 'bg-black' : 'bg-white'}`} />
-                      )}
-                    </button>
-                  ))}
-                </div>
+          {/* Size selector */}
+          {product.sizes && (
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'সাইজ (দাম পরিবর্তন হবে):' : 'Size (price varies):'}</span>
+              <div className="flex gap-2 flex-wrap">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size.en}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all duration-150 ${
+                      selectedSize?.en === size.en
+                        ? 'bg-brand-primary border-brand-primary text-white'
+                        : 'bg-white border-brand-border text-brand-text hover:border-brand-primary/40'
+                    }`}
+                  >
+                    {locale === 'bn' ? size.bn : size.en}
+                  </button>
+                ))}
               </div>
-            )}
-
-            {product.sizes && (
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'সাইজ (দাম পরিবর্তন হবে):' : 'Size (price varies):'}</span>
-                <div className="flex gap-2 flex-wrap">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size.en}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all duration-150 ${
-                        selectedSize?.en === size.en
-                          ? 'bg-brand-primary border-brand-primary text-white'
-                          : 'bg-white border-brand-border text-brand-text hover:border-brand-primary/40'
-                      }`}
-                    >
-                      {locale === 'bn' ? size.bn : size.en}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Quantity */}
-          <div className="flex items-center gap-3 pt-4 border-t border-brand-border">
+          <div className="flex items-center gap-3">
             <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'পরিমাণ:' : 'Quantity:'}</span>
             <div className="flex items-center justify-between rounded-lg border border-brand-border bg-white p-2 w-28 flex-shrink-0">
               <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="p-2 text-brand-muted hover:text-brand-primary transition-colors">
@@ -293,8 +255,8 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Two CTA buttons: Direct Order + Add to Cart */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Two CTA buttons: Direct Order + WhatsApp */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               onClick={handleDirectOrder}
               disabled={stockCount === 0}
@@ -304,36 +266,39 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
               <span>{locale === 'bn' ? 'সরাসরি অর্ডার করুন' : 'Order Now'}</span>
             </button>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={stockCount === 0}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-[#25D366] text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-[#25D366]/30 transition-all duration-200"
             >
-              <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
-              <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
-            </button>
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              <span>{locale === 'bn' ? 'হোয়াটসঅ্যাপে অর্ডার' : 'Order via WhatsApp'}</span>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Return policy strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-brand-border">
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand-surface border border-brand-border">
-          <ShieldCheck className="h-5 w-5 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
-          <span className="text-[10px] font-bold text-brand-text leading-tight">
+      {/* Trust strip — single line */}
+      <div className="flex items-center justify-between gap-2 py-4 px-2 rounded-xl bg-brand-surface border border-brand-border overflow-x-auto">
+        <div className="flex items-center gap-2 flex-1 justify-center">
+          <ShieldCheck className="h-4 w-4 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
+          <span className="text-[10px] sm:text-xs font-bold text-brand-text whitespace-nowrap">
             {locale === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash on Delivery'}
           </span>
         </div>
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand-surface border border-brand-border">
-          <Truck className="h-5 w-5 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
-          <span className="text-[10px] font-bold text-brand-text leading-tight">
-            {locale === 'bn' ? 'দ্রুত ডেলিভারি' : 'Super Fast Delivery'}
+        <div className="h-6 w-px bg-brand-border flex-shrink-0" />
+        <div className="flex items-center gap-2 flex-1 justify-center">
+          <Truck className="h-4 w-4 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
+          <span className="text-[10px] sm:text-xs font-bold text-brand-text whitespace-nowrap">
+            {locale === 'bn' ? 'দ্রুত ডেলিভারি' : 'Fast Delivery'}
           </span>
         </div>
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand-surface border border-brand-border">
-          <RefreshCw className="h-5 w-5 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
-          <span className="text-[10px] font-bold text-brand-text leading-tight">
-            {locale === 'bn' ? 'সহজ রিটার্ন সুবিধা' : '7 Days Easy Return'}
+        <div className="h-6 w-px bg-brand-border flex-shrink-0" />
+        <div className="flex items-center gap-2 flex-1 justify-center">
+          <RefreshCw className="h-4 w-4 text-brand-primary flex-shrink-0" strokeWidth={1.75} />
+          <span className="text-[10px] sm:text-xs font-bold text-brand-text whitespace-nowrap">
+            {locale === 'bn' ? 'সহজ রিটার্ন' : 'Easy Return'}
           </span>
         </div>
       </div>

@@ -180,7 +180,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (!product) {
     return (
-      <div className="py-20 text-center font-sans text-brand-muted font-bold">
+      <div className="py-20 text-center text-brand-muted font-bold">
         {locale === 'bn' ? 'লোড হচ্ছে...' : 'Loading product details...'}
       </div>
     );
@@ -259,7 +259,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   };
 
   return (
-    <div className="space-y-12 font-sans pb-24">
+    <div className="space-y-12 pb-24">
       {/* Back Button */}
       <Link 
         href={`/${locale}/shop`}

@@ -54,7 +54,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 px-4 font-sans min-h-[60vh] flex flex-col justify-center">
+    <div className="max-w-md mx-auto py-10 px-4 min-h-[60vh] flex flex-col justify-center">
       {user ? (
         /* ── LOGGED IN PROFILE CARD ── */
         <div className="bg-white border border-brand-border rounded-2xl shadow-xl overflow-hidden animate-fade-up">

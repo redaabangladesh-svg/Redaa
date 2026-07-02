@@ -70,7 +70,7 @@ export default function CheckoutPage() {
   const grandTotal = Math.max(0, cartTotal + shippingCharge - discountAmount);
 
   return (
-    <div className="space-y-8 font-sans pb-16">
+    <div className="space-y-8 pb-16">
       {/* Title */}
       <div className="border-b border-brand-border pb-4">
         <h1 className="text-2xl md:text-3xl font-extrabold text-brand-text tracking-tight">
