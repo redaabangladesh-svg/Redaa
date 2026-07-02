@@ -235,13 +235,32 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     const merged = { ...mockProducts, ...loadedProducts };
     const mergedList = Object.values(merged);
     const slugLower = params.slug.toLowerCase();
-    const matched = mergedList.find(p => 
-      p.id === params.slug ||
-      slugify(p.name_en) === slugLower ||
-      slugify(p.name_bn) === slugLower ||
-      p.name_en.toLowerCase().includes(slugLower) ||
-      p.name_bn.toLowerCase().includes(slugLower)
-    ) || merged['1'];
+    
+    const matched = mergedList.find(p => {
+      const imageFilename = p.images[0]?.split('/').pop()?.toLowerCase() || '';
+      const imageBasename = imageFilename.split('.')[0] || '';
+      
+      const matchesId = p.id === params.slug;
+      const matchesNameSlugEn = slugify(p.name_en) === slugLower;
+      const matchesNameSlugBn = slugify(p.name_bn) === slugLower;
+      const matchesImageFilename = imageFilename === slugLower || imageFilename.includes(slugLower);
+      const matchesImageBasename = imageBasename === slugLower || imageBasename.includes(slugLower);
+      const matchesNameSubEn = p.name_en.toLowerCase().includes(slugLower);
+      const matchesNameSubBn = p.name_bn.toLowerCase().includes(slugLower);
+      
+      const matchesBannaSpecial = (slugLower === 'banna' || slugLower === 'banna.jpg') && (p.id === '12' || imageFilename.includes('banana'));
+
+      return (
+        matchesId ||
+        matchesNameSlugEn ||
+        matchesNameSlugBn ||
+        matchesImageFilename ||
+        matchesImageBasename ||
+        matchesBannaSpecial ||
+        matchesNameSubEn ||
+        matchesNameSubBn
+      );
+    }) || merged['1'];
     
     setProduct(matched);
     setActiveImage(0);
