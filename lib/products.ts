@@ -16,8 +16,8 @@ export interface HomeProduct {
 export const PRODUCTS: HomeProduct[] = [
   { 
     id: '1', 
-    name_en: 'Premium Metal Flower Hanger', 
-    name_bn: 'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার', 
+    name_en: 'Premium Quality Bird Nest', 
+    name_bn: 'প্রিমিয়াম কোয়ালিটি বার্ড নেস্ট', 
     price: 1250, 
     sale_price: 990, 
     image: '/02.09.23.jpg', 
