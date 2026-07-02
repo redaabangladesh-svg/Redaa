@@ -150,7 +150,9 @@ export default function CheckoutForm({
         paymentMethod,
         shippingCharge,
         discountAmount,
-        couponCode
+        couponCode,
+        subtotal: cartTotal,
+        grandTotal: cartTotal + shippingCharge - discountAmount
       }));
 
       // Clear Cart

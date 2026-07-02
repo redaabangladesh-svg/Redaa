@@ -13,6 +13,9 @@ interface OrderDetails {
   customerDistrict: string;
   paymentMethod: 'cod' | 'bkash';
   shippingCharge: number;
+  discountAmount?: number;
+  subtotal?: number;
+  grandTotal?: number;
 }
 
 export default function OrderConfirmationPage({ params }: { params: { id: string } }) {
@@ -38,9 +41,12 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
   const district = order?.customerDistrict || (locale === 'bn' ? 'ঢাকা' : 'Dhaka');
   const payment = order?.paymentMethod || 'cod';
   const shipping = order?.shippingCharge !== undefined ? order.shippingCharge : 80;
+  const discount = order?.discountAmount || 0;
+  const subtotal = order?.subtotal !== undefined ? order.subtotal : 0;
+  const grandTotal = order?.grandTotal !== undefined ? order.grandTotal : shipping + subtotal - discount;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 pb-16 pt-4 text-center">
+    <div className="max-w-2xl mx-auto space-y-8 pb-16 pt-4 px-4 sm:px-0 text-center">
       {/* Success Badge Banner */}
       <div className="space-y-4">
         <div className="inline-flex p-3 rounded-full bg-brand-primary/10 text-brand-primary animate-bounce">
@@ -127,13 +133,25 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
 
         {/* Pricing Summary Details */}
         <div className="space-y-3 text-xs">
+          {subtotal > 0 && (
+            <div className="flex justify-between text-brand-muted">
+              <span>{locale === 'bn' ? 'পণ্যের মূল্য' : 'Subtotal'}</span>
+              <span className="font-semibold text-brand-text">৳{subtotal}</span>
+            </div>
+          )}
           <div className="flex justify-between text-brand-muted">
             <span>{locale === 'bn' ? 'ডেলিভারি খরচ' : 'Delivery Charge'}</span>
             <span className="font-semibold text-brand-text">৳{shipping}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-brand-primary font-semibold">
+              <span>{locale === 'bn' ? 'কুপন ছাড়' : 'Coupon Discount'}</span>
+              <span>-৳{discount}</span>
+            </div>
+          )}
           <div className="flex justify-between text-brand-text font-extrabold text-sm border-t border-brand-border pt-3 items-baseline">
             <span>{locale === 'bn' ? 'মোট মূল্য' : 'Grand Total'}</span>
-            <span className="text-base font-black text-brand-secondary">৳{shipping === 80 ? '(Calculated)' : ''} (COD)</span>
+            <span className="text-base font-black text-brand-secondary">৳{grandTotal}</span>
           </div>
         </div>
       </div>
