@@ -69,8 +69,8 @@ export default function FooterNav() {
             </div>
           </div>
 
-          {/* Quick links */}
-          <div className="space-y-4">
+          {/* Quick links — hidden on mobile, shown on desktop */}
+          <div className="hidden md:block space-y-4">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#F2EDE3]/40 relative pb-2.5">
               {locale === 'bn' ? 'ক্যাটাগরি' : 'Categories'}
               <span className="absolute left-0 bottom-0 h-px w-6 bg-[#C6A15B]" />
@@ -94,6 +94,9 @@ export default function FooterNav() {
               })}
             </ul>
           </div>
+
+          {/* Info + Contact — side by side on mobile, separate columns on desktop */}
+          <div className="grid grid-cols-2 gap-6 md:contents">
 
           {/* Info links */}
           <div className="space-y-4">
@@ -148,6 +151,8 @@ export default function FooterNav() {
                 <span>hello@sicilydecor.com</span>
               </li>
             </ul>
+          </div>
+
           </div>
         </div>
 
