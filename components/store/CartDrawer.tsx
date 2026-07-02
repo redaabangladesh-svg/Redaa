@@ -2,18 +2,15 @@
 
 import { useCart } from '@/lib/cart';
 import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 export default function CartDrawer() {
   const { cartItems, cartTotal, isCartOpen, setIsCartOpen, updateCartItemQty, removeFromCart } = useCart();
-  const pathname = usePathname();
   const router = useRouter();
-  const t = useTranslations('Navbar'); // reuse translations for labels
+  const currentLocale = useLocale();
 
   if (!isCartOpen) return null;
-
-  const currentLocale = pathname.split('/')[1] || 'bn';
 
   const handleCheckoutClick = () => {
     setIsCartOpen(false);

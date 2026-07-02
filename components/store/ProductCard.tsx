@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart, ShoppingCart, PackageCheck, PackageX, Flame } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import type { HomeProduct } from '@/lib/products';
@@ -58,16 +58,18 @@ export default function ProductCard({ p, locale }: { p: HomeProduct; locale: str
             )}
             <span className="text-brand-border">|</span>
             {p.stock === 0 ? (
-              <span className="text-[10px] font-bold text-brand-muted">
+              <span className="flex items-center gap-1 text-[10px] font-bold text-brand-muted whitespace-nowrap">
+                <PackageX className="h-3 w-3 flex-shrink-0" strokeWidth={1.75} />
                 {locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}
               </span>
             ) : p.stock <= 5 ? (
               <span className="flex items-center gap-1 text-[10px] font-bold text-brand-primary whitespace-nowrap">
-                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary flex-shrink-0" />
+                <Flame className="h-3 w-3 flex-shrink-0" strokeWidth={1.75} />
                 {locale === 'bn' ? `${p.stock}টি বাকি` : `${p.stock} left`}
               </span>
             ) : (
-              <span className="text-[10px] font-bold text-brand-primary">
+              <span className="flex items-center gap-1 text-[10px] font-bold text-brand-primary whitespace-nowrap">
+                <PackageCheck className="h-3 w-3 flex-shrink-0" strokeWidth={1.75} />
                 {locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}
               </span>
             )}
