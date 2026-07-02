@@ -192,24 +192,32 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
             <p className="text-xs md:text-sm text-brand-muted leading-relaxed">{shortDesc}</p>
           </div>
 
-          {/* Price + Stock */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-secondary/5 to-brand-surface border border-brand-secondary/15 space-y-1.5">
+          {/* Price + Stock — single row, no empty space */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-secondary/5 to-brand-surface border border-brand-secondary/15 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-3xl font-bold text-brand-secondary">৳{activePrice}</span>
               {salePrice !== null && (
                 <span className="text-sm text-brand-muted line-through">৳{price}</span>
               )}
             </div>
-            {stockCount === 0 ? (
-              <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
-            ) : stockCount <= 5 ? (
-              <span className="flex items-center gap-1 text-xs font-bold text-brand-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
-                {locale === 'bn' ? `${stockCount}টি বাকি` : `${stockCount} left`}
-              </span>
-            ) : (
-              <span className="text-xs font-bold text-brand-primary">{locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}</span>
-            )}
+
+            <div className="flex items-center gap-2">
+              {salePrice !== null && (
+                <span className="px-2 py-1 rounded-full bg-brand-secondary/10 text-brand-secondary text-[10px] font-bold">
+                  {Math.round(((price - salePrice) / price) * 100)}% {locale === 'bn' ? 'ছাড়' : 'OFF'}
+                </span>
+              )}
+              {stockCount === 0 ? (
+                <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
+              ) : stockCount <= 5 ? (
+                <span className="flex items-center gap-1 text-xs font-bold text-brand-primary whitespace-nowrap">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-primary flex-shrink-0" />
+                  {locale === 'bn' ? `${stockCount}টি বাকি` : `${stockCount} left`}
+                </span>
+              ) : (
+                <span className="text-xs font-bold text-brand-primary">{locale === 'bn' ? 'স্টকে আছে' : 'In Stock'}</span>
+              )}
+            </div>
           </div>
 
           {/* Size selector */}
