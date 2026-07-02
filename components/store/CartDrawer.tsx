@@ -25,10 +25,15 @@ export default function CartDrawer() {
         onClick={() => setIsCartOpen(false)}
       />
 
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      <div className="absolute inset-0 flex items-end justify-center sm:items-stretch sm:justify-end sm:inset-y-0 sm:right-0 sm:left-auto sm:pl-10">
+        <div className="w-full sm:w-screen sm:max-w-md bg-white shadow-2xl flex flex-col rounded-t-3xl sm:rounded-none max-h-[85vh] sm:max-h-full sm:h-full">
+          {/* Drag Handle (mobile bottom-sheet only) */}
+          <div className="flex justify-center pt-3 pb-1 sm:hidden">
+            <div className="h-1.5 w-12 rounded-full bg-brand-border" />
+          </div>
+
           {/* Header */}
-          <div className="p-6 border-b border-brand-border flex items-center justify-between">
+          <div className="p-6 sm:pt-6 pt-2 border-b border-brand-border flex items-center justify-between">
             <h2 className="text-lg font-bold text-brand-text flex items-center gap-2">
               <ShoppingBag className="h-5 w-5 text-brand-primary" />
               <span>{currentLocale === 'bn' ? 'শপিং কার্ট' : 'Shopping Cart'}</span>

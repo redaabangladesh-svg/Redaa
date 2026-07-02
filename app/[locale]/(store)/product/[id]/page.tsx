@@ -142,7 +142,7 @@ PRODUCTS.forEach((p) => {
   };
 });
 
-const WHATSAPP_NUMBER = '8801700000000';
+const WHATSAPP_NUMBER = '8801788825495';
 
 export default function ProductViewPage({ params }: { params: { id: string } }) {
   const locale = useLocale();

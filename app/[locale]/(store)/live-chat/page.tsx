@@ -3,7 +3,7 @@
 import { useLocale } from 'next-intl';
 import { Clock, ShieldCheck, MessageCircle, ArrowRight, PhoneCall, Sparkles } from 'lucide-react';
 
-const WHATSAPP_NUMBER = '8801700000000'; // Target client phone number
+const WHATSAPP_NUMBER = '8801788825495'; // Target client phone number
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -89,7 +89,7 @@ export default function LiveChatPage() {
 
           {/* Secondary Direct Call Button (Soft Teal Tint) */}
           <a
-            href="tel:+8801700000000"
+            href="tel:+8801788825495"
             className="flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl bg-[#057476]/8 hover:bg-[#057476]/12 text-[#057476] font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#057476]/5 active:translate-y-0 transition-all duration-300 shadow-sm"
           >
             <PhoneCall className="h-4.5 w-4.5 text-[#057476]" />
