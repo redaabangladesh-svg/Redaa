@@ -115,8 +115,8 @@ const mockProducts: Record<string, Product> = {
   },
   '7': {
     id: '7',
-    name_en: 'Premium Metal Flower Stand',
-    name_bn: 'প্রিমিয়াম মেটাল ফ্লাওয়ার স্ট্যান্ড',
+    name_en: 'Metal Stand with Flower Tub',
+    name_bn: 'মেটাল স্ট্যান্ড উইথ ফ্লাওয়ার টব – মডার্ন হোম ডেকোর!',
     price: 1550,
     sale_price: 1390,
     image: '/51-2.jpg',
