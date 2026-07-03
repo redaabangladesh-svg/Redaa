@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { useCart } from '@/lib/cart';
 import { useRouter } from 'next/navigation';
-import { Truck, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Truck, CheckCircle2, ShieldAlert, MapPin } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
+import { BD_DISTRICTS } from '@/lib/districts';
 
 interface CheckoutFormProps {
   shippingCharge: number;
@@ -15,32 +17,21 @@ interface CheckoutFormProps {
   couponCode?: string;
 }
 
-// Major districts in Bangladesh
-const BD_DISTRICTS = [
-  { id: 'dhaka', en: 'Dhaka (City)', bn: 'ঢাকা (সিটি)' },
-  { id: 'chittagong', en: 'Chittagong', bn: 'চট্টগ্রাম' },
-  { id: 'sylhet', en: 'Sylhet', bn: 'সিলেট' },
-  { id: 'rajshahi', en: 'Rajshahi', bn: 'রাজশাহী' },
-  { id: 'khulna', en: 'Khulna', bn: 'খুলনা' },
-  { id: 'barisal', en: 'Barisal', bn: 'বরিশাল' },
-  { id: 'rangpur', en: 'Rangpur', bn: 'রংপুর' },
-  { id: 'mymensingh', en: 'Mymensingh', bn: 'ময়মনসিংহ' },
-  { id: 'gazipur', en: 'Gazipur', bn: 'গাজীপুর' },
-  { id: 'narayanganj', en: 'Narayanganj', bn: 'নারায়ণগঞ্জ' },
-  { id: 'comilla', en: 'Comilla', bn: 'কুমিল্লা' },
-  { id: 'coxsbazar', en: 'Cox\'s Bazar', bn: 'কক্সবাজার' },
-  { id: 'bogra', en: 'Bogra', bn: 'বগুড়া' },
-  { id: 'jessore', en: 'Jessore', bn: 'যশোর' },
-  { id: 'feni', en: 'Feni', bn: 'ফেনী' },
-  { id: 'tangail', en: 'Tangail', bn: 'টাঙ্গাইল' },
-  { id: 'pabna', en: 'Pabna', bn: 'পাবনা' },
-  { id: 'kushtia', en: 'Kushtia', bn: 'কুষ্টিয়া' }
-];
+interface SavedAddress {
+  id: string;
+  label: string;
+  recipient_name: string;
+  phone: string;
+  address: string;
+  district: string;
+  area: string | null;
+  is_default: boolean;
+}
 
-export default function CheckoutForm({ 
-  shippingCharge, 
-  setShippingCharge, 
-  selectedDistrict, 
+export default function CheckoutForm({
+  shippingCharge,
+  setShippingCharge,
+  selectedDistrict,
   setSelectedDistrict,
   discountAmount = 0,
   couponCode = ''
@@ -48,14 +39,18 @@ export default function CheckoutForm({
   const locale = useLocale();
   const router = useRouter();
   const { clearCart, cartTotal } = useCart();
+  const isBn = locale === 'bn';
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash'>('cod');
-  
+
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Load charges dynamically based on configured settings
   useEffect(() => {
@@ -73,6 +68,46 @@ export default function CheckoutForm({
     }
   }, [selectedDistrict, setShippingCharge]);
 
+  // Auto-suggest: fetch logged-in customer's saved addresses
+  useEffect(() => {
+    const loadSavedAddresses = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      if (!customer) return;
+
+      const { data: addresses } = await supabase
+        .from('customer_addresses')
+        .select('*')
+        .eq('customer_id', customer.id)
+        .order('is_default', { ascending: false });
+
+      if (addresses && addresses.length > 0) {
+        setSavedAddresses(addresses);
+        const defaultAddr = addresses[0];
+        applyAddress(defaultAddr);
+      }
+    };
+
+    loadSavedAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const applyAddress = (a: SavedAddress) => {
+    setSelectedAddressId(a.id);
+    setName(a.recipient_name);
+    setPhone(a.phone);
+    setAddress(a.area ? `${a.address}, ${a.area}` : a.address);
+    const matched = BD_DISTRICTS.find((d) => d.bn === a.district || d.en === a.district || d.id === a.district);
+    setSelectedDistrict(matched ? matched.id : selectedDistrict);
+  };
+
   const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDistrict(e.target.value);
   };
@@ -83,15 +118,15 @@ export default function CheckoutForm({
 
     // Validations
     if (!name.trim()) {
-      setErrorMsg(locale === 'bn' ? 'অনুগ্রহ করে আপনার নাম লিখুন।' : 'Please enter your full name.');
+      setErrorMsg(isBn ? 'অনুগ্রহ করে আপনার নাম লিখুন।' : 'Please enter your full name.');
       return;
     }
     if (!address.trim()) {
-      setErrorMsg(locale === 'bn' ? 'অনুগ্রহ করে আপনার ঠিকানা লিখুন।' : 'Please enter your shipping address.');
+      setErrorMsg(isBn ? 'অনুগ্রহ করে আপনার ঠিকানা লিখুন।' : 'Please enter your shipping address.');
       return;
     }
     if (!selectedDistrict) {
-      setErrorMsg(locale === 'bn' ? 'অনুগ্রহ করে জেলা নির্বাচন করুন।' : 'Please select your shipping district.');
+      setErrorMsg(isBn ? 'অনুগ্রহ করে জেলা নির্বাচন করুন।' : 'Please select your shipping district.');
       return;
     }
 
@@ -100,8 +135,8 @@ export default function CheckoutForm({
     const phoneRegex = /^01[3-9]\d{8}$/;
     if (!phoneRegex.test(cleanPhone)) {
       setErrorMsg(
-        locale === 'bn' 
-          ? 'অনুগ্রহ করে সঠিক ১১-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: ০১৭XXXXXXXX)।' 
+        isBn
+          ? 'অনুগ্রহ করে সঠিক ১১-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: ০১৭XXXXXXXX)।'
           : 'Please enter a valid 11-digit mobile number (e.g. 017XXXXXXXX).'
       );
       return;
@@ -112,10 +147,10 @@ export default function CheckoutForm({
     // Mock order submission API call
     setTimeout(() => {
       setIsSubmitting(false);
-      
+
       // Generate mock random order invoice ID
       const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-      
+
       // Get existing orders from localStorage or empty array
       const existingStr = localStorage.getItem('sicily_orders_list');
       let ordersList = [];
@@ -146,7 +181,7 @@ export default function CheckoutForm({
         customerName: name,
         customerPhone: phone,
         customerAddress: address,
-        customerDistrict: BD_DISTRICTS.find(d => d.id === selectedDistrict)?.[locale === 'bn' ? 'bn' : 'en'] || selectedDistrict,
+        customerDistrict: BD_DISTRICTS.find(d => d.id === selectedDistrict)?.[isBn ? 'bn' : 'en'] || selectedDistrict,
         paymentMethod,
         shippingCharge,
         discountAmount,
@@ -172,16 +207,45 @@ export default function CheckoutForm({
         </div>
       )}
 
+      {/* Saved Address Auto-Suggest */}
+      {savedAddresses.length > 0 && (
+        <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-3 shadow-sm">
+          <h3 className="font-extrabold text-brand-text text-sm flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-brand-primary" />
+            {isBn ? 'সংরক্ষিত ঠিকানা থেকে বেছে নিন' : 'Choose from Saved Addresses'}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {savedAddresses.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => applyAddress(a)}
+                className={`text-left p-3 rounded-xl border text-xs transition-all-custom ${
+                  selectedAddressId === a.id
+                    ? 'border-brand-primary bg-brand-primary/5'
+                    : 'border-brand-border hover:border-brand-primary/30'
+                }`}
+              >
+                <span className="font-bold text-brand-text block">{a.label}</span>
+                <span className="text-brand-muted block mt-0.5 line-clamp-2">
+                  {a.recipient_name} · {a.address}, {a.district}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Customer Info Card */}
       <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
         <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3">
-          {locale === 'bn' ? '১. শিপিং ও ডেলিভারি তথ্য' : '1. Shipping & Delivery Info'}
+          {isBn ? '১. শিপিং ও ডেলিভারি তথ্য' : '1. Shipping & Delivery Info'}
         </h3>
 
         {/* Full Name */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-brand-text">
-            {locale === 'bn' ? 'আপনার নাম *' : 'Full Name *'}
+            {isBn ? 'আপনার নাম *' : 'Full Name *'}
           </label>
           <input
             type="text"
@@ -189,7 +253,7 @@ export default function CheckoutForm({
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={locale === 'bn' ? 'নাম লিখুন...' : 'Enter your name...'}
+            placeholder={isBn ? 'নাম লিখুন...' : 'Enter your name...'}
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-medium"
             required
           />
@@ -198,7 +262,7 @@ export default function CheckoutForm({
         {/* Mobile Phone */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-brand-text">
-            {locale === 'bn' ? 'মোবাইল নম্বর *' : 'Mobile Phone Number *'}
+            {isBn ? 'মোবাইল নম্বর *' : 'Mobile Phone Number *'}
           </label>
           <input
             type="tel"
@@ -207,7 +271,7 @@ export default function CheckoutForm({
             inputMode="numeric"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder={locale === 'bn' ? '০১৭XXXXXXXX' : '017XXXXXXXX'}
+            placeholder={isBn ? '০১৭XXXXXXXX' : '017XXXXXXXX'}
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-medium"
             maxLength={11}
             required
@@ -217,7 +281,7 @@ export default function CheckoutForm({
         {/* District selection */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-brand-text">
-            {locale === 'bn' ? 'জেলা নির্বাচন করুন *' : 'Select District *'}
+            {isBn ? 'জেলা নির্বাচন করুন *' : 'Select District *'}
           </label>
           <select
             value={selectedDistrict}
@@ -226,11 +290,11 @@ export default function CheckoutForm({
             required
           >
             <option value="">
-              {locale === 'bn' ? '-- জেলা পছন্দ করুন --' : '-- Choose District --'}
+              {isBn ? '-- জেলা পছন্দ করুন --' : '-- Choose District --'}
             </option>
             {BD_DISTRICTS.map((district) => (
               <option key={district.id} value={district.id}>
-                {locale === 'bn' ? district.bn : district.en}
+                {isBn ? district.bn : district.en}
               </option>
             ))}
           </select>
@@ -239,14 +303,14 @@ export default function CheckoutForm({
         {/* Full Delivery address */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-brand-text">
-            {locale === 'bn' ? 'পূর্ণাঙ্গ ঠিকানা (গ্রাম, রোড, থানা) *' : 'Full Delivery Address (Street, Area, Upazila) *'}
+            {isBn ? 'পূর্ণাঙ্গ ঠিকানা (গ্রাম, রোড, থানা) *' : 'Full Delivery Address (Street, Area, Upazila) *'}
           </label>
           <textarea
             name="street-address"
             autoComplete="street-address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder={locale === 'bn' ? 'আপনার পূর্ণাঙ্গ ঠিকানা লিখুন...' : 'Enter your detailed street address...'}
+            placeholder={isBn ? 'আপনার পূর্ণাঙ্গ ঠিকানা লিখুন...' : 'Enter your detailed street address...'}
             rows={3}
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-medium resize-none"
             required
@@ -257,14 +321,14 @@ export default function CheckoutForm({
       {/* Payment Options Card */}
       <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
         <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3">
-          {locale === 'bn' ? '২. পেমেন্ট পদ্ধতি' : '2. Payment Method'}
+          {isBn ? '২. পেমেন্ট পদ্ধতি' : '2. Payment Method'}
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* COD */}
           <label className={`flex items-start gap-3 p-4 rounded-xl border transition-all-custom cursor-pointer ${
-            paymentMethod === 'cod' 
-              ? 'border-brand-primary bg-brand-primary/5' 
+            paymentMethod === 'cod'
+              ? 'border-brand-primary bg-brand-primary/5'
               : 'border-brand-border hover:border-brand-primary/30'
           }`}>
             <input
@@ -277,11 +341,11 @@ export default function CheckoutForm({
             />
             <div>
               <span className="text-xs font-bold text-brand-text block">
-                {locale === 'bn' ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery (COD)'}
+                {isBn ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery (COD)'}
               </span>
               <span className="text-[10px] text-brand-muted mt-0.5 block leading-relaxed">
-                {locale === 'bn' 
-                  ? 'পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন। কোনো অগ্রিম ফি লাগবে না।' 
+                {isBn
+                  ? 'পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন। কোনো অগ্রিম ফি লাগবে না।'
                   : 'Pay with cash upon physical delivery. No advance charges required.'}
               </span>
             </div>
@@ -289,8 +353,8 @@ export default function CheckoutForm({
 
           {/* bKash */}
           <label className={`flex items-start gap-3 p-4 rounded-xl border transition-all-custom cursor-pointer ${
-            paymentMethod === 'bkash' 
-              ? 'border-brand-primary bg-brand-primary/5' 
+            paymentMethod === 'bkash'
+              ? 'border-brand-primary bg-brand-primary/5'
               : 'border-brand-border hover:border-brand-primary/30'
           }`}>
             <input
@@ -303,11 +367,11 @@ export default function CheckoutForm({
             />
             <div>
               <span className="text-xs font-bold text-brand-text block">
-                {locale === 'bn' ? 'বিকাশ পেমেন্ট' : 'bKash Instant Payment'}
+                {isBn ? 'বিকাশ পেমেন্ট' : 'bKash Instant Payment'}
               </span>
               <span className="text-[10px] text-brand-muted mt-0.5 block leading-relaxed">
-                {locale === 'bn' 
-                  ? 'বিকাশ ওয়ালেট থেকে দ্রুত ও নিরাপদে পেমেন্ট করুন।' 
+                {isBn
+                  ? 'বিকাশ ওয়ালেট থেকে দ্রুত ও নিরাপদে পেমেন্ট করুন।'
                   : 'Fast and secure checkout via bKash mobile banking wallet.'}
               </span>
             </div>
@@ -326,7 +390,7 @@ export default function CheckoutForm({
         ) : (
           <>
             <CheckCircle2 className="h-4 w-4" />
-            <span>{locale === 'bn' ? 'অর্ডার সম্পন্ন করুন' : 'Confirm Order'}</span>
+            <span>{isBn ? 'অর্ডার সম্পন্ন করুন' : 'Confirm Order'}</span>
           </>
         )}
       </button>

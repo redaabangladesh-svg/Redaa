@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { BD_DISTRICTS } from '@/lib/districts';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Customer {
@@ -37,7 +38,7 @@ interface Address {
   is_default: boolean;
 }
 
-const DISTRICTS = ['ঢাকা', 'চট্টগ্রাম', 'খুলনা', 'রাজশাহী', 'সিলেট', 'বরিশাল', 'রংপুর', 'ময়মনসিংহ'];
+const DISTRICTS = BD_DISTRICTS.map((d) => d.bn);
 
 export default function AccountPage() {
   const locale = useLocale();
