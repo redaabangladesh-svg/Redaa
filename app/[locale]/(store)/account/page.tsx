@@ -7,6 +7,7 @@ import {
   Plus, Pencil, Trash2, Heart, Save, X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { BD_DISTRICTS } from '@/lib/districts';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -331,7 +332,11 @@ export default function AccountPage() {
                 <div className="space-y-2">
                   {orders.length > 0 ? (
                     orders.map((ord) => (
-                      <div key={ord.id} className="p-3 bg-brand-surface border border-brand-border rounded-xl flex justify-between items-center text-xs">
+                      <Link
+                        key={ord.id}
+                        href={`/${locale}/order/${ord.id}`}
+                        className="p-3 bg-brand-surface border border-brand-border rounded-xl flex justify-between items-center text-xs hover:border-brand-primary/40 transition-all-custom"
+                      >
                         <div>
                           <span className="font-bold text-brand-text block">{ord.order_number}</span>
                           <span className="text-[10px] text-brand-muted block mt-0.5">
@@ -344,7 +349,7 @@ export default function AccountPage() {
                             {statusLabel(ord.order_status)}
                           </span>
                         </div>
-                      </div>
+                      </Link>
                     ))
                   ) : (
                     <p className="text-xs text-brand-muted italic py-4 text-center">
