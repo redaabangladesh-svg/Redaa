@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, UploadCloud, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -38,6 +38,35 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
   const [descEn, setDescEn] = useState('');
   const [descBn, setDescBn] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUploadError(data.error || (locale === 'bn' ? 'আপলোড ব্যর্থ হয়েছে।' : 'Upload failed.'));
+        return;
+      }
+
+      setImage(data.url);
+    } catch (err) {
+      setUploadError(locale === 'bn' ? 'আপলোড ব্যর্থ হয়েছে।' : 'Upload failed.');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('sicily_products_list');
@@ -220,16 +249,48 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
           </div>
         </div>
 
-        {/* Image URL Input */}
-        <div className="space-y-1.5">
+        {/* Image Upload */}
+        <div className="space-y-2">
           <label className="text-[10px] font-bold text-brand-muted uppercase">
-            Image URL <span className="text-rose-500">*</span>
+            Product Image <span className="text-rose-500">*</span>
           </label>
+
+          {image ? (
+            <div className="relative w-40 h-40 rounded-xl overflow-hidden border border-brand-border">
+              <img src={image} alt="Product preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setImage('')}
+                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className="w-40 h-40 rounded-xl border-2 border-dashed border-brand-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-primary/40 transition-all-custom">
+              {isUploading ? (
+                <Sparkles className="h-6 w-6 text-brand-primary animate-spin" />
+              ) : (
+                <>
+                  <UploadCloud className="h-6 w-6 text-brand-muted" />
+                  <span className="text-[10px] font-bold text-brand-muted">
+                    {locale === 'bn' ? 'ছবি আপলোড করুন' : 'Upload Image'}
+                  </span>
+                </>
+              )}
+              <input type="file" accept="image/*" onChange={handleFileUpload} disabled={isUploading} className="hidden" />
+            </label>
+          )}
+
+          {uploadError && (
+            <p className="text-[10px] text-rose-600 font-bold">{uploadError}</p>
+          )}
+
           <input
             type="text"
             value={image}
             onChange={(e) => setImage(e.target.value)}
-            placeholder="https://images.unsplash.com/photo-..."
+            placeholder="https://... (or upload an image above)"
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             required
           />
