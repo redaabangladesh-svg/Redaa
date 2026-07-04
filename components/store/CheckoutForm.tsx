@@ -38,7 +38,7 @@ export default function CheckoutForm({
 }: CheckoutFormProps) {
   const locale = useLocale();
   const router = useRouter();
-  const { clearCart, cartTotal } = useCart();
+  const { clearCart, cartTotal, cartItems } = useCart();
   const isBn = locale === 'bn';
 
   const [name, setName] = useState('');
@@ -112,7 +112,7 @@ export default function CheckoutForm({
     setSelectedDistrict(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -144,58 +144,82 @@ export default function CheckoutForm({
 
     setIsSubmitting(true);
 
-    // Mock order submission API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-      // Generate mock random order invoice ID
-      const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    let customerId: string | null = null;
+    if (user) {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      customerId = customer?.id ?? null;
+    }
 
-      // Get existing orders from localStorage or empty array
-      const existingStr = localStorage.getItem('sicily_orders_list');
-      let ordersList = [];
-      if (existingStr) {
-        try {
-          ordersList = JSON.parse(existingStr);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    const districtLabel = BD_DISTRICTS.find(d => d.id === selectedDistrict)?.bn || selectedDistrict;
+    const grandTotal = cartTotal + shippingCharge - discountAmount;
 
-      const newOrder = {
-        id: orderId,
-        customer: name,
-        phone: phone,
-        amount: cartTotal + shippingCharge - discountAmount,
-        payment: paymentMethod === 'cod' ? 'COD' : 'bKash',
-        status: 'new' as const,
-        date: new Date().toISOString().replace('T', ' ').substring(0, 16)
-      };
-
-      ordersList.unshift(newOrder); // Add to beginning
-      localStorage.setItem('sicily_orders_list', JSON.stringify(ordersList));
-
-      // Store checkout metadata in session storage for the confirmation page
-      sessionStorage.setItem('last_order_details', JSON.stringify({
-        orderId,
-        customerName: name,
-        customerPhone: phone,
-        customerAddress: address,
-        customerDistrict: BD_DISTRICTS.find(d => d.id === selectedDistrict)?.[isBn ? 'bn' : 'en'] || selectedDistrict,
-        paymentMethod,
-        shippingCharge,
-        discountAmount,
-        couponCode,
+    const { data: newOrder, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_id: customerId,
+        customer_name: name,
+        phone: cleanPhone,
+        address,
+        district: districtLabel,
         subtotal: cartTotal,
-        grandTotal: cartTotal + shippingCharge - discountAmount
-      }));
+        delivery_charge: shippingCharge,
+        discount: discountAmount,
+        total: grandTotal,
+        payment_method: paymentMethod,
+        coupon_code: couponCode || null,
+      })
+      .select()
+      .single();
 
-      // Clear Cart
-      clearCart();
+    if (orderError || !newOrder) {
+      setIsSubmitting(false);
+      setErrorMsg(isBn ? 'অর্ডার সম্পন্ন করা যায়নি, আবার চেষ্টা করুন।' : 'Could not place order, please try again.');
+      console.error(orderError);
+      return;
+    }
 
-      // Redirect to Order Confirmation page
-      router.push(`/${locale}/order/${orderId}`);
-    }, 1500);
+    if (cartItems.length > 0) {
+      await supabase.from('order_items').insert(
+        cartItems.map((item) => ({
+          order_id: newOrder.id,
+          product_name: isBn ? item.name_bn : item.name_en,
+          variant: item.variant || null,
+          qty: item.qty,
+          price: item.sale_price ?? item.price,
+        }))
+      );
+    }
+
+    setIsSubmitting(false);
+
+    // Store checkout metadata in session storage for the confirmation page
+    sessionStorage.setItem('last_order_details', JSON.stringify({
+      orderId: newOrder.id,
+      orderNumber: newOrder.order_number,
+      customerName: name,
+      customerPhone: phone,
+      customerAddress: address,
+      customerDistrict: districtLabel,
+      paymentMethod,
+      shippingCharge,
+      discountAmount,
+      couponCode,
+      subtotal: cartTotal,
+      grandTotal
+    }));
+
+    // Clear Cart
+    clearCart();
+
+    // Redirect to Order Confirmation page
+    router.push(`/${locale}/order/${newOrder.id}`);
   };
 
   return (

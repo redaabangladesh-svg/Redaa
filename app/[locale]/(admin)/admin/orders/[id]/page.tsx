@@ -2,112 +2,152 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, Clock, CheckCircle2, XCircle, User, Phone, MapPin, CreditCard, Calendar, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Calendar, ShoppingBag, ShieldCheck, ShieldAlert, Truck } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
+
+type OrderStatus = 'new' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
 
 interface Order {
   id: string;
-  customer: string;
+  order_number: string;
+  customer_name: string;
   phone: string;
-  amount: number;
-  payment: string;
-  status: 'new' | 'processing' | 'delivered' | 'cancelled';
-  date: string;
-  address?: string;
-  district?: string;
-  shipping?: number;
+  address: string;
+  district: string;
+  area: string | null;
+  subtotal: number;
+  delivery_charge: number;
+  discount: number;
+  total: number;
+  payment_method: string;
+  order_status: OrderStatus;
+  courier: string | null;
+  tracking_number: string | null;
+  created_at: string;
 }
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  qty: number;
+  price: number;
+}
+
+const STATUS_LABEL: Record<OrderStatus, { en: string; bn: string }> = {
+  new: { en: 'New / Pending', bn: 'নতুন (New)' },
+  confirmed: { en: 'Confirmed', bn: 'কনফার্ম' },
+  processing: { en: 'Processing', bn: 'প্রসেসিং' },
+  shipped: { en: 'Shipped', bn: 'পাঠানো হয়েছে' },
+  delivered: { en: 'Delivered', bn: 'ডেলিভার্ড' },
+  cancelled: { en: 'Cancelled', bn: 'বাতিল' },
+  returned: { en: 'Returned', bn: 'ফেরত' },
+};
+
+const STATUS_COLORS: Record<OrderStatus, string> = {
+  new: 'text-blue-700 bg-blue-50 border-blue-100',
+  confirmed: 'text-blue-700 bg-blue-50 border-blue-100',
+  processing: 'text-amber-700 bg-amber-50 border-amber-100',
+  shipped: 'text-purple-700 bg-purple-50 border-purple-100',
+  delivered: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+  cancelled: 'text-rose-700 bg-rose-50 border-rose-100',
+  returned: 'text-rose-700 bg-rose-50 border-rose-100',
+};
 
 export default function AdminOrderDetailPage({ params }: { params: { id: string } }) {
   const locale = useLocale();
-  const router = useRouter();
+  const isBn = locale === 'bn';
 
-  const [orders, setOrders] = useState<Order[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
-  const [status, setStatus] = useState<Order['status']>('new');
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [assigningCourier, setAssigningCourier] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_orders_list');
-    if (stored) {
-      try {
-        const parsed: Order[] = JSON.parse(stored);
-        setOrders(parsed);
-        
-        const matched = parsed.find(o => o.id === params.id);
-        if (matched) {
-          setOrder(matched);
-          setStatus(matched.status);
-        } else {
-          // If no order is found in list, fallback to a dynamic mock matching the ID
-          const fallbackOrder: Order = {
-            id: params.id,
-            customer: 'Dynamic Customer',
-            phone: '01700000000',
-            amount: 1070,
-            payment: 'COD',
-            status: 'new',
-            date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-            address: 'Mirpur-10, Block-B, Road-5, House-12',
-            district: 'Dhaka',
-            shipping: 80
-          };
-          setOrder(fallbackOrder);
-          setStatus(fallbackOrder.status);
-        }
-      } catch (e) {
-        console.error('Error parsing orders list:', e);
+    const loadOrder = async () => {
+      const supabase = createClient();
+      const { data: orderRow } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', params.id)
+        .maybeSingle();
+
+      if (orderRow) {
+        setOrder(orderRow);
+        const { data: itemRows } = await supabase
+          .from('order_items')
+          .select('id, product_name, qty, price')
+          .eq('order_id', orderRow.id);
+        setItems(itemRows || []);
       }
-    }
+      setLoading(false);
+    };
+    loadOrder();
   }, [params.id]);
 
-  const handleStatusChange = (newStatus: Order['status']) => {
-    setStatus(newStatus);
-    setSuccessMsg('');
-
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order) return;
+    setSuccessMsg('');
+    setErrorMsg('');
 
-    // Update the matching order in orders array
-    const updatedOrders = orders.map((o) => {
-      if (o.id === order.id) {
-        return { ...o, status: newStatus };
-      }
-      return o;
-    });
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('orders')
+      .update({ order_status: newStatus })
+      .eq('id', order.id);
 
-    setOrders(updatedOrders);
-    localStorage.setItem('sicily_orders_list', JSON.stringify(updatedOrders));
+    if (error) {
+      setErrorMsg(isBn ? 'স্ট্যাটাস আপডেট ব্যর্থ হয়েছে।' : 'Failed to update status.');
+      return;
+    }
 
-    // Also update current view order
-    setOrder({ ...order, status: newStatus });
-
-    setSuccessMsg(
-      locale === 'bn' 
-        ? 'অর্ডারের স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!' 
-        : 'Order status updated successfully!'
-    );
+    setOrder({ ...order, order_status: newStatus });
+    setSuccessMsg(isBn ? 'অর্ডারের স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!' : 'Order status updated successfully!');
   };
 
-  if (!order) {
+  const handleAssignSteadfast = async () => {
+    if (!order) return;
+    setAssigningCourier(true);
+    setSuccessMsg('');
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/courier/steadfast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.error || (isBn ? 'কুরিয়ার এসাইন ব্যর্থ হয়েছে।' : 'Failed to assign courier.'));
+        return;
+      }
+
+      setOrder({ ...order, courier: 'steadfast', tracking_number: data.trackingCode, order_status: 'shipped' });
+      setSuccessMsg(isBn ? 'Steadfast-এ পাঠানো হয়েছে!' : 'Sent to Steadfast successfully!');
+    } finally {
+      setAssigningCourier(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="py-12 text-center text-brand-muted font-bold font-sans">
-        {locale === 'bn' ? 'অর্ডার তথ্য লোড হচ্ছে...' : 'Loading order details...'}
+        {isBn ? 'অর্ডার তথ্য লোড হচ্ছে...' : 'Loading order details...'}
       </div>
     );
   }
 
-  const statusColors = 
-    status === 'new' ? 'text-blue-700 bg-blue-50 border-blue-100' :
-    status === 'processing' ? 'text-amber-700 bg-amber-50 border-amber-100' :
-    status === 'delivered' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-    'text-rose-700 bg-rose-50 border-rose-100';
-
-  const displayStatus = 
-    status === 'new' ? (locale === 'bn' ? 'নতুন' : 'New') :
-    status === 'processing' ? (locale === 'bn' ? 'প্রসেসিং' : 'Processing') :
-    status === 'delivered' ? (locale === 'bn' ? 'ডেলিভার্ড' : 'Delivered') :
-    (locale === 'bn' ? 'বাতিল' : 'Cancelled');
+  if (!order) {
+    return (
+      <div className="py-12 text-center text-brand-muted font-bold font-sans">
+        {isBn ? 'অর্ডার পাওয়া যায়নি।' : 'Order not found.'}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl space-y-6 font-sans">
@@ -117,24 +157,23 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
         className="inline-flex items-center gap-2 text-xs font-bold text-brand-muted hover:text-brand-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        <span>{locale === 'bn' ? 'অর্ডার তালিকায় ফিরে যান' : 'Back to Orders List'}</span>
+        <span>{isBn ? 'অর্ডার তালিকায় ফিরে যান' : 'Back to Orders List'}</span>
       </Link>
 
       {/* Header */}
       <div className="border-b border-brand-border pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-black text-brand-text">
-            {locale === 'bn' ? `অর্ডার বিবরণী: ${order.id}` : `Order Details: ${order.id}`}
+            {isBn ? `অর্ডার বিবরণী: ${order.order_number}` : `Order Details: ${order.order_number}`}
           </h1>
           <p className="text-xs text-brand-muted mt-1.5 font-medium flex items-center gap-1.5">
             <Calendar className="h-4 w-4 text-brand-primary" />
-            <span>{order.date}</span>
+            <span>{new Date(order.created_at).toLocaleString(isBn ? 'bn-BD' : 'en-US')}</span>
           </p>
         </div>
 
-        {/* Current status badge */}
-        <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide ${statusColors}`}>
-          {displayStatus}
+        <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide ${STATUS_COLORS[order.order_status]}`}>
+          {isBn ? STATUS_LABEL[order.order_status].bn : STATUS_LABEL[order.order_status].en}
         </span>
       </div>
 
@@ -144,33 +183,39 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
           <span>{successMsg}</span>
         </div>
       )}
+      {errorMsg && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-2xl flex items-center gap-2">
+          <ShieldAlert className="h-4.5 w-4.5 text-rose-600 flex-shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
       {/* Grid: Editor & Invoice */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Columns: Invoice Details */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Customer Profile card */}
           <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
             <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3 flex items-center gap-2">
               <User className="h-4.5 w-4.5 text-brand-primary" />
-              <span>{locale === 'bn' ? 'গ্রাহকের বিস্তারিত তথ্য' : 'Customer Profile'}</span>
+              <span>{isBn ? 'গ্রাহকের বিস্তারিত তথ্য' : 'Customer Profile'}</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium">
               <div className="space-y-1">
-                <span className="text-[10px] text-brand-muted font-bold block">{locale === 'bn' ? 'নাম' : 'Customer Name'}</span>
-                <span className="text-brand-text font-extrabold block text-sm">{order.customer}</span>
+                <span className="text-[10px] text-brand-muted font-bold block">{isBn ? 'নাম' : 'Customer Name'}</span>
+                <span className="text-brand-text font-extrabold block text-sm">{order.customer_name}</span>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] text-brand-muted font-bold block">{locale === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}</span>
+                <span className="text-[10px] text-brand-muted font-bold block">{isBn ? 'ফোন নম্বর' : 'Phone Number'}</span>
                 <span className="text-brand-primary font-bold block text-sm">{order.phone}</span>
               </div>
               <div className="space-y-1 sm:col-span-2">
-                <span className="text-[10px] text-brand-muted font-bold block">{locale === 'bn' ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}</span>
+                <span className="text-[10px] text-brand-muted font-bold block">{isBn ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}</span>
                 <span className="text-brand-text leading-relaxed mt-1 block">
                   <MapPin className="h-4 w-4 inline mr-1 text-brand-primary flex-shrink-0 align-text-bottom" />
-                  {order.address || 'Mirpur-10, Block-B, Road-5, House-12'}, {order.district || 'Dhaka'}
+                  {order.address}{order.area ? `, ${order.area}` : ''}, {order.district}
                 </span>
               </div>
             </div>
@@ -180,37 +225,39 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
           <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
             <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3 flex items-center gap-2">
               <ShoppingBag className="h-4.5 w-4.5 text-brand-primary" />
-              <span>{locale === 'bn' ? 'অর্ডারকৃত সামগ্রী' : 'Ordered Items'}</span>
+              <span>{isBn ? 'অর্ডারকৃত সামগ্রী' : 'Ordered Items'}</span>
             </h3>
 
             <div className="space-y-4 text-xs">
-              <div className="flex gap-3">
-                <div className="h-12 w-12 rounded-lg bg-brand-surface border border-brand-border overflow-hidden flex-shrink-0">
-                  <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=600" className="h-full w-full object-cover" />
+              {items.map((item) => (
+                <div key={item.id} className="flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-brand-text">{item.product_name}</h4>
+                    <p className="text-[10px] text-brand-muted mt-0.5">Qty: {item.qty}</p>
+                  </div>
+                  <span className="font-bold block text-brand-text">৳{item.price * item.qty}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-brand-text">Premium Metal Flower Hanger</h4>
-                  <p className="text-[10px] text-brand-muted mt-0.5">Classic Gold / Small</p>
-                </div>
-                <div className="text-right">
-                  <span className="font-bold block text-brand-text">৳{order.amount - (order.shipping || 80)}</span>
-                  <span className="text-[10px] text-brand-muted block mt-0.5">Qty: 1</span>
-                </div>
-              </div>
+              ))}
 
               {/* Total calculations */}
               <div className="border-t border-brand-border pt-4 space-y-2">
                 <div className="flex justify-between text-brand-muted">
-                  <span>{locale === 'bn' ? 'উপ-মোট' : 'Subtotal'}</span>
-                  <span>৳{order.amount - (order.shipping || 80)}</span>
+                  <span>{isBn ? 'উপ-মোট' : 'Subtotal'}</span>
+                  <span>৳{order.subtotal}</span>
                 </div>
                 <div className="flex justify-between text-brand-muted">
-                  <span>{locale === 'bn' ? 'শিপিং চার্জ' : 'Shipping Charge'}</span>
-                  <span>৳{order.shipping || 80}</span>
+                  <span>{isBn ? 'শিপিং চার্জ' : 'Shipping Charge'}</span>
+                  <span>৳{order.delivery_charge}</span>
                 </div>
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-brand-primary font-semibold">
+                    <span>{isBn ? 'ছাড়' : 'Discount'}</span>
+                    <span>-৳{order.discount}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm font-extrabold text-brand-text border-t border-brand-border pt-3 items-baseline">
-                  <span>{locale === 'bn' ? 'সর্বমোট মূল্য' : 'Grand Total'}</span>
-                  <span className="text-base font-black text-brand-secondary">৳{order.amount}</span>
+                  <span>{isBn ? 'সর্বমোট মূল্য' : 'Grand Total'}</span>
+                  <span className="text-base font-black text-brand-secondary">৳{order.total}</span>
                 </div>
               </div>
             </div>
@@ -221,30 +268,59 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
             <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3">
-              {locale === 'bn' ? 'স্ট্যাটাস আপডেট করুন' : 'Manage Workflow'}
+              {isBn ? 'স্ট্যাটাস আপডেট করুন' : 'Manage Workflow'}
             </h3>
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-brand-muted uppercase">
-                {locale === 'bn' ? 'অর্ডার স্ট্যাটাস:' : 'Order Status:'}
+                {isBn ? 'অর্ডার স্ট্যাটাস:' : 'Order Status:'}
               </label>
               <select
-                value={status}
-                onChange={(e) => handleStatusChange(e.target.value as Order['status'])}
+                value={order.order_status}
+                onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
                 className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
               >
-                <option value="new">{locale === 'bn' ? 'নতুন (New)' : 'New / Pending'}</option>
-                <option value="processing">{locale === 'bn' ? 'প্রসেসিং (Processing)' : 'Processing'}</option>
-                <option value="delivered">{locale === 'bn' ? 'ডেলিভার্ড (Delivered)' : 'Delivered'}</option>
-                <option value="cancelled">{locale === 'bn' ? 'বাতিল (Cancelled)' : 'Cancelled'}</option>
+                {(Object.keys(STATUS_LABEL) as OrderStatus[]).map((s) => (
+                  <option key={s} value={s}>{isBn ? STATUS_LABEL[s].bn : STATUS_LABEL[s].en}</option>
+                ))}
               </select>
             </div>
 
             <div className="text-[10px] text-brand-muted leading-relaxed font-semibold pt-2 border-t border-brand-border">
-              {locale === 'bn'
+              {isBn
                 ? '* অর্ডার স্ট্যাটাস পরিবর্তন করার সাথে সাথে ডেটাবেজে এবং কাস্টমারের ট্র্যাক পোর্টালে সেটি আপডেট হবে।'
                 : '* Updating order status immediately refreshes details inside administration tables.'}
             </div>
+          </div>
+
+          {/* Courier assignment card */}
+          <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
+            <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3 flex items-center gap-2">
+              <Truck className="h-4.5 w-4.5 text-brand-primary" />
+              <span>{isBn ? 'কুরিয়ার' : 'Courier'}</span>
+            </h3>
+
+            {order.tracking_number ? (
+              <div className="text-xs space-y-1.5">
+                <span className="text-[10px] text-brand-muted font-bold block uppercase">{order.courier}</span>
+                <span className="font-extrabold text-brand-text block">{order.tracking_number}</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleAssignSteadfast}
+                disabled={assigningCourier}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-primary text-white font-extrabold text-xs shadow-sm hover:bg-brand-primary-alt transition-all-custom disabled:opacity-60"
+              >
+                {assigningCourier ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Truck className="h-4 w-4" />
+                    <span>{isBn ? 'Steadfast-এ পাঠান' : 'Send to Steadfast'}</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
