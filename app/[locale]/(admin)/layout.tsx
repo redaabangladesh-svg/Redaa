@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -23,27 +24,28 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const currentLocale = pathname.split('/')[1] || 'bn';
+  const currentLocale = useLocale();
 
   // The login screen renders full-bleed, without the sidebar/header chrome
-  if (pathname === `/${currentLocale}/admin/login` || pathname === '/admin/login') {
+  if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push(`/${currentLocale}/admin/login`);
+    router.push('/admin/login');
   };
 
+  // Admin routes are locale-free — only the storefront uses /${currentLocale}
   const menuItems = [
-    { label: 'Overview', icon: LayoutDashboard, href: `/${currentLocale}/admin` },
-    { label: 'Orders', icon: ShoppingBag, href: `/${currentLocale}/admin/orders` },
-    { label: 'Products', icon: Layers, href: `/${currentLocale}/admin/products` },
-    { label: 'Customers', icon: Users, href: `/${currentLocale}/admin/customers` },
-    { label: 'Reports', icon: BarChart3, href: `/${currentLocale}/admin/reports` },
-    { label: 'Offers', icon: Tag, href: `/${currentLocale}/admin/offers` },
-    { label: 'Settings', icon: Settings, href: `/${currentLocale}/admin/settings` },
+    { label: 'Overview', icon: LayoutDashboard, href: '/admin' },
+    { label: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
+    { label: 'Products', icon: Layers, href: '/admin/products' },
+    { label: 'Customers', icon: Users, href: '/admin/customers' },
+    { label: 'Reports', icon: BarChart3, href: '/admin/reports' },
+    { label: 'Offers', icon: Tag, href: '/admin/offers' },
+    { label: 'Settings', icon: Settings, href: '/admin/settings' },
   ];
 
   return (
