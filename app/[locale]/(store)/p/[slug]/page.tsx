@@ -6,164 +6,11 @@ import { useCart } from '@/lib/cart';
 import { useRouter } from 'next/navigation';
 import { Star, ShoppingBag, ShieldCheck, Truck, RefreshCw, Plus, Minus, ArrowLeft, Check, ClipboardCheck, Phone, MapPin, PackageCheck, PackageX, Flame, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { PRODUCTS } from '@/lib/products';
+import { fetchProductDetail, type ProductDetail } from '@/lib/products-db';
+import { createClient } from '@/lib/supabase';
+import { BD_DISTRICTS } from '@/lib/districts';
 
 interface SizeOption { en: string; bn: string; price: number; sale_price: number | null; }
-
-interface Product {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  price: number;
-  sale_price: number | null;
-  images: string[];
-  category: string;
-  rating: number;
-  reviews: number;
-  short_desc_en: string;
-  short_desc_bn: string;
-  desc_en: string;
-  desc_bn: string;
-  colors: { en: string; bn: string; hex: string }[];
-  sizes?: SizeOption[];
-  stock?: number;
-}
-
-const mockDescriptions: Record<string, { desc_en: string; desc_bn: string; short_en: string; short_bn: string }> = {
-  '1': {
-    desc_en: 'Enhance your wall aesthetics with this handcrafted premium metal flower hanger. Sourced from high-grade anti-rust painted iron.',
-    desc_bn: 'আপনার দেয়ালের সৌন্দর্য বাড়াতে আমাদের হাতে তৈরি এই প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গারটি অনন্য। মরিচা-প্রতিরোধক পেইন্ট করা উচ্চ মানের লোহা দ্বারা তৈরি।',
-    short_en: 'Handcrafted anti-rust metal hanger with a modern geometric silhouette.',
-    short_bn: 'হাতে তৈরি মরিচা-প্রতিরোধক মেটাল হ্যাঙ্গার, আধুনিক জ্যামিতিক ডিজাইনে।'
-  },
-  '2': {
-    desc_en: 'Beautifully wrapped handcrafted pastel paper tulips. Perfect for dining tables, study desks, or gifting on special occasions.',
-    desc_bn: 'চমৎকারভাবে মোড়ানো হাতে তৈরি পেস্টেল কাগজের টিউলিপের তোড়া। ডাইনিং টেবিল, স্টাডি ডেস্ক বা বিশেষ অনুষ্ঠানে উপহার দেয়ার জন্য আদর্শ।',
-    short_en: 'Handcrafted pastel paper tulips, perfect for tables and gifting.',
-    short_bn: 'হাতে তৈরি পেস্টেল কাগজের টিউলিপ, টেবিল সাজানো ও উপহারের জন্য উপযুক্ত।'
-  },
-  '3': {
-    desc_en: 'Hand-polished solid mahogany wood frames carrying preserved dry flowers. Gives an organic vintage country look to any home interior decoration.',
-    desc_bn: 'প্রাকৃতিক শুকানো ফুল ধরে রাখা হাতে পালিশ করা সলিড মেহগনি কাঠের তৈরি ফ্রেম। যেকোনো বাড়ির ঘরের ভেতরে চমৎকার ভিন্টেজ লুক এনে দেয়।',
-    short_en: 'Solid mahogany frame with preserved dry flowers, vintage country look.',
-    short_bn: 'সলিড মেহগনি ফ্রেমে শুকানো ফুল, ভিন্টেজ কান্ট্রি লুক।'
-  },
-  '5': {
-    desc_en: 'Premium ceramic vase with minimal modern lines, ideal for showing off fresh or dry floral bouquets.',
-    desc_bn: 'আধুনিক ডিজাইনের মিনিমাল সিরামিক ফুলদানি, যা ফুলের তোড়া সাজিয়ে রাখার জন্য আদর্শ।',
-    short_en: 'Premium ceramic vase with minimal modern lines.',
-    short_bn: 'আধুনিক ডিজাইনের মিনিমাল সিরামিক ফুলদানি।'
-  },
-  '6': {
-    desc_en: 'Boho style macrame wall hanging handcrafted with 100% natural cotton cord on driftwood.',
-    desc_bn: '১০০% প্রাকৃতিক সুতি সুতা দিয়ে তৈরি বোহো স্টাইলের ম্যাক্রামে দেয়াল সজ্জা শোপিস।',
-    short_en: 'Boho style macrame wall hanging handcrafted with 100% natural cotton cord.',
-    short_bn: '১০০% প্রাকৃতিক সুতি সুতা দিয়ে তৈরি বোহো স্টাইলের ম্যাক্রামে দেয়াল সজ্জা।'
-  },
-  '7': {
-    desc_en: 'Double decker anti-rust metal plant stand for organizing multiple tubs.',
-    desc_bn: 'মরিচা-প্রতিরোধক মেটাল ডাবল ডেকার প্ল্যান্ট স্ট্যান্ড, যা একসাথে কয়েকটি টব রাখার জন্য চমৎকার।',
-    short_en: 'Double decker anti-rust metal plant stand.',
-    short_bn: 'মরিচা-প্রতিরোধক মেটাল ডাবল ডেকার প্ল্যান্ট স্ট্যান্ড।'
-  },
-  '8': {
-    desc_en: 'Gorgeous handcrafted pastel roses bundle with premium gift wrapping sheets.',
-    desc_bn: 'হাতে তৈরি আকর্ষণীয় পেস্টেল গোলাপের তোড়া, বিশেষ গিফট র‍্যাপিং পেপার সহ মোড়ানো।',
-    short_en: 'Gorgeous handcrafted pastel roses bundle.',
-    short_bn: 'হাতে তৈরি আকর্ষণীয় পেস্টেল গোলাপের তোড়া।'
-  },
-  '9': {
-    desc_en: 'Luxury mahogany wooden frame with glass front and dried botanicals detail.',
-    desc_bn: 'আকর্ষণীয় মেহগনি কাঠের শৌখিন ফ্রেম, সামনের কাচ ও ভেতর সুরক্ষিত প্রাকৃতিক শুকনো ফুল সহ।',
-    short_en: 'Luxury mahogany wooden frame with dried botanicals.',
-    short_bn: 'আকর্ষণীয় মেহগনি কাঠের শৌখিন ফ্রেম।'
-  },
-  '10': {
-    desc_en: 'Premium Magnolia plant in ceramic pot, perfect for home and workspace.',
-    desc_bn: 'সিরামিক টবে প্রিমিয়াম ম্যাগনোলিয়া গাছ, বাসা ও অফিসের অভ্যন্তরীণ সাজসজ্জায় প্রাণবন্ত লুক এনে দেবে।',
-    short_en: 'Premium Magnolia plant in ceramic pot.',
-    short_bn: 'সিরামিক টবে প্রিমিয়াম ম্যাগনোলিয়া গাছ।'
-  },
-  '11': {
-    desc_en: 'Modern design A-Frame wood wall shelf with beautiful artificial greenery.',
-    desc_bn: 'আধুনিক ডিজাইনের এ-ফ্রেম কাঠের দেয়াল তাক ও চমৎকার কৃত্রিম লতাপাতা কম্বো।',
-    short_en: 'Modern design A-Frame wood wall shelf.',
-    short_bn: 'আধুনিক ডিজাইনের এ-ফ্রেম কাঠের দেয়াল তাক।'
-  },
-  '12': {
-    desc_en: 'Premium geometric ceramic plant pot, extremely stylish and suitable for large plants.',
-    desc_bn: 'আকর্ষণীয় জ্যামিতিক সিরামিক টব, যা আপনার ঘরের বড় বড় ইনডোর গাছের জন্য দারুণ মানানসই।',
-    short_en: 'Premium geometric ceramic plant pot, extremely stylish.',
-    short_bn: 'আকর্ষণীয় জ্যামিতিক সিরামিক টব।'
-  },
-  '13': {
-    desc_en: 'Lush green artificial fern plant in simple white pot, maintenance free.',
-    desc_bn: 'আকর্ষণীয় চিরসবুজ কৃত্রিম ফার্ন গাছ ও সাদা টব, যা পানি বা রোদের কোনো ঝামেলা ছাড়াই সতেজ দেখাবে।',
-    short_en: 'Lush green artificial fern plant in simple white pot.',
-    short_bn: 'আকর্ষণীয় চিরসবুজ কৃত্রিম ফার্ন গাছ ও সাদা টব।'
-  }
-};
-
-const mockProducts: Record<string, Product> = {};
-PRODUCTS.forEach((p) => {
-  const meta = mockDescriptions[p.id] || {
-    desc_en: p.name_en,
-    desc_bn: p.name_bn,
-    short_en: p.name_en,
-    short_bn: p.name_bn
-  };
-  
-  mockProducts[p.id] = {
-    id: p.id,
-    name_en: p.name_en,
-    name_bn: p.name_bn,
-    price: p.price,
-    sale_price: p.sale_price,
-    images: p.id === '12' ? ['/banana-tree.jpg', '/banana-tree-1.jpg', '/banana-tree-2.jpg', '/banana-tree-trans.png'] : [p.image],
-    category: p.category,
-    rating: p.rating || 4.8,
-    reviews: p.reviews || 22,
-    short_desc_en: meta.short_en,
-    short_desc_bn: meta.short_bn,
-    desc_en: meta.desc_en,
-    desc_bn: meta.desc_bn,
-    colors: [
-      { en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' }
-    ],
-    sizes: p.sizes ? p.sizes.map((s: string) => {
-      const sizeLower = s.toLowerCase();
-      let pAdd = 0;
-      if (sizeLower.includes('18') || sizeLower.includes('medium') || sizeLower.includes('16')) {
-        pAdd = 300;
-      } else if (sizeLower.includes('24') || sizeLower.includes('large') || sizeLower.includes('20')) {
-        pAdd = 600;
-      }
-      return {
-        en: s,
-        bn: s.replace('inch', 'ইঞ্চি').replace('"', ' ইঞ্চি'),
-        price: p.price + pAdd,
-        sale_price: p.sale_price !== null ? p.sale_price + pAdd : null
-      };
-    }) : undefined,
-    stock: p.stock !== undefined ? p.stock : 10
-  };
-});
-
-const BD_DISTRICTS = [
-  { id: 'dhaka', en: 'Dhaka (City)', bn: 'ঢাকা (সিটি)' },
-  { id: 'chittagong', en: 'Chittagong', bn: 'চট্টগ্রাম' },
-  { id: 'sylhet', en: 'Sylhet', bn: 'সিলেট' },
-  { id: 'rajshahi', en: 'Rajshahi', bn: 'রাজশাহী' },
-  { id: 'khulna', en: 'Khulna', bn: 'খুলনা' },
-  { id: 'barisal', en: 'Barisal', bn: 'বরিশাল' },
-  { id: 'rangpur', en: 'Rangpur', bn: 'রংপুর' },
-  { id: 'mymensingh', en: 'Mymensingh', bn: 'ময়মনসিংহ' },
-  { id: 'gazipur', en: 'Gazipur', bn: 'গাজীপুর' },
-  { id: 'narayanganj', en: 'Narayanganj', bn: 'নারায়ণগঞ্জ' },
-  { id: 'comilla', en: 'Comilla', bn: 'কুমিল্লা' },
-  { id: 'coxsbazar', en: 'Cox\'s Bazar', bn: 'কক্সবাজার' },
-  { id: 'bogra', en: 'Bogra', bn: 'বগুড়া' }
-];
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const locale = useLocale();
@@ -171,8 +18,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const { addToCart } = useCart();
   const formRef = useRef<HTMLDivElement>(null);
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ en: string; bn: string; hex: string } | null>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -186,92 +32,25 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const [shippingCharge, setShippingCharge] = useState(80);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load from localStorage products catalog database
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_products_list');
-    let loadedProducts: Record<string, Product> = {};
+    fetchProductDetail(params.slug).then((detail) => {
+      setProduct(detail);
+      setActiveImage(0);
 
-    if (stored) {
-      try {
-        const list: any[] = JSON.parse(stored);
-        list.forEach((p) => {
-          loadedProducts[p.id] = {
-            id: p.id,
-            name_en: p.name_en,
-            name_bn: p.name_bn,
-            price: p.price,
-            sale_price: p.sale_price,
-            images: p.images || [p.image || '/02.09.23.jpg'],
-            category: p.category,
-            rating: p.rating || 4.8,
-            reviews: p.reviews || 22,
-            short_desc_en: p.short_desc_en || p.name_en,
-            short_desc_bn: p.short_desc_bn || p.name_bn,
-            desc_en: p.desc_en || p.name_en,
-            desc_bn: p.desc_bn || p.name_bn,
-            colors: p.colors || [
-              { en: 'Classic Gold', bn: 'ক্লাসিক গোল্ড', hex: '#D97706' }
-            ],
-            sizes: p.sizes,
-            stock: p.stock !== undefined ? p.stock : 10
-          };
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const slugify = (text: string) => {
-      return text
-        .toString()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
-    };
-
-    const merged = { ...mockProducts, ...loadedProducts };
-    const mergedList = Object.values(merged);
-    const slugLower = params.slug.toLowerCase();
-    
-    const matched = mergedList.find(p => {
-      const imageFilename = p.images[0]?.split('/').pop()?.toLowerCase() || '';
-      const imageBasename = imageFilename.split('.')[0] || '';
-      
-      const matchesId = p.id === params.slug;
-      const matchesNameSlugEn = slugify(p.name_en) === slugLower;
-      const matchesNameSlugBn = slugify(p.name_bn) === slugLower;
-      const matchesImageFilename = imageFilename === slugLower || imageFilename.includes(slugLower);
-      const matchesImageBasename = imageBasename === slugLower || imageBasename.includes(slugLower);
-      const matchesNameSubEn = p.name_en.toLowerCase().includes(slugLower);
-      const matchesNameSubBn = p.name_bn.toLowerCase().includes(slugLower);
-      
-      const matchesBannaSpecial = (slugLower === 'banna' || slugLower === 'banna.jpg') && (p.id === '12' || imageFilename.includes('banana'));
-
-      return (
-        matchesId ||
-        matchesNameSlugEn ||
-        matchesNameSlugBn ||
-        matchesImageFilename ||
-        matchesImageBasename ||
-        matchesBannaSpecial ||
-        matchesNameSubEn ||
-        matchesNameSubBn
-      );
-    }) || merged['1'];
-    
-    setProduct(matched);
-    setActiveImage(0);
-    if (matched) {
-      setSelectedColor(matched.colors[0]);
-      if (matched.sizes && matched.sizes.length > 0) {
-        setSelectedSize(matched.sizes[0]);
+      if (detail) {
+        const sizes: SizeOption[] = detail.variants.length > 0
+          ? detail.variants.map((v) => ({
+              en: v.size_en || '',
+              bn: v.size_bn || v.size_en || '',
+              price: v.price ?? detail.price,
+              sale_price: v.sale_price !== undefined ? v.sale_price : detail.sale_price,
+            }))
+          : [];
+        setSelectedSize(sizes.length > 0 ? sizes[0] : null);
       } else {
         setSelectedSize(null);
       }
-    }
+    });
   }, [params.slug]);
 
   // Read shipping rates from localStorage settings
@@ -292,19 +71,28 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
     );
   }
 
+  const sizeOptions: SizeOption[] | undefined = product.variants.length > 0
+    ? product.variants.map((v) => ({
+        en: v.size_en || '',
+        bn: v.size_bn || v.size_en || '',
+        price: v.price ?? product.price,
+        sale_price: v.sale_price !== undefined ? v.sale_price : product.sale_price,
+      }))
+    : undefined;
+
   const price = selectedSize ? selectedSize.price : product.price;
   const salePrice = selectedSize ? selectedSize.sale_price : product.sale_price;
   const activePrice = salePrice ?? price;
   const nameLabel = locale === 'bn' ? product.name_bn : product.name_en;
-  const shortDesc = locale === 'bn' ? product.short_desc_bn : product.short_desc_en;
-  const desc = locale === 'bn' ? product.desc_bn : product.desc_en;
-  const stockCount = product.stock !== undefined ? product.stock : 5;
+  const shortDesc = (locale === 'bn' ? product.short_description_bn : product.short_description_en) || nameLabel;
+  const desc = (locale === 'bn' ? product.description_bn : product.description_en) || nameLabel;
+  const stockCount = product.stock;
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone || !address) {
       alert(locale === 'bn' ? 'অনুগ্রহ করে অর্ডার ফর্মের সব তথ্য পূরণ করুন।' : 'Please fill out all order form details.');
@@ -318,65 +106,83 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-      // Save order to sicily_orders_list inside localStorage
-      const existingStr = localStorage.getItem('sicily_orders_list');
-      let ordersList = [];
-      if (existingStr) {
-        try {
-          ordersList = JSON.parse(existingStr);
-        } catch (err) {
-          console.error(err);
-        }
-      }
+    let customerId: string | null = null;
+    if (user) {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      customerId = customer?.id ?? null;
+    }
 
-      const totalBill = activePrice * quantity + shippingCharge;
+    const districtLabel = BD_DISTRICTS.find((d) => d.id === district)?.bn || district;
+    const totalBill = activePrice * quantity + shippingCharge;
 
-      const newOrder = {
-        id: orderId,
-        customer: name,
-        phone: phone,
-        amount: totalBill,
-        payment: paymentMethod === 'cod' ? 'COD' : 'bKash',
-        status: 'new' as const,
-        date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        address: address,
-        district: BD_DISTRICTS.find(d => d.id === district)?.[locale === 'bn' ? 'bn' : 'en'] || district,
-        shipping: shippingCharge
-      };
+    const { data: newOrder, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_id: customerId,
+        customer_name: name,
+        phone,
+        address,
+        district: districtLabel,
+        subtotal: activePrice * quantity,
+        delivery_charge: shippingCharge,
+        discount: 0,
+        total: totalBill,
+        payment_method: paymentMethod,
+        source: 'website',
+      })
+      .select()
+      .single();
 
-      ordersList.unshift(newOrder);
-      localStorage.setItem('sicily_orders_list', JSON.stringify(ordersList));
+    setIsSubmitting(false);
 
-      // Save to sessionStorage for invoice page
-      sessionStorage.setItem('last_order_details', JSON.stringify({
-        orderId,
-        customerName: name,
-        customerPhone: phone,
-        customerAddress: address,
-        customerDistrict: BD_DISTRICTS.find(d => d.id === district)?.[locale === 'bn' ? 'bn' : 'en'] || district,
-        paymentMethod,
-        shippingCharge
-      }));
+    if (orderError || !newOrder) {
+      alert(locale === 'bn' ? 'অর্ডার সম্পন্ন করা যায়নি, আবার চেষ্টা করুন।' : 'Could not place order, please try again.');
+      console.error(orderError);
+      return;
+    }
 
-      // Direct redirect to confirmation
-      router.push(`/${locale}/order/${orderId}`);
-    }, 1000);
+    await supabase.from('order_items').insert({
+      order_id: newOrder.id,
+      product_id: product.id,
+      product_name: nameLabel,
+      variant: selectedSize ? { size_en: selectedSize.en, size_bn: selectedSize.bn } : null,
+      qty: quantity,
+      price: activePrice,
+    });
+
+    sessionStorage.setItem('last_order_details', JSON.stringify({
+      orderId: newOrder.id,
+      orderNumber: newOrder.order_number,
+      customerName: name,
+      customerPhone: phone,
+      customerAddress: address,
+      customerDistrict: districtLabel,
+      paymentMethod,
+      shippingCharge,
+      subtotal: activePrice * quantity,
+      grandTotal: totalBill,
+    }));
+
+    router.push(`/${locale}/order/${newOrder.id}`);
   };
 
   const getBenefits = () => {
-    if (product.category === 'hangers' || product.category === 'wall-stand') {
+    if (product.category === 'wall-stand') {
       return [
         locale === 'bn' ? '১০০% মরিচা-প্রতিরোধক ও উন্নতমানের ফিনিশিং পেইন্ট।' : '100% Anti-rust powder coat for outdoor durability.',
-        locale === 'bn' ? 'সম্পূর্ণ হাতে তৈরি আকর্ষণীয় জ্যামিতিক নকশা।' : 'Handcrafted geometric aesthetics for premium homes.',
-        locale === 'bn' ? 'সহজে ওয়ালে হ্যাং করার স্ক্রু ও গাইডলাইন সহ।' : 'Quick 1-minute mounting kits included for free.'
+        locale === 'bn' ? 'সম্পূর্ণ হাতে তৈরি আকর্ষণীয় জ্যামিতিক নকশা।' : 'Handcrafted geometric aesthetics for premium homes.',
+        locale === 'bn' ? 'সহজে ওয়ালে হ্যাং করার স্ক্রু ও গাইডলাইন সহ।' : 'Quick 1-minute mounting kits included for free.'
       ];
     }
     return [
-      locale === 'bn' ? '১০০% প্রিমিয়াম লুক এবং হাই-ফিনিশ লাক্সারি ডিজাইন।' : '100% Premium look and high-finish luxury design.',
+      locale === 'bn' ? '১০০% প্রিমিয়াম লুক এবং হাই-ফিনিশ লাক্সারি ডিজাইন।' : '100% Premium look and high-finish luxury design.',
       locale === 'bn' ? 'ইনডোর বা ড্রয়িং রুম ডেকোরেশনের জন্য একদম পারফেক্ট।' : 'Perfect for indoor, dining, or living room decoration.',
       locale === 'bn' ? 'অতিরিক্ত যত্ন সহকারে নিরাপদ প্যাকেজিং এ সুরক্ষিত ডেলিভারি।' : 'Carefully packaged to ensure damage-free safe delivery.'
     ];
@@ -488,13 +294,13 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           </div>
 
           {/* Options: Sizes Only */}
-          {product.sizes && product.sizes.length > 0 && (
+          {sizeOptions && sizeOptions.length > 0 && (
             <div className="space-y-2 pt-4 border-t border-brand-border">
               <span className="text-xs font-bold text-brand-muted">
                 {locale === 'bn' ? 'সাইজ (দাম পরিবর্তন হবে):' : 'Size (price varies):'}
               </span>
               <div className="flex gap-2 flex-wrap">
-                {product.sizes.map((size) => (
+                {sizeOptions.map((size) => (
                   <button
                     key={size.en}
                     onClick={() => setSelectedSize(size)}
