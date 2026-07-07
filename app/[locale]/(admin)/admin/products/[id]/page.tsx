@@ -23,6 +23,11 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
   const [stock, setStock] = useState('10');
   const [descEn, setDescEn] = useState('');
   const [descBn, setDescBn] = useState('');
+  const [landingPageActive, setLandingPageActive] = useState(false);
+  const [seoTitleEn, setSeoTitleEn] = useState('');
+  const [seoTitleBn, setSeoTitleBn] = useState('');
+  const [seoDescEn, setSeoDescEn] = useState('');
+  const [seoDescBn, setSeoDescBn] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -59,7 +64,7 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
       const supabase = createClient();
       const { data } = await supabase
         .from('products')
-        .select('id, name_en, name_bn, price, sale_price, stock, images, description_en, description_bn, categories(slug)')
+        .select('id, name_en, name_bn, price, sale_price, stock, images, description_en, description_bn, landing_page_active, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)')
         .eq('id', params.id)
         .maybeSingle();
 
@@ -75,6 +80,11 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
         setStock(String(row.stock));
         setDescEn(row.description_en || '');
         setDescBn(row.description_bn || '');
+        setLandingPageActive(row.landing_page_active || false);
+        setSeoTitleEn(row.seo_title_en || '');
+        setSeoTitleBn(row.seo_title_bn || '');
+        setSeoDescEn(row.seo_description_en || '');
+        setSeoDescBn(row.seo_description_bn || '');
       }
       setLoading(false);
     };
@@ -109,6 +119,11 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
         category_id: categoryRow?.id ?? null,
         description_en: descEn || null,
         description_bn: descBn || null,
+        landing_page_active: landingPageActive,
+        seo_title_en: seoTitleEn || null,
+        seo_title_bn: seoTitleBn || null,
+        seo_description_en: seoDescEn || null,
+        seo_description_bn: seoDescBn || null,
       })
       .eq('id', productId);
 
@@ -314,6 +329,70 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
               rows={4}
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
             />
+          </div>
+        </div>
+
+        {/* Landing Page Toggle */}
+        <div className="pt-4 border-t border-brand-border flex items-center justify-between">
+          <div>
+            <label className="text-xs font-bold text-brand-text block">
+              {locale === 'bn' ? 'ল্যান্ডিং পেজ সক্রিয়' : 'Landing Page Active'}
+            </label>
+            <p className="text-[10px] text-brand-muted mt-0.5">
+              {locale === 'bn' ? 'চালু করলে /p/[slug] এ একটি মার্কেটিং ল্যান্ডিং পেজ পাওয়া যাবে।' : 'When on, this product gets a dedicated /p/[slug] marketing landing page.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLandingPageActive((v) => !v)}
+            className={`relative h-6 w-11 rounded-full transition-all-custom flex-shrink-0 ${landingPageActive ? 'bg-brand-primary' : 'bg-brand-border'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-all-custom ${landingPageActive ? 'translate-x-5' : ''}`} />
+          </button>
+        </div>
+
+        {/* SEO Fields */}
+        <div className="space-y-6 pt-4 border-t border-brand-border">
+          <h3 className="text-[10px] font-bold text-brand-muted uppercase">
+            {locale === 'bn' ? 'এসইও তথ্য (ঐচ্ছিক)' : 'SEO Metadata (Optional)'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Title (English)</label>
+              <input
+                type="text"
+                value={seoTitleEn}
+                onChange={(e) => setSeoTitleEn(e.target.value)}
+                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও টাইটেল (বাংলা)</label>
+              <input
+                type="text"
+                value={seoTitleBn}
+                onChange={(e) => setSeoTitleBn(e.target.value)}
+                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Description (English)</label>
+              <textarea
+                value={seoDescEn}
+                onChange={(e) => setSeoDescEn(e.target.value)}
+                rows={2}
+                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও বিবরণ (বাংলা)</label>
+              <textarea
+                value={seoDescBn}
+                onChange={(e) => setSeoDescBn(e.target.value)}
+                rows={2}
+                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
+              />
+            </div>
           </div>
         </div>
 
