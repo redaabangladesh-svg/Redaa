@@ -1,22 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { Search } from 'lucide-react';
-import { PRODUCTS } from '@/lib/products';
+import type { HomeProduct } from '@/lib/products';
+import { fetchProducts } from '@/lib/products-db';
 import ProductCard from '@/components/store/ProductCard';
-
-/* Shop catalog — shares the same card/shape as the homepage, with an
-   added category field matching the site's real categories (Flower
-   Tub / Tree Plant / Wall Stand, same as the homepage and footer). */
-const SHOP_PRODUCTS = PRODUCTS;
 
 export default function ShopPage() {
   const locale = useLocale();
 
+  const [products, setProducts] = useState<HomeProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('featured');
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
 
   const categories = [
     { id: 'all', label_en: 'All Categories', label_bn: 'সব ক্যাটাগরি' },
@@ -26,7 +27,7 @@ export default function ShopPage() {
   ];
 
   // Filtering
-  const filteredProducts = SHOP_PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const name = locale === 'bn' ? product.name_bn : product.name_en;
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;

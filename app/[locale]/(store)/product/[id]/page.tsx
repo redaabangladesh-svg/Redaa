@@ -6,141 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
 import { ShoppingCart, Zap, ArrowLeft, Plus, Minus, ShieldCheck, Truck, RefreshCw, PackageCheck, PackageX, Flame } from 'lucide-react';
 import Link from 'next/link';
-import { PRODUCTS } from '@/lib/products';
+import type { HomeProduct } from '@/lib/products';
+import { fetchProducts, fetchProductDetail, type ProductDetail } from '@/lib/products-db';
 import ProductCard from '@/components/store/ProductCard';
 
 interface SizeOption { en: string; bn: string; price: number; sale_price: number | null; }
-
-interface Product {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  price: number;
-  sale_price: number | null;
-  images: string[];
-  category: string;
-  short_desc_en: string;
-  short_desc_bn: string;
-  desc_en: string;
-  desc_bn: string;
-  sizes?: SizeOption[];
-  stock?: number;
-}
-
-const mockDescriptions: Record<string, { desc_en: string; desc_bn: string; short_en: string; short_bn: string }> = {
-  '1': {
-    desc_en: 'Enhance your wall aesthetics with this handcrafted premium metal flower hanger. Sourced from high-grade anti-rust painted iron.',
-    desc_bn: 'আপনার দেয়ালের সৌন্দর্য বাড়াতে আমাদের হাতে তৈরি এই প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গারটি অনন্য। মরিচা-প্রতিরোধক পেইন্ট করা উচ্চ মানের লোহা দ্বারা তৈরি।',
-    short_en: 'Handcrafted anti-rust metal hanger with a modern geometric silhouette.',
-    short_bn: 'হাতে তৈরি মরিচা-প্রতিরোধক মেটাল হ্যাঙ্গার, আধুনিক জ্যামিতিক ডিজাইনে।'
-  },
-  '2': {
-    desc_en: 'Beautifully wrapped handcrafted pastel paper tulips. Perfect for dining tables, study desks, or gifting on special occasions.',
-    desc_bn: 'চমৎকারভাবে মোড়ানো হাতে তৈরি পেস্টেল কাগজের টিউলিপের তোড়া। ডাইনিং টেবিল, স্টাডি ডেস্ক বা বিশেষ অনুষ্ঠানে উপহার দেয়ার জন্য আদর্শ।',
-    short_en: 'Handcrafted pastel paper tulips, perfect for tables and gifting.',
-    short_bn: 'হাতে তৈরি পেস্টেল কাগজের টিউলিপ, টেবিল সাজানো ও উপহারের জন্য উপযুক্ত।'
-  },
-  '3': {
-    desc_en: 'Hand-polished solid mahogany wood frames carrying preserved dry flowers. Gives an organic vintage country look to any home interior decoration.',
-    desc_bn: 'প্রাকৃতিক শুকানো ফুল ধরে রাখা হাতে পালিশ করা সলিড মেহগনি কাঠের তৈরি ফ্রেম। যেকোনো বাড়ির ঘরের ভেতরে চমৎকার ভিন্টেজ লুক এনে দেয়।',
-    short_en: 'Solid mahogany frame with preserved dry flowers, vintage country look.',
-    short_bn: 'সলিড মেহগনি ফ্রেমে শুকানো ফুল, ভিন্টেজ কান্ট্রি লুক।'
-  },
-  '5': {
-    desc_en: 'Premium ceramic vase with minimal modern lines, ideal for showing off fresh or dry floral bouquets.',
-    desc_bn: 'আধুনিক ডিজাইনের মিনিমাল সিরামিক ফুলদানি, যা ফুলের তোড়া সাজিয়ে রাখার জন্য আদর্শ।',
-    short_en: 'Premium ceramic vase with minimal modern lines.',
-    short_bn: 'আধুনিক ডিজাইনের মিনিমাল সিরামিক ফুলদানি।'
-  },
-  '6': {
-    desc_en: 'Boho style macrame wall hanging handcrafted with 100% natural cotton cord on driftwood.',
-    desc_bn: '১০০% প্রাকৃতিক সুতি সুতা দিয়ে তৈরি বোহো স্টাইলের ম্যাক্রামে দেয়াল সজ্জা শোপিস।',
-    short_en: 'Boho style macrame wall hanging handcrafted with 100% natural cotton cord.',
-    short_bn: '১০০% প্রাকৃতিক সুতি সুতা দিয়ে তৈরি বোহো স্টাইলের ম্যাক্রামে দেয়াল সজ্জা।'
-  },
-  '7': {
-    desc_en: 'Double decker anti-rust metal plant stand for organizing multiple tubs.',
-    desc_bn: 'মরিচা-প্রতিরোধক মেটাল ডাবল ডেকার প্ল্যান্ট স্ট্যান্ড, যা একসাথে কয়েকটি টব রাখার জন্য চমৎকার।',
-    short_en: 'Double decker anti-rust metal plant stand.',
-    short_bn: 'মরিচা-প্রতিরোধক মেটাল ডাবল ডেকার প্ল্যান্ট স্ট্যান্ড।'
-  },
-  '8': {
-    desc_en: 'Gorgeous handcrafted pastel roses bundle with premium gift wrapping sheets.',
-    desc_bn: 'হাতে তৈরি আকর্ষণীয় পেস্টেল গোলাপের তোড়া, বিশেষ গিফট র‍্যাপিং পেপার সহ মোড়ানো।',
-    short_en: 'Gorgeous handcrafted pastel roses bundle.',
-    short_bn: 'হাতে তৈরি আকর্ষণীয় পেস্টেল গোলাপের তোড়া।'
-  },
-  '9': {
-    desc_en: 'Luxury mahogany wooden frame with glass front and dried botanicals detail.',
-    desc_bn: 'আকর্ষণীয় মেহগনি কাঠের শৌখিন ফ্রেম, সামনের কাচ ও ভেতর সুরক্ষিত প্রাকৃতিক শুকনো ফুল সহ।',
-    short_en: 'Luxury mahogany wooden frame with dried botanicals.',
-    short_bn: 'আকর্ষণীয় মেহগনি কাঠের শৌখিন ফ্রেম।'
-  },
-  '10': {
-    desc_en: 'Premium Magnolia plant in ceramic pot, perfect for home and workspace.',
-    desc_bn: 'সিরামিক টবে প্রিমিয়াম ম্যাগনোলিয়া গাছ, বাসা ও অফিসের অভ্যন্তরীণ সাজসজ্জায় প্রাণবন্ত লুক এনে দেবে।',
-    short_en: 'Premium Magnolia plant in ceramic pot.',
-    short_bn: 'সিরামিক টবে প্রিমিয়াম ম্যাগনোলিয়া গাছ।'
-  },
-  '11': {
-    desc_en: 'Modern design A-Frame wood wall shelf with beautiful artificial greenery.',
-    desc_bn: 'আধুনিক ডিজাইনের এ-ফ্রেম কাঠের দেয়াল তাক ও চমৎকার কৃত্রিম লতাপাতা কম্বো।',
-    short_en: 'Modern design A-Frame wood wall shelf.',
-    short_bn: 'আধুনিক ডিজাইনের এ-ফ্রেম কাঠের দেয়াল তাক।'
-  },
-  '12': {
-    desc_en: 'Premium geometric ceramic plant pot, extremely stylish and suitable for large plants.',
-    desc_bn: 'আকর্ষণীয় জ্যামিতিক সিরামিক টব, যা আপনার ঘরের বড় বড় ইনডোর গাছের জন্য দারুণ মানানসই।',
-    short_en: 'Premium geometric ceramic plant pot, extremely stylish.',
-    short_bn: 'আকর্ষণীয় জ্যামিতিক সিরামিক টব।'
-  },
-  '13': {
-    desc_en: 'Lush green artificial fern plant in simple white pot, maintenance free.',
-    desc_bn: 'আকর্ষণীয় চিরসবুজ কৃত্রিম ফার্ন গাছ ও সাদা টব, যা পানি বা রোদের কোনো ঝামেলা ছাড়াই সতেজ দেখাবে।',
-    short_en: 'Lush green artificial fern plant in simple white pot.',
-    short_bn: 'আকর্ষণীয় চিরসবুজ কৃত্রিম ফার্ন গাছ ও সাদা টব।'
-  }
-};
-
-const mockProducts: Record<string, Product> = {};
-PRODUCTS.forEach((p) => {
-  const meta = mockDescriptions[p.id] || {
-    desc_en: p.name_en,
-    desc_bn: p.name_bn,
-    short_en: p.name_en,
-    short_bn: p.name_bn
-  };
-  
-  mockProducts[p.id] = {
-    id: p.id,
-    name_en: p.name_en,
-    name_bn: p.name_bn,
-    price: p.price,
-    sale_price: p.sale_price,
-    images: p.id === '12' ? ['/banana-tree.jpg', '/banana-tree-1.jpg', '/banana-tree-2.jpg', '/banana-tree-trans.png'] : [p.image],
-    category: p.category,
-    short_desc_en: meta.short_en,
-    short_desc_bn: meta.short_bn,
-    desc_en: meta.desc_en,
-    desc_bn: meta.desc_bn,
-    sizes: p.sizes ? p.sizes.map((s: string) => {
-      const sizeLower = s.toLowerCase();
-      let pAdd = 0;
-      if (sizeLower.includes('18') || sizeLower.includes('medium') || sizeLower.includes('16')) {
-        pAdd = 300;
-      } else if (sizeLower.includes('24') || sizeLower.includes('large') || sizeLower.includes('20')) {
-        pAdd = 600;
-      }
-      return {
-        en: s,
-        bn: s.replace('inch', 'ইঞ্চি').replace('"', ' ইঞ্চি'),
-        price: p.price + pAdd,
-        sale_price: p.sale_price !== null ? p.sale_price + pAdd : null
-      };
-    }) : undefined,
-    stock: p.stock !== undefined ? p.stock : 10
-  };
-});
 
 const WHATSAPP_NUMBER = '8801788825495';
 
@@ -149,90 +19,36 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
   const router = useRouter();
   const { addToCart } = useCart();
 
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [otherProducts, setOtherProducts] = useState<HomeProduct[]>([]);
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_products_list');
-    let loadedProducts: Record<string, Product> = {};
+    fetchProductDetail(params.id).then((detail) => {
+      setProduct(detail);
+      setActiveImage(0);
+      setQuantity(1);
 
-    if (stored) {
-      try {
-        const list: any[] = JSON.parse(stored);
-        list.forEach((p) => {
-          loadedProducts[p.id] = {
-            id: p.id,
-            name_en: p.name_en,
-            name_bn: p.name_bn,
-            price: p.price,
-            sale_price: p.sale_price,
-            images: p.images || [p.image || '/02.09.23.jpg'],
-            category: p.category,
-            short_desc_en: p.short_desc_en || p.name_en,
-            short_desc_bn: p.short_desc_bn || p.name_bn,
-            desc_en: p.desc_en || p.name_en,
-            desc_bn: p.desc_bn || p.name_bn,
-            sizes: p.sizes,
-            stock: p.stock !== undefined ? p.stock : 10
-          };
+      if (detail) {
+        const sizes: SizeOption[] = detail.variants.length > 0
+          ? detail.variants.map((v) => ({
+              en: v.size_en || '',
+              bn: v.size_bn || v.size_en || '',
+              price: v.price ?? detail.price,
+              sale_price: v.sale_price !== undefined ? v.sale_price : detail.sale_price,
+            }))
+          : [];
+        setSelectedSize(sizes.length > 0 ? sizes[0] : null);
+
+        fetchProducts().then((all) => {
+          setOtherProducts(all.filter((p) => p.id !== detail.id).slice(0, 3));
         });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const slugify = (text: string) => {
-      return text
-        .toString()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
-    };
-
-    const merged = { ...mockProducts, ...loadedProducts };
-    const mergedList = Object.values(merged);
-    const slugLower = params.id.toLowerCase();
-    
-    const matched = mergedList.find(p => {
-      const imageFilename = p.images[0]?.split('/').pop()?.toLowerCase() || '';
-      const imageBasename = imageFilename.split('.')[0] || '';
-      
-      const matchesId = p.id === params.id;
-      const matchesNameSlugEn = slugify(p.name_en) === slugLower;
-      const matchesNameSlugBn = slugify(p.name_bn) === slugLower;
-      const matchesImageFilename = imageFilename === slugLower || imageFilename.includes(slugLower);
-      const matchesImageBasename = imageBasename === slugLower || imageBasename.includes(slugLower);
-      const matchesNameSubEn = p.name_en.toLowerCase().includes(slugLower);
-      const matchesNameSubBn = p.name_bn.toLowerCase().includes(slugLower);
-      
-      const matchesBannaSpecial = (slugLower === 'banna' || slugLower === 'banna.jpg') && (p.id === '12' || imageFilename.includes('banana'));
-
-      return (
-        matchesId ||
-        matchesNameSlugEn ||
-        matchesNameSlugBn ||
-        matchesImageFilename ||
-        matchesImageBasename ||
-        matchesBannaSpecial ||
-        matchesNameSubEn ||
-        matchesNameSubBn
-      );
-    }) || merged['1'];
-    
-    setProduct(matched);
-    setActiveImage(0);
-    if (matched) {
-      if (matched.sizes && matched.sizes.length > 0) {
-        setSelectedSize(matched.sizes[0]);
       } else {
         setSelectedSize(null);
       }
-    }
+    });
   }, [params.id]);
 
   if (!product) {
@@ -243,13 +59,22 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     );
   }
 
+  const sizeOptions: SizeOption[] | undefined = product.variants.length > 0
+    ? product.variants.map((v) => ({
+        en: v.size_en || '',
+        bn: v.size_bn || v.size_en || '',
+        price: v.price ?? product.price,
+        sale_price: v.sale_price !== undefined ? v.sale_price : product.sale_price,
+      }))
+    : undefined;
+
+  const nameLabel = locale === 'bn' ? product.name_bn : product.name_en;
+  const shortDesc = (locale === 'bn' ? product.short_description_bn : product.short_description_en) || nameLabel;
+  const fullDesc = (locale === 'bn' ? product.description_bn : product.description_en) || nameLabel;
+  const stockCount = product.stock;
   const price = selectedSize ? selectedSize.price : product.price;
   const salePrice = selectedSize ? selectedSize.sale_price : product.sale_price;
   const activePrice = salePrice ?? price;
-  const nameLabel = locale === 'bn' ? product.name_bn : product.name_en;
-  const shortDesc = locale === 'bn' ? product.short_desc_bn : product.short_desc_en;
-  const fullDesc = locale === 'bn' ? product.desc_bn : product.desc_en;
-  const stockCount = product.stock !== undefined ? product.stock : 5;
 
   const buildCartItem = () => ({
     id: product.id,
@@ -275,8 +100,6 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
     ? `আসসালামুয়ালাইকুম, আমি "${nameLabel}" (${selectedSize ? (locale === 'bn' ? selectedSize.bn : selectedSize.en) : ''}) প্রোডাক্টটি অর্ডার করতে চাই। দাম: ৳${activePrice}`
     : `Hi, I'd like to order "${nameLabel}" (${selectedSize?.en ?? ''}). Price: ৳${activePrice}`;
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
-
-  const otherProducts = PRODUCTS.filter((p) => p.id !== product.id).slice(0, 3);
 
   return (
     <div className="space-y-10 pb-16 px-4 sm:px-0">
@@ -357,11 +180,11 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Size selector */}
-          {product.sizes && (
+          {sizeOptions && sizeOptions.length > 0 && (
             <div className="space-y-2">
               <span className="text-xs font-bold text-brand-muted">{locale === 'bn' ? 'সাইজ (দাম পরিবর্তন হবে):' : 'Size (price varies):'}</span>
               <div className="flex gap-2 flex-wrap">
-                {product.sizes.map((size) => (
+                {sizeOptions.map((size) => (
                   <button
                     key={size.en}
                     onClick={() => setSelectedSize(size)}

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Package, Plus, Pencil, Trash2, ShieldAlert } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-
-import { PRODUCTS } from '@/lib/products';
+import { createClient } from '@/lib/supabase';
 
 interface Product {
   id: string;
@@ -13,53 +12,43 @@ interface Product {
   name_bn: string;
   price: number;
   sale_price: number | null;
-  image: string;
-  category: string;
+  images: string[];
   stock: number;
+  categories: { name_en: string; name_bn: string } | null;
 }
-
-const DEFAULT_MOCK_PRODUCTS: Product[] = PRODUCTS.map(p => ({
-  id: p.id,
-  name_en: p.name_en,
-  name_bn: p.name_bn,
-  price: p.price,
-  sale_price: p.sale_price,
-  image: p.image,
-  category: p.category,
-  stock: p.stock
-}));
 
 export default function AdminProductsPage() {
   const locale = useLocale();
+  const isBn = locale === 'bn';
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadProducts = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name_en, name_bn, price, sale_price, images, stock, categories(name_en, name_bn)')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) setProducts(data as unknown as Product[]);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_products_list');
-    if (stored) {
-      try {
-        const parsed: Product[] = JSON.parse(stored);
-        setProducts(parsed);
-      } catch (e) {
-        console.error(e);
-        setProducts(DEFAULT_MOCK_PRODUCTS);
-      }
-    } else {
-      localStorage.setItem('sicily_products_list', JSON.stringify(DEFAULT_MOCK_PRODUCTS));
-      setProducts(DEFAULT_MOCK_PRODUCTS);
-    }
+    loadProducts();
   }, []);
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     const confirmDelete = window.confirm(
-      locale === 'bn' 
-        ? 'আপনি কি নিশ্চিতভাবে এই প্রোডাক্টটি ডিলিট করতে চান?' 
-        : 'Are you sure you want to delete this product?'
+      isBn ? 'আপনি কি নিশ্চিতভাবে এই প্রোডাক্টটি ডিলিট করতে চান?' : 'Are you sure you want to delete this product?'
     );
     if (!confirmDelete) return;
 
-    const updated = products.filter(p => p.id !== id);
-    setProducts(updated);
-    localStorage.setItem('sicily_products_list', JSON.stringify(updated));
+    const supabase = createClient();
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (!error) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    }
   };
 
   return (
@@ -69,10 +58,10 @@ export default function AdminProductsPage() {
         <div>
           <h1 className="text-xl md:text-2xl font-black text-brand-text flex items-center gap-2">
             <Package className="h-6 w-6 text-brand-primary" />
-            <span>{locale === 'bn' ? 'প্রোডাক্টস তালিকা' : 'Store Products'}</span>
+            <span>{isBn ? 'প্রোডাক্টস তালিকা' : 'Store Products'}</span>
           </h1>
           <p className="text-xs text-brand-muted mt-1.5 font-medium">
-            {locale === 'bn' ? 'স্টোরের ইনভেন্টরি, স্টক এবং নতুন সামগ্রী যুক্ত করুন।' : 'Manage store catalog items, stock limits, and launch new products.'}
+            {isBn ? 'স্টোরের ইনভেন্টরি, স্টক এবং নতুন সামগ্রী যুক্ত করুন।' : 'Manage store catalog items, stock limits, and launch new products.'}
           </p>
         </div>
 
@@ -82,7 +71,7 @@ export default function AdminProductsPage() {
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl hover:bg-brand-primary-alt shadow-md shadow-brand-primary/20 transition-all-custom"
         >
           <Plus className="h-4 w-4" />
-          <span>{locale === 'bn' ? 'নতুন প্রোডাক্ট যোগ করুন' : 'Add New Product'}</span>
+          <span>{isBn ? 'নতুন প্রোডাক্ট যোগ করুন' : 'Add New Product'}</span>
         </Link>
       </div>
 
@@ -92,23 +81,29 @@ export default function AdminProductsPage() {
           <table className="w-full border-collapse text-left text-xs font-medium">
             <thead>
               <tr className="border-b border-brand-border bg-brand-surface/40 text-brand-muted font-bold">
-                <th className="py-4 px-5">{locale === 'bn' ? 'পণ্য' : 'Product'}</th>
-                <th className="py-4 px-5">{locale === 'bn' ? 'ক্যাটাগরি' : 'Category'}</th>
-                <th className="py-4 px-5">{locale === 'bn' ? 'মূল্য' : 'Price'}</th>
-                <th className="py-4 px-5">{locale === 'bn' ? 'স্টক' : 'Stock'}</th>
-                <th className="py-4 px-5 text-right">{locale === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
+                <th className="py-4 px-5">{isBn ? 'পণ্য' : 'Product'}</th>
+                <th className="py-4 px-5">{isBn ? 'ক্যাটাগরি' : 'Category'}</th>
+                <th className="py-4 px-5">{isBn ? 'মূল্য' : 'Price'}</th>
+                <th className="py-4 px-5">{isBn ? 'স্টক' : 'Stock'}</th>
+                <th className="py-4 px-5 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border">
-              {products.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-brand-muted font-bold">
-                    {locale === 'bn' ? 'কোনো প্রোডাক্ট পাওয়া যায়নি।' : 'No products found in catalog.'}
+                    {isBn ? 'লোড হচ্ছে...' : 'Loading...'}
+                  </td>
+                </tr>
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-brand-muted font-bold">
+                    {isBn ? 'কোনো প্রোডাক্ট পাওয়া যায়নি।' : 'No products found in catalog.'}
                   </td>
                 </tr>
               ) : (
                 products.map((p) => {
-                  const name = locale === 'bn' ? p.name_bn : p.name_en;
+                  const name = isBn ? p.name_bn : p.name_en;
                   const priceText = p.sale_price !== null ? (
                     <div>
                       <span className="font-extrabold text-brand-secondary">৳{p.sale_price}</span>
@@ -122,22 +117,23 @@ export default function AdminProductsPage() {
                     <tr key={p.id} className="hover:bg-brand-surface/40">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <img src={p.image} alt={name} className="h-10 w-10 rounded-lg object-cover border border-brand-border flex-shrink-0" />
+                          <img src={p.images?.[0] || '/Sicily_icon.png'} alt={name} className="h-10 w-10 rounded-lg object-cover border border-brand-border flex-shrink-0" />
                           <div className="min-w-0">
                             <span className="font-extrabold text-brand-text text-xs block truncate max-w-[200px]">{name}</span>
-                            <span className="text-[9px] text-brand-muted block mt-0.5">ID: {p.id}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-5 capitalize text-brand-muted font-semibold">{p.category}</td>
+                      <td className="py-3.5 px-5 capitalize text-brand-muted font-semibold">
+                        {p.categories ? (isBn ? p.categories.name_bn : p.categories.name_en) : '—'}
+                      </td>
                       <td className="py-3.5 px-5">{priceText}</td>
                       <td className="py-3.5 px-5">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.stock <= 5 
-                            ? 'bg-rose-50 border border-rose-100 text-rose-700' 
+                          p.stock <= 5
+                            ? 'bg-rose-50 border border-rose-100 text-rose-700'
                             : 'bg-emerald-50 border border-emerald-100 text-emerald-700'
                         }`}>
-                          {p.stock} {locale === 'bn' ? 'টি বাকি' : 'left'}
+                          {p.stock} {isBn ? 'টি বাকি' : 'left'}
                         </span>
                       </td>
                       <td className="py-3.5 px-5 text-right space-x-2">

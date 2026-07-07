@@ -4,7 +4,8 @@ import { useLocale } from 'next-intl';
 import { ArrowRight, Crown, Flower2, Sprout, Frame, Sparkles, Percent, Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { PRODUCTS } from '@/lib/products';
+import type { HomeProduct } from '@/lib/products';
+import { fetchProducts } from '@/lib/products-db';
 import ProductCard from '@/components/store/ProductCard';
 
 /* ── BANNER SLIDES (image-only — all copy/CTA lives inside the banner artwork) ── */
@@ -112,6 +113,11 @@ function FlashCountdown({ locale }: { locale: string }) {
 /* ── MAIN PAGE ──────────────────────────────────────── */
 export default function HomePage() {
   const locale = useLocale();
+  const [products, setProducts] = useState<HomeProduct[]>([]);
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
 
   return (
     <div className="bg-white min-h-screen pb-16">
@@ -176,7 +182,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {PRODUCTS.slice(0, 6).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
+          {products.slice(0, 6).map((p) => <ProductCard key={p.id} p={p} locale={locale} />)}
         </div>
       </section>
 
@@ -233,7 +239,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {PRODUCTS.slice(6, 12).map((p, i) => <ProductCard key={i} p={p} locale={locale} />)}
+          {products.slice(6, 12).map((p) => <ProductCard key={p.id} p={p} locale={locale} />)}
         </div>
       </section>
 

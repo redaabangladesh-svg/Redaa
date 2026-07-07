@@ -5,35 +5,21 @@ import { useLocale } from 'next-intl';
 import { ArrowLeft, Save, Sparkles, UploadCloud, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-interface Product {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  price: number;
-  sale_price: number | null;
-  image: string;
-  category: string;
-  stock: number;
-  desc_en?: string;
-  desc_bn?: string;
-  colors?: any[];
-  sizes?: any[];
-}
+import { createClient } from '@/lib/supabase';
 
 export default function AdminEditProductPage({ params }: { params: { id: string } }) {
   const locale = useLocale();
   const router = useRouter();
 
-  const [productsList, setProductsList] = useState<Product[]>([]);
-  const [product, setProduct] = useState<Product | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [nameEn, setNameEn] = useState('');
   const [nameBn, setNameBn] = useState('');
   const [price, setPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [image, setImage] = useState('');
-  const [category, setCategory] = useState('flowers');
+  const [category, setCategory] = useState('flower-tub');
   const [stock, setStock] = useState('10');
   const [descEn, setDescEn] = useState('');
   const [descBn, setDescBn] = useState('');
@@ -69,68 +55,75 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_products_list');
-    if (stored) {
-      try {
-        const parsed: Product[] = JSON.parse(stored);
-        setProductsList(parsed);
-        
-        const matched = parsed.find(p => p.id === params.id);
-        if (matched) {
-          setProduct(matched);
-          setNameEn(matched.name_en);
-          setNameBn(matched.name_bn);
-          setPrice(String(matched.price));
-          setSalePrice(matched.sale_price !== null ? String(matched.sale_price) : '');
-          setImage(matched.image);
-          setCategory(matched.category);
-          setStock(String(matched.stock));
-          setDescEn(matched.desc_en || '');
-          setDescBn(matched.desc_bn || '');
-        }
-      } catch (e) {
-        console.error(e);
+    const loadProduct = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('products')
+        .select('id, name_en, name_bn, price, sale_price, stock, images, description_en, description_bn, categories(slug)')
+        .eq('id', params.id)
+        .maybeSingle();
+
+      if (data) {
+        const row = data as any;
+        setProductId(row.id);
+        setNameEn(row.name_en);
+        setNameBn(row.name_bn);
+        setPrice(String(row.price));
+        setSalePrice(row.sale_price !== null ? String(row.sale_price) : '');
+        setImage(row.images?.[0] || '');
+        setCategory(row.categories?.slug || 'flower-tub');
+        setStock(String(row.stock));
+        setDescEn(row.description_en || '');
+        setDescBn(row.description_bn || '');
       }
-    }
+      setLoading(false);
+    };
+    loadProduct();
   }, [params.id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!product || !nameEn || !nameBn || !price || !image) {
-      alert(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
+    if (!productId || !nameEn || !nameBn || !price || !image) {
+      alert(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
       return;
     }
 
     setIsSaving(true);
 
-    setTimeout(() => {
-      // Update the product inside the cached productsList state
-      const updatedList = productsList.map((p) => {
-        if (p.id === product.id) {
-          return {
-            ...p,
-            name_en: nameEn,
-            name_bn: nameBn,
-            price: Number(price),
-            sale_price: salePrice ? Number(salePrice) : null,
-            image: image,
-            category: category,
-            stock: Number(stock),
-            desc_en: descEn,
-            desc_bn: descBn
-          };
-        }
-        return p;
-      });
+    const supabase = createClient();
+    const { data: categoryRow } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', category)
+      .maybeSingle();
 
-      localStorage.setItem('sicily_products_list', JSON.stringify(updatedList));
+    const { error } = await supabase
+      .from('products')
+      .update({
+        name_en: nameEn,
+        name_bn: nameBn,
+        price: Number(price),
+        sale_price: salePrice ? Number(salePrice) : null,
+        stock: Number(stock),
+        images: [image],
+        category_id: categoryRow?.id ?? null,
+        description_en: descEn || null,
+        description_bn: descBn || null,
+      })
+      .eq('id', productId);
 
-      setIsSaving(false);
-      router.push(`/${locale}/admin/products`);
-    }, 800);
+    setIsSaving(false);
+
+    if (error) {
+      alert(locale === 'bn' ? 'পরিবর্তন সংরক্ষণ ব্যর্থ হয়েছে।' : 'Failed to save changes.');
+      console.error(error);
+      return;
+    }
+
+    router.push(`/${locale}/admin/products`);
   };
 
-  if (!product) {
+  if (loading || !productId) {
     return (
       <div className="py-20 text-center font-sans text-brand-muted font-bold">
         {locale === 'bn' ? 'প্রোডাক্ট তথ্য লোড হচ্ছে...' : 'Loading product details...'}
@@ -228,10 +221,9 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
               onChange={(e) => setCategory(e.target.value)}
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             >
-              <option value="flowers">{locale === 'bn' ? 'ফুল (Flowers)' : 'Handmade Flowers'}</option>
-              <option value="hangers">{locale === 'bn' ? 'হ্যাঙ্গার (Hangers)' : 'Metal Hangers'}</option>
-              <option value="frames">{locale === 'bn' ? 'ফ্রেম (Frames)' : 'Wooden Frames'}</option>
-              <option value="vases">{locale === 'bn' ? 'ফুলদানি (Vases)' : 'Vases & Pots'}</option>
+              <option value="flower-tub">{locale === 'bn' ? 'ফ্লাওয়ার টাব' : 'Flower Tub'}</option>
+              <option value="tree-plant">{locale === 'bn' ? 'ট্রি প্ল্যান্ট' : 'Tree Plant'}</option>
+              <option value="wall-stand">{locale === 'bn' ? 'ওয়াল স্ট্যান্ড' : 'Wall Stand'}</option>
             </select>
           </div>
           <div className="space-y-1.5">
