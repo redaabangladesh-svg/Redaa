@@ -92,7 +92,7 @@ export default function ProductViewPage({ params }: { params: { id: string } }) 
   const handleAddToCart = () => addToCart(buildCartItem(), quantity);
 
   const handleDirectOrder = () => {
-    addToCart(buildCartItem(), quantity);
+    addToCart(buildCartItem(), quantity, false);
     router.push(`/${locale}/checkout`);
   };
 

@@ -24,7 +24,7 @@ interface CartContextType {
   cartTotal: number;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (item: Omit<CartItem, 'qty'>, qty?: number) => void;
+  addToCart: (item: Omit<CartItem, 'qty'>, qty?: number, openDrawer?: boolean) => void;
   removeFromCart: (itemId: string, variantKey?: string) => void;
   updateCartItemQty: (itemId: string, qty: number, variantKey?: string) => void;
   clearCart: () => void;
@@ -63,10 +63,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cartItems, isLoaded]);
 
-  const addToCart = (newItem: Omit<CartItem, 'qty'>, qty: number = 1) => {
+  const addToCart = (newItem: Omit<CartItem, 'qty'>, qty: number = 1, openDrawer: boolean = true) => {
     setCartItems((prevItems) => {
       const variantKey = getVariantKey(newItem.variant);
-      
+
       const existingItemIndex = prevItems.findIndex(
         (item) => item.id === newItem.id && getVariantKey(item.variant) === variantKey
       );
@@ -81,9 +81,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Add as new item
       return [...prevItems, { ...newItem, qty }];
     });
-    
-    // Automatically open the cart drawer when item is added
-    setIsCartOpen(true);
+
+    // Automatically open the cart drawer when item is added, unless the
+    // caller is navigating straight to checkout (direct order flow)
+    if (openDrawer) setIsCartOpen(true);
   };
 
   const removeFromCart = (itemId: string, variantKey?: string) => {
