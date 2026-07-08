@@ -6,23 +6,20 @@ import { useCart } from '@/lib/cart';
 import CheckoutForm from '@/components/store/CheckoutForm';
 import { ShoppingBag, ArrowRight, Tag, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
 
 interface Coupon {
   code: string;
-  type: 'percentage' | 'fixed' | 'delivery';
+  type: 'percentage' | 'fixed' | 'free_delivery';
   value: number;
+  min_order: number;
 }
-
-const VALID_COUPONS: Record<string, Coupon> = {
-  'EID2026': { code: 'EID2026', type: 'percentage', value: 20 },
-  'WELCOME10': { code: 'WELCOME10', type: 'percentage', value: 10 },
-  'FREE80': { code: 'FREE80', type: 'delivery', value: 80 }
-};
 
 export default function CheckoutPage() {
   const locale = useLocale();
+  const isBn = locale === 'bn';
   const { cartItems, cartTotal } = useCart();
-  
+
   // State for shipping charges based on chosen district
   const [shippingCharge, setShippingCharge] = useState(80); // default to Dhaka (৳80)
   const [selectedDistrict, setSelectedDistrict] = useState('dhaka');
@@ -31,23 +28,45 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     setCouponError('');
     const cleanCode = couponCode.trim().toUpperCase();
-
     if (!cleanCode) return;
 
-    if (VALID_COUPONS[cleanCode]) {
-      setAppliedCoupon(VALID_COUPONS[cleanCode]);
-      setCouponCode('');
-    } else {
-      setCouponError(
-        locale === 'bn' 
-          ? 'ভুল কুপন কোড! অনুগ্রহ করে সঠিক কোড দিন।' 
-          : 'Invalid coupon code! Please try again.'
-      );
+    setApplyingCoupon(true);
+    const supabase = createClient();
+    const { data: coupon } = await supabase
+      .from('coupons')
+      .select('code, type, value, min_order, max_uses, used_count, expires_at, is_active')
+      .eq('code', cleanCode)
+      .maybeSingle();
+    setApplyingCoupon(false);
+
+    if (!coupon || !coupon.is_active) {
+      setCouponError(isBn ? 'ভুল কুপন কোড! অনুগ্রহ করে সঠিক কোড দিন।' : 'Invalid coupon code! Please try again.');
+      return;
     }
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+      setCouponError(isBn ? 'এই কুপনের মেয়াদ শেষ হয়ে গেছে।' : 'This coupon has expired.');
+      return;
+    }
+    if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
+      setCouponError(isBn ? 'এই কুপনের ব্যবহারসীমা শেষ হয়ে গেছে।' : 'This coupon has reached its usage limit.');
+      return;
+    }
+    if (cartTotal < coupon.min_order) {
+      setCouponError(
+        isBn
+          ? `এই কুপন ব্যবহার করতে সর্বনিম্ন ৳${coupon.min_order} অর্ডার করতে হবে।`
+          : `This coupon requires a minimum order of ৳${coupon.min_order}.`
+      );
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponCode('');
   };
 
   const handleRemoveCoupon = () => {
@@ -62,8 +81,8 @@ export default function CheckoutPage() {
       discountAmount = Math.round((cartTotal * appliedCoupon.value) / 100);
     } else if (appliedCoupon.type === 'fixed') {
       discountAmount = appliedCoupon.value;
-    } else if (appliedCoupon.type === 'delivery') {
-      discountAmount = Math.min(shippingCharge, appliedCoupon.value);
+    } else if (appliedCoupon.type === 'free_delivery') {
+      discountAmount = shippingCharge;
     }
   }
 
@@ -163,7 +182,7 @@ export default function CheckoutPage() {
                         <span className="block text-[10px] text-emerald-600 font-semibold mt-0.5">
                           {appliedCoupon.type === 'percentage' && (locale === 'bn' ? `${appliedCoupon.value}% ছাড় দেওয়া হয়েছে` : `${appliedCoupon.value}% discount applied`)}
                           {appliedCoupon.type === 'fixed' && `৳${appliedCoupon.value} off`}
-                          {appliedCoupon.type === 'delivery' && (locale === 'bn' ? 'ফ্রি ডেলিভারি ছাড়' : 'Free shipping applied')}
+                          {appliedCoupon.type === 'free_delivery' && (locale === 'bn' ? 'ফ্রি ডেলিভারি ছাড়' : 'Free shipping applied')}
                         </span>
                       </div>
                     </div>

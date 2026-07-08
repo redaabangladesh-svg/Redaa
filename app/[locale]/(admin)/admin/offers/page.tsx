@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { Tag, Plus, Trash2, ShieldCheck, ShieldAlert, Percent, BadgeDollarSign, Truck } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
 
 interface Coupon {
   id: string;
@@ -16,35 +17,6 @@ interface Coupon {
   is_active: boolean;
   created_at: string;
 }
-
-const DEFAULT_MOCK_COUPONS: Coupon[] = [
-  {
-    id: '1',
-    code: 'EID2026',
-    type: 'percentage',
-    value: 15,
-    min_order: 500,
-    max_uses: 100,
-    used_count: 23,
-    expires_at: '2026-08-15',
-    is_active: true,
-    created_at: '2026-06-01'
-  },
-  {
-    id: '2',
-    code: 'FREESHIP',
-    type: 'free_delivery',
-    value: 0,
-    min_order: 1000,
-    max_uses: null,
-    used_count: 57,
-    expires_at: null,
-    is_active: true,
-    created_at: '2026-05-10'
-  }
-];
-
-const STORAGE_KEY = 'sicily_coupons_list';
 
 export default function AdminOffersPage() {
   const locale = useLocale();
@@ -61,27 +33,17 @@ export default function AdminOffersPage() {
   const [maxUses, setMaxUses] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setCoupons(JSON.parse(stored));
-      } catch (e) {
-        console.error(e);
-        setCoupons(DEFAULT_MOCK_COUPONS);
-      }
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MOCK_COUPONS));
-      setCoupons(DEFAULT_MOCK_COUPONS);
-    }
-  }, []);
-
-  const persist = (updated: Coupon[]) => {
-    setCoupons(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  const loadCoupons = async () => {
+    const supabase = createClient();
+    const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+    if (data) setCoupons(data);
   };
 
-  const handleCreate = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadCoupons();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessMsg('');
     setErrorMsg('');
@@ -105,20 +67,23 @@ export default function AdminOffersPage() {
     const numMinOrder = parseFloat(minOrder) || 0;
     const numMaxUses = maxUses.trim() === '' ? null : parseInt(maxUses, 10);
 
-    const newCoupon: Coupon = {
-      id: Date.now().toString(),
+    const supabase = createClient();
+    const { error } = await supabase.from('coupons').insert({
       code: trimmedCode,
       type,
       value: numValue,
       min_order: numMinOrder,
       max_uses: numMaxUses,
-      used_count: 0,
       expires_at: expiresAt || null,
-      is_active: true,
-      created_at: new Date().toISOString().slice(0, 10)
-    };
+    });
 
-    persist([newCoupon, ...coupons]);
+    if (error) {
+      setErrorMsg(isBn ? 'কুপন তৈরি ব্যর্থ হয়েছে।' : 'Failed to create coupon.');
+      console.error(error);
+      return;
+    }
+
+    await loadCoupons();
     setSuccessMsg(isBn ? 'কুপন সফলভাবে তৈরি হয়েছে! 🎉' : 'Coupon created successfully! 🎉');
     setCode('');
     setValue('');
@@ -127,16 +92,25 @@ export default function AdminOffersPage() {
     setExpiresAt('');
   };
 
-  const toggleActive = (id: string) => {
-    persist(coupons.map(c => c.id === id ? { ...c, is_active: !c.is_active } : c));
+  const toggleActive = async (id: string, current: boolean) => {
+    const supabase = createClient();
+    const { error } = await supabase.from('coupons').update({ is_active: !current }).eq('id', id);
+    if (!error) {
+      setCoupons((prev) => prev.map((c) => (c.id === id ? { ...c, is_active: !current } : c)));
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm(
       isBn ? 'আপনি কি নিশ্চিতভাবে এই কুপনটি ডিলিট করতে চান?' : 'Are you sure you want to delete this coupon?'
     );
     if (!confirmDelete) return;
-    persist(coupons.filter(c => c.id !== id));
+
+    const supabase = createClient();
+    const { error } = await supabase.from('coupons').delete().eq('id', id);
+    if (!error) {
+      setCoupons((prev) => prev.filter((c) => c.id !== id));
+    }
   };
 
   const typeLabel = (t: Coupon['type']) => {
@@ -316,7 +290,7 @@ export default function AdminOffersPage() {
                     </td>
                     <td className="py-3.5 px-5">
                       <button
-                        onClick={() => toggleActive(c.id)}
+                        onClick={() => toggleActive(c.id, c.is_active)}
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all-custom ${
                           c.is_active
                             ? 'bg-emerald-50 border border-emerald-100 text-emerald-700'

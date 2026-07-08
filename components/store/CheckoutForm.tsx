@@ -197,6 +197,17 @@ export default function CheckoutForm({
       );
     }
 
+    if (couponCode) {
+      const { data: coupon } = await supabase
+        .from('coupons')
+        .select('id, used_count')
+        .eq('code', couponCode.toUpperCase())
+        .maybeSingle();
+      if (coupon) {
+        await supabase.from('coupons').update({ used_count: coupon.used_count + 1 }).eq('id', coupon.id);
+      }
+    }
+
     setIsSubmitting(false);
 
     // Store checkout metadata in session storage for the confirmation page
