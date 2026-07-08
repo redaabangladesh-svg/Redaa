@@ -1,15 +1,17 @@
 -- Safe to re-run: drops conflicting policies first, then recreates everything
 -- needed for guest/logged-in checkout to work end to end.
 --
--- IMPORTANT: if inserts still fail with "new row violates row-level
--- security policy" even though the policy/grants look correct, check
--- whether the `authenticator` role has been granted the ability to
--- SET ROLE into `anon`/`authenticated`. This project's authenticator
--- role was missing that grant, which made PostgREST silently fail to
--- switch roles and run every request under a role with no matching
--- policies. Fix:
---   GRANT anon TO authenticator WITH INHERIT TRUE, SET TRUE;
---   GRANT authenticated TO authenticator WITH INHERIT TRUE, SET TRUE;
+-- ROOT CAUSE (took a while to isolate): the INSERT itself was never
+-- blocked by RLS. supabase-js's .insert(...).select().single() does
+-- INSERT ... RETURNING under the hood, and Postgres evaluates the
+-- table's SELECT policies against the just-inserted row as part of
+-- RETURNING — raising the exact same "violates row-level security
+-- policy" error if no SELECT policy matches. Guests (anon, no
+-- customer_id, not admin) matched neither "Customers view own
+-- orders" nor "Admin can view all orders", so the RETURNING step
+-- failed even though the INSERT would have succeeded on its own.
+-- The fix is the public SELECT policy below — order IDs are random
+-- UUIDs, so this doesn't expose a browsable order listing.
 
 GRANT SELECT, INSERT, UPDATE ON orders TO anon, authenticated;
 GRANT SELECT, INSERT ON order_items TO anon, authenticated;
