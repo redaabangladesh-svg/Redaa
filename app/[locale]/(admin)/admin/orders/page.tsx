@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2, Download, CheckSquare, Truck, Printer } from 'lucide-react';
+import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2, Download, CheckSquare, Truck, Printer, X, ChevronLeft, ChevronRight, MapPin, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 
@@ -11,10 +11,19 @@ interface Order {
   order_number: string;
   customer_name: string;
   phone: string;
+  address: string;
+  district: string;
   total: number;
   payment_method: string;
   order_status: string;
   created_at: string;
+}
+
+interface PreviewItem {
+  id: string;
+  product_name: string;
+  qty: number;
+  price: number;
 }
 
 const STATUS_LABEL: Record<string, { en: string; bn: string }> = {
@@ -48,11 +57,15 @@ export default function AdminOrdersPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
 
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [previewItems, setPreviewItems] = useState<PreviewItem[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   const loadOrders = async () => {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('orders')
-      .select('id, order_number, customer_name, phone, total, payment_method, order_status, created_at')
+      .select('id, order_number, customer_name, phone, address, district, total, payment_method, order_status, created_at')
       .order('created_at', { ascending: false });
 
     if (!error && data) setOrders(data);
@@ -119,6 +132,30 @@ export default function AdminOrdersPage() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const previewOrder = previewIndex !== null ? filteredOrders[previewIndex] : null;
+
+  useEffect(() => {
+    if (!previewOrder) {
+      setPreviewItems([]);
+      return;
+    }
+    setPreviewLoading(true);
+    const supabase = createClient();
+    supabase
+      .from('order_items')
+      .select('id, product_name, qty, price')
+      .eq('order_id', previewOrder.id)
+      .then(({ data }) => {
+        setPreviewItems(data || []);
+        setPreviewLoading(false);
+      });
+  }, [previewOrder?.id]);
+
+  const openPreview = (order: Order) => {
+    const idx = filteredOrders.findIndex((o) => o.id === order.id);
+    setPreviewIndex(idx);
+  };
 
   const pendingCount = orders.filter(o => o.order_status === 'new').length;
   const processingCount = orders.filter(o => o.order_status === 'processing' || o.order_status === 'confirmed').length;
@@ -281,8 +318,12 @@ export default function AdminOrdersPage() {
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-brand-surface/40 transition-colors">
-                    <td className="py-4 px-4">
+                  <tr
+                    key={order.id}
+                    onClick={() => openPreview(order)}
+                    className="hover:bg-brand-surface/40 transition-colors cursor-pointer"
+                  >
+                    <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedIds.has(order.id)}
@@ -305,7 +346,7 @@ export default function AdminOrdersPage() {
                         {isBn ? STATUS_LABEL[order.order_status]?.bn || order.order_status : STATUS_LABEL[order.order_status]?.en || order.order_status}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="inline-flex items-center gap-2">
                         <Link
                           href={`/admin/orders/${order.id}/invoice`}
@@ -331,6 +372,109 @@ export default function AdminOrdersPage() {
           </table>
         </div>
       </div>
+
+      {/* Order Preview Drawer */}
+      {previewOrder && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setPreviewIndex(null)}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-white shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border flex-shrink-0">
+              <div>
+                <h3 className="font-black text-brand-text text-sm">{previewOrder.order_number}</h3>
+                <p className="text-[10px] text-brand-muted font-semibold mt-0.5">
+                  {new Date(previewOrder.created_at).toLocaleString(isBn ? 'bn-BD' : 'en-US')}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPreviewIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
+                  disabled={previewIndex === 0}
+                  title={isBn ? 'আগেরটি' : 'Previous'}
+                  className="p-2 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary disabled:opacity-30 disabled:pointer-events-none transition-all-custom"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewIndex((i) => (i !== null && i < filteredOrders.length - 1 ? i + 1 : i))}
+                  disabled={previewIndex === filteredOrders.length - 1}
+                  title={isBn ? 'পরেরটি' : 'Next'}
+                  className="p-2 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary disabled:opacity-30 disabled:pointer-events-none transition-all-custom"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewIndex(null)}
+                  title={isBn ? 'বন্ধ করুন' : 'Close'}
+                  className="p-2 rounded-lg text-brand-muted hover:bg-brand-surface transition-all-custom"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              <div>
+                <span className={`inline-block px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wide ${STATUS_COLORS[previewOrder.order_status] || STATUS_COLORS.new}`}>
+                  {isBn ? STATUS_LABEL[previewOrder.order_status]?.bn || previewOrder.order_status : STATUS_LABEL[previewOrder.order_status]?.en || previewOrder.order_status}
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <h4 className="text-[10px] font-bold uppercase text-brand-muted">{isBn ? 'গ্রাহক' : 'Customer'}</h4>
+                <p className="text-sm font-extrabold text-brand-text">{previewOrder.customer_name}</p>
+                <p className="text-xs text-brand-muted font-semibold">{previewOrder.phone}</p>
+                <p className="text-xs text-brand-muted font-medium flex items-start gap-1.5 pt-1">
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                  <span>{previewOrder.address}, {previewOrder.district}</span>
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold uppercase text-brand-muted">{isBn ? 'পণ্যসমূহ' : 'Items'}</h4>
+                {previewLoading ? (
+                  <p className="text-xs text-brand-muted font-semibold">{isBn ? 'লোড হচ্ছে...' : 'Loading...'}</p>
+                ) : previewItems.length === 0 ? (
+                  <p className="text-xs text-brand-muted font-semibold">—</p>
+                ) : (
+                  <div className="space-y-2">
+                    {previewItems.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-brand-text">{item.product_name} × {item.qty}</span>
+                        <span className="font-bold text-brand-text">৳{item.price * item.qty}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-brand-border">
+                <span className="text-xs font-bold text-brand-muted">{isBn ? 'পেমেন্ট' : 'Payment'}</span>
+                <span className="text-xs font-extrabold text-brand-text uppercase">{previewOrder.payment_method}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-brand-text">{isBn ? 'সর্বমোট' : 'Total'}</span>
+                <span className="text-lg font-black text-brand-secondary">৳{previewOrder.total}</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-brand-border flex-shrink-0">
+              <Link
+                href={`/admin/orders/${previewOrder.id}`}
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-primary text-white font-extrabold text-xs hover:bg-brand-primary-alt transition-all-custom"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>{isBn ? 'পূর্ণ বিবরণ ও স্ট্যাটাস আপডেট' : 'Full Detail & Update Status'}</span>
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

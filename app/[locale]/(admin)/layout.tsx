@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
@@ -24,6 +25,20 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
+  const [adminUser, setAdminUser] = useState<{ name: string; avatarUrl: string | null } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const meta = user.user_metadata || {};
+      setAdminUser({
+        name: meta.full_name || meta.name || user.email || 'অ্যাডমিন',
+        avatarUrl: meta.avatar_url || meta.picture || null,
+      });
+    });
+  }, []);
 
   // The login screen and printable invoices render full-bleed, without the sidebar/header chrome
   if (pathname === '/admin/login' || pathname.endsWith('/invoice')) {
@@ -125,10 +140,19 @@ export default function AdminLayout({
           <div className="flex items-center gap-4 flex-shrink-0">
             {/* User Info */}
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-full bg-brand-secondary text-white flex items-center justify-center text-xs font-bold shadow-md shadow-brand-secondary/20">
-                AD
-              </div>
-              <span className="text-sm font-semibold hidden sm:inline">অ্যাডমিন</span>
+              {adminUser?.avatarUrl ? (
+                <img
+                  src={adminUser.avatarUrl}
+                  alt={adminUser.name}
+                  className="h-8 w-8 rounded-full object-cover shadow-md shadow-brand-secondary/20"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-brand-secondary text-white flex items-center justify-center text-xs font-bold shadow-md shadow-brand-secondary/20">
+                  {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : 'AD'}
+                </div>
+              )}
+              <span className="text-sm font-semibold hidden sm:inline truncate max-w-[120px]">{adminUser?.name || 'অ্যাডমিন'}</span>
             </div>
             <button
               onClick={handleLogout}

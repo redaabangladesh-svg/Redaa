@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Package, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Package, Plus, Pencil, Trash2, ExternalLink, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 
 interface Product {
   id: string;
+  slug: string;
   name_en: string;
   name_bn: string;
   price: number;
   sale_price: number | null;
   images: string[];
   stock: number;
+  landing_page_active: boolean;
   categories: { name_en: string; name_bn: string } | null;
 }
 
@@ -22,12 +24,13 @@ export default function AdminProductsPage() {
   const isBn = locale === 'bn';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const loadProducts = async () => {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('products')
-      .select('id, name_en, name_bn, price, sale_price, images, stock, categories(name_en, name_bn)')
+      .select('id, slug, name_en, name_bn, price, sale_price, images, stock, landing_page_active, categories(name_en, name_bn)')
       .order('created_at', { ascending: false });
 
     if (!error && data) setProducts(data as unknown as Product[]);
@@ -49,6 +52,13 @@ export default function AdminProductsPage() {
     if (!error) {
       setProducts((prev) => prev.filter((p) => p.id !== id));
     }
+  };
+
+  const handleCopyLandingLink = (product: Product) => {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    navigator.clipboard.writeText(`${baseUrl}/p/${product.slug}`);
+    setCopiedId(product.id);
+    setTimeout(() => setCopiedId(null), 1500);
   };
 
   return (
@@ -85,19 +95,20 @@ export default function AdminProductsPage() {
                 <th className="py-4 px-5">{isBn ? 'ক্যাটাগরি' : 'Category'}</th>
                 <th className="py-4 px-5">{isBn ? 'মূল্য' : 'Price'}</th>
                 <th className="py-4 px-5">{isBn ? 'স্টক' : 'Stock'}</th>
+                <th className="py-4 px-5">{isBn ? 'ল্যান্ডিং পেজ' : 'Landing Page'}</th>
                 <th className="py-4 px-5 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-brand-muted font-bold">
+                  <td colSpan={6} className="py-8 text-center text-brand-muted font-bold">
                     {isBn ? 'লোড হচ্ছে...' : 'Loading...'}
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-brand-muted font-bold">
+                  <td colSpan={6} className="py-8 text-center text-brand-muted font-bold">
                     {isBn ? 'কোনো প্রোডাক্ট পাওয়া যায়নি।' : 'No products found in catalog.'}
                   </td>
                 </tr>
@@ -136,21 +147,47 @@ export default function AdminProductsPage() {
                           {p.stock} {isBn ? 'টি বাকি' : 'left'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-5 text-right space-x-2">
-                        <Link
-                          href={`/admin/products/${p.id}`}
-                          className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
-                          title="এডিট"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteProduct(p.id)}
-                          className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-red-300 hover:text-red-600 transition-all-custom"
-                          title="ডিলিট"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      <td className="py-3.5 px-5">
+                        {p.landing_page_active ? (
+                          <div className="inline-flex items-center gap-1.5">
+                            <a
+                              href={`/p/${p.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold hover:bg-emerald-100 transition-all-custom"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              <span>{isBn ? 'সক্রিয়' : 'Active'}</span>
+                            </a>
+                            <button
+                              onClick={() => handleCopyLandingLink(p)}
+                              title={isBn ? 'লিংক কপি করুন' : 'Copy link'}
+                              className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
+                            >
+                              {copiedId === p.id ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-bold text-brand-muted">{isBn ? 'নিষ্ক্রিয়' : 'Off'}</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-5 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <Link
+                            href={`/admin/products/${p.id}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:border-brand-primary hover:text-brand-primary font-bold text-[10px] transition-all-custom"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            <span>{isBn ? 'এডিট' : 'Edit'}</span>
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteProduct(p.id)}
+                            className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-red-300 hover:text-red-600 transition-all-custom"
+                            title="ডিলিট"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

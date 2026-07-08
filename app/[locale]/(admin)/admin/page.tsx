@@ -110,20 +110,20 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="relative bg-white p-6 rounded-2xl border border-brand-border hover:shadow-lg transition-all-custom overflow-hidden">
+            <div key={i} className="relative bg-white p-3.5 sm:p-6 rounded-2xl border border-brand-border hover:shadow-lg transition-all-custom overflow-hidden">
               <span className="absolute top-0 left-0 h-full w-[3px] bg-brand-accent/60" />
-              <div className="flex justify-between items-start">
-                <span className="text-sm font-semibold text-brand-muted">{stat.label}</span>
-                <div className={`p-2.5 rounded-xl ${stat.color}`}>
-                  <Icon className="h-5 w-5" />
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-[11px] sm:text-sm font-semibold text-brand-muted leading-tight">{stat.label}</span>
+                <div className={`p-1.5 sm:p-2.5 rounded-xl flex-shrink-0 ${stat.color}`}>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
               </div>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-2xl font-sans font-extrabold tracking-tight text-brand-text">{loading ? '—' : stat.value}</span>
+              <div className="mt-2 sm:mt-4 flex items-baseline gap-2">
+                <span className="text-lg sm:text-2xl font-sans font-extrabold tracking-tight text-brand-text">{loading ? '—' : stat.value}</span>
               </div>
             </div>
           );
