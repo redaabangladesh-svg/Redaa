@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { HomeProduct } from '@/lib/products';
 import { fetchProducts } from '@/lib/products-db';
 import ProductCard from '@/components/store/ProductCard';
+import InstagramFeed from '@/components/widgets/InstagramFeed';
 
 /* ── BANNER SLIDES (image-only — all copy/CTA lives inside the banner artwork) ── */
 const SLIDES = [
@@ -242,6 +243,11 @@ export default function HomePage() {
           {products.slice(6, 12).map((p) => <ProductCard key={p.id} p={p} locale={locale} />)}
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════
+          7. CUSTOMER PHOTOS (Instagram-style UGC)
+      ══════════════════════════════════════════ */}
+      <InstagramFeed />
 
     </div>
   );
