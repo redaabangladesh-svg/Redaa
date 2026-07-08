@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Truck, CheckCircle2, ShieldAlert, MapPin } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { BD_DISTRICTS } from '@/lib/districts';
+import { fetchSettings } from '@/lib/settings';
 
 interface CheckoutFormProps {
   shippingCharge: number;
@@ -44,7 +45,8 @@ export default function CheckoutForm({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
+  const sslEnabled = process.env.NEXT_PUBLIC_SSL_ENABLED === 'true';
 
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,20 +54,20 @@ export default function CheckoutForm({
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
-  // Load charges dynamically based on configured settings
+  // Load charges dynamically from the store's Supabase-backed settings
   useEffect(() => {
-    const storedInside = localStorage.getItem('sicily_delivery_inside');
-    const storedOutside = localStorage.getItem('sicily_delivery_outside');
-    const insideCharge = storedInside ? parseInt(storedInside, 10) : 80;
-    const outsideCharge = storedOutside ? parseInt(storedOutside, 10) : 150;
+    fetchSettings(['delivery_inside', 'delivery_outside']).then((s) => {
+      const insideCharge = s.delivery_inside ? parseInt(s.delivery_inside, 10) : 80;
+      const outsideCharge = s.delivery_outside ? parseInt(s.delivery_outside, 10) : 150;
 
-    if (selectedDistrict === 'dhaka') {
-      setShippingCharge(insideCharge);
-    } else if (selectedDistrict !== '') {
-      setShippingCharge(outsideCharge);
-    } else {
-      setShippingCharge(0);
-    }
+      if (selectedDistrict === 'dhaka') {
+        setShippingCharge(insideCharge);
+      } else if (selectedDistrict !== '') {
+        setShippingCharge(outsideCharge);
+      } else {
+        setShippingCharge(0);
+      }
+    });
   }, [selectedDistrict, setShippingCharge]);
 
   // Auto-suggest: fetch logged-in customer's saved addresses
@@ -144,76 +146,44 @@ export default function CheckoutForm({
 
     setIsSubmitting(true);
 
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    let customerId: string | null = null;
-    if (user) {
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .maybeSingle();
-      customerId = customer?.id ?? null;
-    }
-
     const districtLabel = BD_DISTRICTS.find(d => d.id === selectedDistrict)?.bn || selectedDistrict;
     const grandTotal = cartTotal + shippingCharge - discountAmount;
 
-    const { data: newOrder, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        customer_id: customerId,
-        customer_name: name,
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: name,
         phone: cleanPhone,
         address,
         district: districtLabel,
-        subtotal: cartTotal,
-        delivery_charge: shippingCharge,
-        discount: discountAmount,
-        total: grandTotal,
-        payment_method: paymentMethod,
-        coupon_code: couponCode || null,
-      })
-      .select()
-      .single();
-
-    if (orderError || !newOrder) {
-      setIsSubmitting(false);
-      setErrorMsg(isBn ? 'অর্ডার সম্পন্ন করা যায়নি, আবার চেষ্টা করুন।' : 'Could not place order, please try again.');
-      console.error(orderError);
-      return;
-    }
-
-    if (cartItems.length > 0) {
-      await supabase.from('order_items').insert(
-        cartItems.map((item) => ({
-          order_id: newOrder.id,
-          product_name: isBn ? item.name_bn : item.name_en,
+        items: cartItems.map((item) => ({
+          productId: item.id,
+          name: isBn ? item.name_bn : item.name_en,
           variant: item.variant || null,
           qty: item.qty,
           price: item.sale_price ?? item.price,
-        }))
-      );
-    }
+        })),
+        paymentMethod: paymentMethod === 'online' ? 'sslcommerz' : 'cod',
+        shippingCharge,
+        discountAmount,
+        couponCode: couponCode || undefined,
+        source: 'website',
+      }),
+    });
 
-    if (couponCode) {
-      const { data: coupon } = await supabase
-        .from('coupons')
-        .select('id, used_count')
-        .eq('code', couponCode.toUpperCase())
-        .maybeSingle();
-      if (coupon) {
-        await supabase.from('coupons').update({ used_count: coupon.used_count + 1 }).eq('id', coupon.id);
-      }
-    }
+    const result = await response.json();
 
-    setIsSubmitting(false);
+    if (!response.ok) {
+      setIsSubmitting(false);
+      setErrorMsg(result.error || (isBn ? 'অর্ডার সম্পন্ন করা যায়নি, আবার চেষ্টা করুন।' : 'Could not place order, please try again.'));
+      return;
+    }
 
     // Store checkout metadata in session storage for the confirmation page
     sessionStorage.setItem('last_order_details', JSON.stringify({
-      orderId: newOrder.id,
-      orderNumber: newOrder.order_number,
+      orderId: result.id,
+      orderNumber: result.orderNumber,
       customerName: name,
       customerPhone: phone,
       customerAddress: address,
@@ -226,11 +196,28 @@ export default function CheckoutForm({
       grandTotal
     }));
 
-    // Clear Cart
     clearCart();
 
-    // Redirect to Order Confirmation page
-    router.push(`/${locale}/order/${newOrder.id}`);
+    if (paymentMethod === 'online') {
+      const sslResponse = await fetch('/api/payment/sslcommerz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: result.id }),
+      });
+      const sslResult = await sslResponse.json();
+      setIsSubmitting(false);
+
+      if (!sslResponse.ok || !sslResult.redirectUrl) {
+        setErrorMsg(isBn ? 'অনলাইন পেমেন্ট শুরু করা যায়নি। COD-তে চেষ্টা করুন।' : 'Could not start online payment. Please try COD.');
+        return;
+      }
+
+      window.location.href = sslResult.redirectUrl;
+      return;
+    }
+
+    setIsSubmitting(false);
+    router.push(`/order/${result.id}`);
   };
 
   return (
@@ -386,28 +373,31 @@ export default function CheckoutForm({
             </div>
           </label>
 
-          {/* bKash */}
-          <label className={`flex items-start gap-3 p-4 rounded-xl border transition-all-custom cursor-pointer ${
-            paymentMethod === 'bkash'
+          {/* Online payment via SSLCommerz — only offered once real store keys are configured */}
+          <label className={`flex items-start gap-3 p-4 rounded-xl border transition-all-custom ${
+            !sslEnabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+          } ${
+            paymentMethod === 'online'
               ? 'border-brand-primary bg-brand-primary/5'
               : 'border-brand-border hover:border-brand-primary/30'
           }`}>
             <input
               type="radio"
               name="payment"
-              value="bkash"
-              checked={paymentMethod === 'bkash'}
-              onChange={() => setPaymentMethod('bkash')}
+              value="online"
+              checked={paymentMethod === 'online'}
+              disabled={!sslEnabled}
+              onChange={() => setPaymentMethod('online')}
               className="mt-0.5 text-brand-primary focus:ring-brand-primary"
             />
             <div>
               <span className="text-xs font-bold text-brand-text block">
-                {isBn ? 'বিকাশ পেমেন্ট' : 'bKash Instant Payment'}
+                {isBn ? 'অনলাইন পেমেন্ট (কার্ড/মোবাইল ব্যাংকিং)' : 'Online Payment (Card/Mobile Banking)'}
               </span>
               <span className="text-[10px] text-brand-muted mt-0.5 block leading-relaxed">
-                {isBn
-                  ? 'বিকাশ ওয়ালেট থেকে দ্রুত ও নিরাপদে পেমেন্ট করুন।'
-                  : 'Fast and secure checkout via bKash mobile banking wallet.'}
+                {sslEnabled
+                  ? (isBn ? 'SSLCommerz-এর মাধ্যমে নিরাপদে পেমেন্ট করুন।' : 'Pay securely via SSLCommerz.')
+                  : (isBn ? 'শীঘ্রই আসছে।' : 'Coming soon.')}
               </span>
             </div>
           </label>

@@ -46,5 +46,5 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   // Match dynamic routes and avoid static files
-  matcher: ['/', '/(bn)/:path*', '/((?!api|_next|_vercel|auth|.*\\..*).*)']
+  matcher: ['/', '/((?!api|_next|_vercel|auth|.*\\..*).*)']
 };

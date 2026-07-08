@@ -67,7 +67,7 @@ export default function AdminProductsPage() {
 
         {/* Add Product Button */}
         <Link
-          href={`/${locale}/admin/products/new`}
+          href={`/admin/products/new`}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-primary text-white font-extrabold text-xs rounded-xl hover:bg-brand-primary-alt shadow-md shadow-brand-primary/20 transition-all-custom"
         >
           <Plus className="h-4 w-4" />
@@ -138,7 +138,7 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="py-3.5 px-5 text-right space-x-2">
                         <Link
-                          href={`/${locale}/admin/products/${p.id}`}
+                          href={`/admin/products/${p.id}`}
                           className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
                           title="Edit"
                         >

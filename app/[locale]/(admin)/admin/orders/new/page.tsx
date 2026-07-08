@@ -2,147 +2,107 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, Save, PlusCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-interface Product {
-  id: string;
-  name_en: string;
-  name_bn: string;
-  price: number;
-  sale_price: number | null;
-  image: string;
-  category: string;
-}
-
-const DEFAULT_MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name_en: 'Premium Metal Flower Hanger',
-    name_bn: 'প্রিমিয়াম মেটাল ফ্লাওয়ার হ্যাঙ্গার',
-    price: 1250,
-    sale_price: 990,
-    image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=600',
-    category: 'hangers'
-  },
-  {
-    id: '2',
-    name_en: 'Handcrafted Pastel Tulip Bouquet',
-    name_bn: 'হ্যান্ডক্রাফটেড পেস্টেল টিউলিপ তোড়া',
-    price: 850,
-    sale_price: null,
-    image: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&q=80&w=600',
-    category: 'flowers'
-  }
-];
+import { fetchProducts } from '@/lib/products-db';
+import type { HomeProduct } from '@/lib/products';
+import { fetchSettings } from '@/lib/settings';
+import { BD_DISTRICTS } from '@/lib/districts';
 
 export default function AdminNewOrderPage() {
   const locale = useLocale();
   const router = useRouter();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [source, setSource] = useState('Facebook');
+  const [products, setProducts] = useState<HomeProduct[]>([]);
+  const [source, setSource] = useState('facebook');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('dhaka');
-  
+
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [paymentStatus, setPaymentStatus] = useState('COD');
-  
+  const [paymentNote, setPaymentNote] = useState('cod');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('sicily_products_list');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setProducts(parsed);
-        if (parsed.length > 0) {
-          setSelectedProductId(parsed[0].id);
-        }
-      } catch (e) {
-        console.error(e);
-        setProducts(DEFAULT_MOCK_PRODUCTS);
-        setSelectedProductId('1');
-      }
-    } else {
-      setProducts(DEFAULT_MOCK_PRODUCTS);
-      setSelectedProductId('1');
-    }
+    fetchProducts().then((rows) => {
+      setProducts(rows);
+      if (rows.length > 0) setSelectedProductId(rows[0].id);
+    });
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg('');
+
     if (!name || !phone || !address || !selectedProductId) {
-      alert(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
+      setErrorMsg(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
       return;
     }
 
     if (!/^(013|014|015|016|017|018|019)\d{8}$/.test(phone)) {
-      alert(locale === 'bn' ? 'অনুগ্রহ করে একটি সঠিক মোবাইল নম্বর দিন।' : 'Please enter a valid 11-digit mobile number.');
+      setErrorMsg(locale === 'bn' ? 'অনুগ্রহ করে একটি সঠিক মোবাইল নম্বর দিন।' : 'Please enter a valid 11-digit mobile number.');
       return;
     }
 
+    const matchedProd = products.find((p) => p.id === selectedProductId);
+    if (!matchedProd) return;
+
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      // Find shipping charges from settings or fallback
-      const storedInside = localStorage.getItem('sicily_delivery_inside');
-      const storedOutside = localStorage.getItem('sicily_delivery_outside');
-      const deliveryInside = storedInside ? Number(storedInside) : 80;
-      const deliveryOutside = storedOutside ? Number(storedOutside) : 150;
-      const shippingCharge = district === 'dhaka' ? deliveryInside : deliveryOutside;
+    const settings = await fetchSettings(['delivery_inside', 'delivery_outside']);
+    const deliveryInside = Number(settings.delivery_inside ?? 80);
+    const deliveryOutside = Number(settings.delivery_outside ?? 150);
+    const shippingCharge = district === 'dhaka' ? deliveryInside : deliveryOutside;
+    const districtLabel = BD_DISTRICTS.find((d) => d.id === district)?.bn || district;
+    const activePrice = matchedProd.sale_price ?? matchedProd.price;
+    const name_display = locale === 'bn' ? matchedProd.name_bn : matchedProd.name_en;
 
-      // Find product price
-      const matchedProd = products.find(p => p.id === selectedProductId);
-      const activePrice = matchedProd 
-        ? (matchedProd.sale_price !== null ? matchedProd.sale_price : matchedProd.price)
-        : 1000;
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: name,
+        phone,
+        address,
+        district: districtLabel,
+        items: [{
+          productId: matchedProd.id,
+          name: name_display,
+          qty: quantity,
+          price: activePrice,
+        }],
+        paymentMethod: 'cod',
+        shippingCharge,
+        source,
+        notes: paymentNote !== 'cod' ? `Manually marked as ${paymentNote}` : undefined,
+      }),
+    });
 
-      const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const result = await response.json();
+    setIsSubmitting(false);
 
-      // Construct and insert order
-      const storedOrders = localStorage.getItem('sicily_orders_list');
-      let ordersList = [];
-      if (storedOrders) {
-        try {
-          ordersList = JSON.parse(storedOrders);
-        } catch(e) {}
-      }
+    if (!response.ok) {
+      setErrorMsg(result.error || (locale === 'bn' ? 'অর্ডার তৈরি করা যায়নি।' : 'Could not create order.'));
+      return;
+    }
 
-      const newOrder = {
-        id: orderId,
-        customer: name,
-        phone: phone,
-        amount: activePrice * quantity + shippingCharge,
-        payment: paymentStatus,
-        status: 'new' as const,
-        date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        address: address,
-        district: district === 'dhaka' ? 'Dhaka' : 'Outside Dhaka',
-        shipping: shippingCharge
-      };
-
-      ordersList.unshift(newOrder);
-      localStorage.setItem('sicily_orders_list', JSON.stringify(ordersList));
-
-      setIsSubmitting(false);
-      router.push(`/${locale}/admin/orders`);
-    }, 800);
+    router.push(`/admin/orders`);
   };
 
   return (
     <div className="max-w-3xl space-y-6 font-sans">
       {/* Back Button */}
       <Link
-        href={`/${locale}/admin/orders`}
+        href={`/admin/orders`}
         className="inline-flex items-center gap-2 text-xs font-bold text-brand-muted hover:text-brand-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        <span>{locale === 'bn' ? 'অর্ডার তালিকায় ফিরে যান' : 'Back to Orders'}</span>
+        <span>{locale === 'bn' ? 'অর্ডার তালিকায় ফিরে যান' : 'Back to Orders'}</span>
       </Link>
 
       {/* Header */}
@@ -156,9 +116,15 @@ export default function AdminNewOrderPage() {
         </p>
       </div>
 
+      {errorMsg && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-2xl">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Form container */}
       <form onSubmit={handleSubmit} className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-        
+
         {/* Source selector */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1.5">
@@ -170,10 +136,9 @@ export default function AdminNewOrderPage() {
               onChange={(e) => setSource(e.target.value)}
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             >
-              <option value="Facebook">Facebook Page</option>
-              <option value="Instagram">Instagram Direct Message</option>
-              <option value="Phone">Phone Call</option>
-              <option value="WhatsApp">WhatsApp Message</option>
+              <option value="facebook">Facebook Page</option>
+              <option value="instagram">Instagram Direct Message</option>
+              <option value="phone">Phone Call</option>
             </select>
           </div>
 
@@ -227,11 +192,11 @@ export default function AdminNewOrderPage() {
               Payment Status <span className="text-rose-500">*</span>
             </label>
             <select
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             >
-              <option value="COD">{locale === 'bn' ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery'}</option>
+              <option value="cod">{locale === 'bn' ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery'}</option>
               <option value="bKash">{locale === 'bn' ? 'বিকাশ সম্পন্ন (Paid bKash)' : 'bKash Paid'}</option>
               <option value="Paid">{locale === 'bn' ? 'পেইড (Paid)' : 'Paid'}</option>
             </select>
@@ -266,7 +231,7 @@ export default function AdminNewOrderPage() {
             >
               {products.map((p) => {
                 const name = locale === 'bn' ? p.name_bn : p.name_en;
-                const priceVal = p.sale_price !== null ? p.sale_price : p.price;
+                const priceVal = p.sale_price ?? p.price;
                 return (
                   <option key={p.id} value={p.id}>
                     {name} — ৳{priceVal}

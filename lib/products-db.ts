@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase';
 import type { HomeProduct } from '@/lib/products';
 
@@ -12,10 +13,11 @@ interface ProductRow {
   images: string[];
   variants: { size_en?: string; size_bn?: string }[] | null;
   is_featured: boolean;
+  low_stock_threshold?: number;
   categories: { slug: string } | null;
 }
 
-function mapRow(row: ProductRow): HomeProduct {
+function mapRow(row: ProductRow, rating?: number, reviewCount?: number): HomeProduct {
   const discount = row.sale_price
     ? `-${Math.round(((row.price - row.sale_price) / row.price) * 100)}%`
     : null;
@@ -30,14 +32,15 @@ function mapRow(row: ProductRow): HomeProduct {
     discount,
     sizes: (row.variants || []).map((v) => v.size_en || '').filter(Boolean),
     stock: row.stock,
-    category: (row.categories?.slug as HomeProduct['category']) || 'wall-stand',
-    rating: 4.8,
-    reviews: 20,
+    category: row.categories?.slug || 'uncategorized',
+    lowStockThreshold: row.low_stock_threshold ?? 5,
+    rating: rating ?? 4.8,
+    reviews: reviewCount ?? 0,
   };
 }
 
-export async function fetchProducts(): Promise<HomeProduct[]> {
-  const supabase = createClient();
+export async function fetchProducts(client?: SupabaseClient): Promise<HomeProduct[]> {
+  const supabase = client || createClient();
   const { data, error } = await supabase
     .from('products')
     .select('id, name_en, name_bn, slug, price, sale_price, stock, images, variants, is_featured, categories(slug)')
@@ -48,7 +51,7 @@ export async function fetchProducts(): Promise<HomeProduct[]> {
     return [];
   }
 
-  return (data as unknown as ProductRow[]).map(mapRow);
+  return (data as unknown as ProductRow[]).map((row) => mapRow(row));
 }
 
 export async function fetchProductBySlugOrId(slugOrId: string): Promise<HomeProduct | null> {
@@ -63,6 +66,15 @@ export async function fetchProductBySlugOrId(slugOrId: string): Promise<HomeProd
   return mapRow(data as unknown as ProductRow);
 }
 
+export interface ProductReview {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string | null;
+  image: string | null;
+  createdAt: string;
+}
+
 export interface ProductDetail extends HomeProduct {
   images: string[];
   description_en: string | null;
@@ -70,15 +82,24 @@ export interface ProductDetail extends HomeProduct {
   short_description_en: string | null;
   short_description_bn: string | null;
   variants: { size_en?: string; size_bn?: string; price?: number; sale_price?: number | null }[];
+  landingPageActive: boolean;
+  landingContent: { benefits_en?: string[]; benefits_bn?: string[]; video_url?: string };
+  reviews_list: ProductReview[];
+  seo_title_en: string | null;
+  seo_title_bn: string | null;
+  seo_description_en: string | null;
+  seo_description_bn: string | null;
 }
 
-export async function fetchProductDetail(slugOrId: string): Promise<ProductDetail | null> {
-  const supabase = createClient();
+// Accepts an injectable client so server components (metadata, ISR pages,
+// sitemap) can pass a stateless anon client instead of the browser one.
+export async function fetchProductDetail(slugOrId: string, client?: SupabaseClient): Promise<ProductDetail | null> {
+  const supabase = client || createClient();
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
 
   const query = supabase
     .from('products')
-    .select('id, name_en, name_bn, slug, price, sale_price, stock, images, variants, is_featured, description_en, description_bn, short_description_en, short_description_bn, categories(slug)');
+    .select('id, name_en, name_bn, slug, price, sale_price, stock, images, variants, is_featured, low_stock_threshold, landing_page_active, landing_content, description_en, description_bn, short_description_en, short_description_bn, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)');
 
   const { data, error } = isUuid
     ? await query.or(`id.eq.${slugOrId},slug.eq.${slugOrId}`).maybeSingle()
@@ -87,13 +108,42 @@ export async function fetchProductDetail(slugOrId: string): Promise<ProductDetai
   if (error || !data) return null;
 
   const row = data as any;
+
+  const { data: reviewRows } = await supabase
+    .from('reviews')
+    .select('id, customer_name, rating, comment, image, created_at')
+    .eq('product_id', row.id)
+    .eq('is_approved', true)
+    .order('created_at', { ascending: false });
+
+  const reviews_list: ProductReview[] = (reviewRows || []).map((r) => ({
+    id: r.id,
+    customerName: r.customer_name,
+    rating: r.rating,
+    comment: r.comment,
+    image: r.image,
+    createdAt: r.created_at,
+  }));
+
+  const reviewCount = reviews_list.length;
+  const avgRating = reviewCount > 0
+    ? Math.round((reviews_list.reduce((sum, r) => sum + r.rating, 0) / reviewCount) * 10) / 10
+    : 0;
+
   return {
-    ...mapRow(row),
+    ...mapRow(row, avgRating, reviewCount),
     images: row.images && row.images.length > 0 ? row.images : ['/Sicily_icon.png'],
     description_en: row.description_en,
     description_bn: row.description_bn,
     short_description_en: row.short_description_en,
     short_description_bn: row.short_description_bn,
     variants: row.variants || [],
+    landingPageActive: row.landing_page_active ?? false,
+    landingContent: row.landing_content || {},
+    reviews_list,
+    seo_title_en: row.seo_title_en,
+    seo_title_bn: row.seo_title_bn,
+    seo_description_en: row.seo_description_en,
+    seo_description_bn: row.seo_description_bn,
   };
 }

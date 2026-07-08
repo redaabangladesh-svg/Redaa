@@ -7,13 +7,10 @@ import CheckoutForm from '@/components/store/CheckoutForm';
 import { ShoppingBag, ArrowRight, Tag, Check, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
+import TrustBadges from '@/components/widgets/TrustBadges';
+import type { Coupon } from '@/types';
 
-interface Coupon {
-  code: string;
-  type: 'percentage' | 'fixed' | 'free_delivery';
-  value: number;
-  min_order: number;
-}
+type CheckoutCoupon = Pick<Coupon, 'code' | 'type' | 'value' | 'min_order'>;
 
 export default function CheckoutPage() {
   const locale = useLocale();
@@ -26,7 +23,7 @@ export default function CheckoutPage() {
 
   // Coupon States
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<CheckoutCoupon | null>(null);
   const [couponError, setCouponError] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
@@ -112,7 +109,7 @@ export default function CheckoutPage() {
               : 'Add products to your cart before proceeding to checkout.'}
           </p>
           <Link 
-            href={`/${locale}/shop`}
+            href={`/shop`}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-primary text-white font-extrabold text-xs shadow-md shadow-brand-primary/20 hover:bg-brand-primary-alt transition-all-custom"
           >
             <span>{locale === 'bn' ? 'পণ্য পছন্দ করুন' : 'Start Browsing Products'}</span>
@@ -247,6 +244,8 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+
+            <TrustBadges compact />
           </div>
         </div>
       )}

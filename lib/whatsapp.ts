@@ -7,6 +7,9 @@ export const WA_TEMPLATES = {
 
   ORDER_DELIVERED: (name: string) =>
     `প্রিয় ${name}, আপনার পণ্য ডেলিভারি হয়েছে ✅ আমাদের সেবা কেমন লাগলো জানাবেন। ধন্যবাদ 🌸`,
+
+  ORDER_CANCELLED: (name: string, orderNo: string) =>
+    `${name} ভাই/আপা,\n\nদুঃখিত, আপনার অর্ডার *${orderNo}* বাতিল করা হয়েছে।\n\nকোনো প্রশ্ন থাকলে যোগাযোগ করুন। ধন্যবাদ 🌸`,
 };
 
 export function getWhatsAppURL(phone: string, message: string): string {

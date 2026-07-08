@@ -2,21 +2,34 @@
 
 import { Heart, ShoppingCart, PackageCheck, PackageX, Flame } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { HomeProduct } from '@/lib/products';
 import { useWishlist } from '@/lib/wishlist';
+import { useCart } from '@/lib/cart';
 
 export default function ProductCard({ p, locale }: { p: HomeProduct; locale: string }) {
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const liked = isWishlisted(p.id);
   const name = locale === 'bn' ? p.name_bn : p.name_en;
   const price = p.sale_price ?? p.price;
+
+  const handleAddToCart = () => {
+    addToCart({ id: p.id, name_en: p.name_en, name_bn: p.name_bn, image: p.image, price: p.price, sale_price: p.sale_price });
+  };
 
   return (
     <div className="group bg-white rounded-2xl border border-brand-border [@media(hover:hover)]:hover:border-[#C6A15B]/50 overflow-hidden shadow-sm [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
       {/* Product Image Wrapper */}
       <div className="relative aspect-square bg-brand-surface overflow-hidden">
-        <Link href={`/${locale}/product/${p.id}`} className="block h-full w-full">
-          <img src={p.image} alt={name} className="h-full w-full object-cover [@media(hover:hover)]:group-hover:scale-110 transition-transform duration-500 ease-out" />
+        <Link href={`/p/${p.id}`} className="block h-full w-full">
+          <Image
+            src={p.image}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+            className="object-cover [@media(hover:hover)]:group-hover:scale-110 transition-transform duration-500 ease-out"
+          />
         </Link>
 
         {/* Discount Ribbon (Top-left corner) */}
@@ -35,20 +48,21 @@ export default function ProductCard({ p, locale }: { p: HomeProduct; locale: str
         </button>
 
         {/* Quick-add overlay (appears on hover) */}
-        <Link
-          href={`/${locale}/product/${p.id}`}
-          className="absolute inset-x-0 bottom-0 translate-y-full [@media(hover:hover)]:group-hover:translate-y-0 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[10px] font-bold uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5 transition-transform duration-300 ease-out"
+        <button
+          onClick={handleAddToCart}
+          disabled={p.stock === 0}
+          className="absolute inset-x-0 bottom-0 translate-y-full [@media(hover:hover)]:group-hover:translate-y-0 bg-gradient-to-r from-brand-secondary to-brand-secondary-dark text-white text-[10px] font-bold uppercase tracking-widest py-2.5 flex items-center justify-center gap-1.5 transition-transform duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
           <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
-        </Link>
+        </button>
       </div>
 
       {/* Product Details Section */}
       <div className="p-4 flex-1 flex flex-col justify-between gap-3">
         <div className="space-y-1.5">
           <h3 className="text-xs sm:text-sm font-semibold text-brand-text leading-snug line-clamp-2 [@media(hover:hover)]:hover:text-brand-primary transition-colors">
-            <Link href={`/${locale}/product/${p.id}`}>{name}</Link>
+            <Link href={`/p/${p.id}`}>{name}</Link>
           </h3>
 
           {/* Price + Stock */}
@@ -87,13 +101,13 @@ export default function ProductCard({ p, locale }: { p: HomeProduct; locale: str
             <span>{locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}</span>
           </button>
         ) : (
-          <Link
-            href={`/${locale}/product/${p.id}`}
+          <button
+            onClick={handleAddToCart}
             className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white text-[11px] font-bold shadow-sm [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-brand-primary/30 [@media(hover:hover)]:hover:-translate-y-0.5 transition-all duration-200"
           >
             <ShoppingCart className="h-3.5 w-3.5" strokeWidth={1.75} />
             <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
-          </Link>
+          </button>
         )}
       </div>
     </div>

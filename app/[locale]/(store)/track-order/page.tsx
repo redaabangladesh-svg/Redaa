@@ -5,7 +5,6 @@ import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Package, XCircle, LogIn, ArrowRight } from 'lucide-react';
-import { createClient } from '@/lib/supabase';
 
 interface OrderSummary {
   id: string;
@@ -51,29 +50,21 @@ export default function TrackOrderPage() {
     setSearched(true);
     setResults([]);
 
-    const supabase = createClient();
-
     if (isPhoneLike(value)) {
       // Phone search: may match multiple orders — show a list
-      const { data } = await supabase
-        .from('orders')
-        .select('id, order_number, total, order_status, created_at')
-        .eq('phone', value.replace(/\D/g, ''))
-        .order('created_at', { ascending: false });
+      const response = await fetch(`/api/orders/track?phone=${encodeURIComponent(value)}`);
+      const { orders } = await response.json();
 
-      if (data && data.length > 0) {
-        setResults(data);
+      if (orders && orders.length > 0) {
+        setResults(orders);
       }
     } else {
       // Order number search: go straight to its detail page
-      const { data } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('order_number', value.toUpperCase())
-        .maybeSingle();
+      const response = await fetch(`/api/orders/track?orderNumber=${encodeURIComponent(value)}`);
+      const { order } = await response.json();
 
-      if (data) {
-        router.push(`/${locale}/order/${data.id}`);
+      if (order) {
+        router.push(`/order/${order.id}`);
         return;
       }
     }
@@ -145,7 +136,7 @@ export default function TrackOrderPage() {
           {results.map((order) => (
             <Link
               key={order.id}
-              href={`/${locale}/order/${order.id}`}
+              href={`/order/${order.id}`}
               className="flex items-center justify-between p-4 hover:bg-brand-surface/60 transition-all-custom"
             >
               <div>
@@ -177,7 +168,7 @@ export default function TrackOrderPage() {
           </p>
         </div>
         <Link
-          href={`/${locale}/account`}
+          href={`/account`}
           className="flex-shrink-0 text-xs font-extrabold text-brand-primary hover:text-brand-secondary transition-colors whitespace-nowrap"
         >
           {isBn ? 'লগইন' : 'Log In'}

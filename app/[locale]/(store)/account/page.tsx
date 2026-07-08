@@ -302,7 +302,7 @@ export default function AccountPage() {
 
               {/* Wishlist shortcut */}
               <button
-                onClick={() => router.push(`/${locale}/wishlist`)}
+                onClick={() => router.push(`/wishlist`)}
                 className="w-full flex items-center justify-between p-3 bg-brand-surface border border-brand-border rounded-xl hover:border-brand-secondary/40 transition-all-custom"
               >
                 <span className="flex items-center gap-2 text-xs font-bold text-brand-text">
@@ -334,7 +334,7 @@ export default function AccountPage() {
                     orders.map((ord) => (
                       <Link
                         key={ord.id}
-                        href={`/${locale}/order/${ord.id}`}
+                        href={`/order/${ord.id}`}
                         className="p-3 bg-brand-surface border border-brand-border rounded-xl flex justify-between items-center text-xs hover:border-brand-primary/40 transition-all-custom"
                       >
                         <div>
@@ -422,7 +422,7 @@ export default function AccountPage() {
 
               <div className="pt-2 flex flex-col gap-2">
                 <button
-                  onClick={() => router.push(`/${locale}/shop`)}
+                  onClick={() => router.push(`/shop`)}
                   className="w-full py-3 rounded-full bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-xs shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all flex items-center justify-center gap-2"
                 >
                   <span>{isBn ? 'কেনাকাটা শুরু করুন' : 'Continue Shopping'}</span>

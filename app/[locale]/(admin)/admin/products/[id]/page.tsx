@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, Save, Sparkles, UploadCloud, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import ProductForm, { emptyProductForm, type ProductFormData } from '@/components/admin/ProductForm';
 
 export default function AdminEditProductPage({ params }: { params: { id: string } }) {
   const locale = useLocale();
@@ -13,82 +14,51 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
 
   const [productId, setProductId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [nameEn, setNameEn] = useState('');
-  const [nameBn, setNameBn] = useState('');
-  const [price, setPrice] = useState('');
-  const [salePrice, setSalePrice] = useState('');
-  const [image, setImage] = useState('');
-  const [category, setCategory] = useState('flower-tub');
-  const [stock, setStock] = useState('10');
-  const [shortDescEn, setShortDescEn] = useState('');
-  const [shortDescBn, setShortDescBn] = useState('');
-  const [descEn, setDescEn] = useState('');
-  const [descBn, setDescBn] = useState('');
-  const [landingPageActive, setLandingPageActive] = useState(false);
-  const [seoTitleEn, setSeoTitleEn] = useState('');
-  const [seoTitleBn, setSeoTitleBn] = useState('');
-  const [seoDescEn, setSeoDescEn] = useState('');
-  const [seoDescBn, setSeoDescBn] = useState('');
+  const [form, setForm] = useState<ProductFormData>(emptyProductForm);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadError('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setUploadError(data.error || (locale === 'bn' ? 'আপলোড ব্যর্থ হয়েছে।' : 'Upload failed.'));
-        return;
-      }
-
-      setImage(data.url);
-    } catch (err) {
-      setUploadError(locale === 'bn' ? 'আপলোড ব্যর্থ হয়েছে।' : 'Upload failed.');
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
-    }
-  };
 
   useEffect(() => {
     const loadProduct = async () => {
       const supabase = createClient();
       const { data } = await supabase
         .from('products')
-        .select('id, name_en, name_bn, price, sale_price, stock, images, short_description_en, short_description_bn, description_en, description_bn, landing_page_active, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)')
+        .select('id, name_en, name_bn, price, sale_price, stock, low_stock_threshold, is_featured, images, variants, short_description_en, short_description_bn, description_en, description_bn, landing_page_active, landing_content, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)')
         .eq('id', params.id)
         .maybeSingle();
 
       if (data) {
         const row = data as any;
+        const landingContent = row.landing_content || {};
         setProductId(row.id);
-        setNameEn(row.name_en);
-        setNameBn(row.name_bn);
-        setPrice(String(row.price));
-        setSalePrice(row.sale_price !== null ? String(row.sale_price) : '');
-        setImage(row.images?.[0] || '');
-        setCategory(row.categories?.slug || 'flower-tub');
-        setStock(String(row.stock));
-        setShortDescEn(row.short_description_en || '');
-        setShortDescBn(row.short_description_bn || '');
-        setDescEn(row.description_en || '');
-        setDescBn(row.description_bn || '');
-        setLandingPageActive(row.landing_page_active || false);
-        setSeoTitleEn(row.seo_title_en || '');
-        setSeoTitleBn(row.seo_title_bn || '');
-        setSeoDescEn(row.seo_description_en || '');
-        setSeoDescBn(row.seo_description_bn || '');
+        setForm({
+          nameEn: row.name_en,
+          nameBn: row.name_bn,
+          shortDescEn: row.short_description_en || '',
+          shortDescBn: row.short_description_bn || '',
+          descEn: row.description_en || '',
+          descBn: row.description_bn || '',
+          price: String(row.price),
+          salePrice: row.sale_price !== null ? String(row.sale_price) : '',
+          stock: String(row.stock),
+          lowStockThreshold: row.low_stock_threshold !== null && row.low_stock_threshold !== undefined ? String(row.low_stock_threshold) : '5',
+          isFeatured: row.is_featured || false,
+          categorySlug: row.categories?.slug || '',
+          images: row.images && row.images.length > 0 ? row.images : [],
+          variants: (row.variants || []).map((v: any) => ({
+            size_en: v.size_en || '',
+            size_bn: v.size_bn || '',
+            price: v.price !== undefined ? String(v.price) : '',
+            sale_price: v.sale_price !== undefined ? String(v.sale_price) : '',
+          })),
+          landingPageActive: row.landing_page_active || false,
+          benefitsEn: (landingContent.benefits_en || []).join('\n'),
+          benefitsBn: (landingContent.benefits_bn || []).join('\n'),
+          videoUrl: landingContent.video_url || '',
+          seoTitleEn: row.seo_title_en || '',
+          seoTitleBn: row.seo_title_bn || '',
+          seoDescEn: row.seo_description_en || '',
+          seoDescBn: row.seo_description_bn || '',
+        });
       }
       setLoading(false);
     };
@@ -97,7 +67,7 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productId || !nameEn || !nameBn || !price || !image) {
+    if (!productId || !form.nameEn || !form.nameBn || !form.price || form.images.length === 0 || !form.categorySlug) {
       alert(locale === 'bn' ? 'অনুগ্রহ করে সব প্রয়োজনীয় তথ্য পূরণ করুন।' : 'Please fill out all required fields.');
       return;
     }
@@ -108,28 +78,41 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
     const { data: categoryRow } = await supabase
       .from('categories')
       .select('id')
-      .eq('slug', category)
+      .eq('slug', form.categorySlug)
       .maybeSingle();
 
     const { error } = await supabase
       .from('products')
       .update({
-        name_en: nameEn,
-        name_bn: nameBn,
-        price: Number(price),
-        sale_price: salePrice ? Number(salePrice) : null,
-        stock: Number(stock),
-        images: [image],
+        name_en: form.nameEn,
+        name_bn: form.nameBn,
+        price: Number(form.price),
+        sale_price: form.salePrice ? Number(form.salePrice) : null,
+        stock: Number(form.stock),
+        low_stock_threshold: form.lowStockThreshold ? Number(form.lowStockThreshold) : 5,
+        is_featured: form.isFeatured,
+        images: form.images,
+        variants: form.variants.map((v) => ({
+          size_en: v.size_en,
+          size_bn: v.size_bn,
+          price: v.price ? Number(v.price) : undefined,
+          sale_price: v.sale_price ? Number(v.sale_price) : undefined,
+        })),
         category_id: categoryRow?.id ?? null,
-        short_description_en: shortDescEn || null,
-        short_description_bn: shortDescBn || null,
-        description_en: descEn || null,
-        description_bn: descBn || null,
-        landing_page_active: landingPageActive,
-        seo_title_en: seoTitleEn || null,
-        seo_title_bn: seoTitleBn || null,
-        seo_description_en: seoDescEn || null,
-        seo_description_bn: seoDescBn || null,
+        short_description_en: form.shortDescEn || null,
+        short_description_bn: form.shortDescBn || null,
+        description_en: form.descEn || null,
+        description_bn: form.descBn || null,
+        landing_page_active: form.landingPageActive,
+        landing_content: {
+          benefits_en: form.benefitsEn.split('\n').map((s) => s.trim()).filter(Boolean),
+          benefits_bn: form.benefitsBn.split('\n').map((s) => s.trim()).filter(Boolean),
+          video_url: form.videoUrl || undefined,
+        },
+        seo_title_en: form.seoTitleEn || null,
+        seo_title_bn: form.seoTitleBn || null,
+        seo_description_en: form.seoDescEn || null,
+        seo_description_bn: form.seoDescBn || null,
       })
       .eq('id', productId);
 
@@ -141,7 +124,7 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
       return;
     }
 
-    router.push(`/${locale}/admin/products`);
+    router.push(`/admin/products`);
   };
 
   if (loading || !productId) {
@@ -154,297 +137,31 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
 
   return (
     <div className="max-w-3xl space-y-6 font-sans">
-      {/* Back Button */}
       <Link
-        href={`/${locale}/admin/products`}
+        href={`/admin/products`}
         className="inline-flex items-center gap-2 text-xs font-bold text-brand-muted hover:text-brand-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        <span>{locale === 'bn' ? 'প্রোডাক্টস তালিকায় ফিরে যান' : 'Back to Products'}</span>
+        <span>{locale === 'bn' ? 'প্রোডাক্টস তালিকায় ফিরে যান' : 'Back to Products'}</span>
       </Link>
 
-      {/* Header */}
       <div className="border-b border-brand-border pb-4">
         <h1 className="text-xl md:text-2xl font-black text-brand-text">
-          {locale === 'bn' ? `প্রোডাক্ট এডিট করুন: ${nameBn}` : `Edit Product: ${nameEn}`}
+          {locale === 'bn' ? `প্রোডাক্ট এডিট করুন: ${form.nameBn}` : `Edit Product: ${form.nameEn}`}
         </h1>
         <p className="text-xs text-brand-muted mt-1.5 font-medium">
           {locale === 'bn' ? 'প্রোডাক্টের বিবরণ, স্টক বা প্রাইস এডিট করে সেভ করুন।' : 'Modify product pricing, description copy or stock counts.'}
         </p>
       </div>
 
-      {/* Form Card */}
-      <form onSubmit={handleSubmit} className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-        
-        {/* Name Fields EN & BN */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Product Name (English) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={nameEn}
-              onChange={(e) => setNameEn(e.target.value)}
-              placeholder="e.g. Handmade Ceramic Flower Vase"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              প্রোডাক্টের নাম (বাংলা) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={nameBn}
-              onChange={(e) => setNameBn(e.target.value)}
-              placeholder="যেমন: হাতে তৈরি সিরামিক ফুলদানি"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Short Description — shown right under the title on the product page */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Short Description (English)
-            </label>
-            <input
-              type="text"
-              value={shortDescEn}
-              onChange={(e) => setShortDescEn(e.target.value)}
-              placeholder="One-line summary shown under the title"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              সংক্ষিপ্ত বিবরণ (বাংলা)
-            </label>
-            <input
-              type="text"
-              value={shortDescBn}
-              onChange={(e) => setShortDescBn(e.target.value)}
-              placeholder="টাইটেলের নিচে দেখানো এক লাইনের বিবরণ"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-            />
-          </div>
-        </div>
-
-        {/* Pricing, Category & Stock */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Price (৳) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="1200"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Sale Price (৳)
-            </label>
-            <input
-              type="number"
-              value={salePrice}
-              onChange={(e) => setSalePrice(e.target.value)}
-              placeholder="990"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Category <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-            >
-              <option value="flower-tub">{locale === 'bn' ? 'ফ্লাওয়ার টাব' : 'Flower Tub'}</option>
-              <option value="tree-plant">{locale === 'bn' ? 'ট্রি প্ল্যান্ট' : 'Tree Plant'}</option>
-              <option value="wall-stand">{locale === 'bn' ? 'ওয়াল স্ট্যান্ড' : 'Wall Stand'}</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Stock Quantity <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              placeholder="10"
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Image Upload */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">
-            Product Image <span className="text-rose-500">*</span>
-          </label>
-
-          {image ? (
-            <div className="relative w-40 h-40 rounded-xl overflow-hidden border border-brand-border">
-              <img src={image} alt="Product preview" className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={() => setImage('')}
-                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : (
-            <label className="w-40 h-40 rounded-xl border-2 border-dashed border-brand-border flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-primary/40 transition-all-custom">
-              {isUploading ? (
-                <Sparkles className="h-6 w-6 text-brand-primary animate-spin" />
-              ) : (
-                <>
-                  <UploadCloud className="h-6 w-6 text-brand-muted" />
-                  <span className="text-[10px] font-bold text-brand-muted">
-                    {locale === 'bn' ? 'ছবি আপলোড করুন' : 'Upload Image'}
-                  </span>
-                </>
-              )}
-              <input type="file" accept="image/*" onChange={handleFileUpload} disabled={isUploading} className="hidden" />
-            </label>
-          )}
-
-          {uploadError && (
-            <p className="text-[10px] text-rose-600 font-bold">{uploadError}</p>
-          )}
-
-          <input
-            type="text"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            placeholder="https://... (or upload an image above)"
-            className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-            required
-          />
-        </div>
-
-        {/* Detailed Description — shown at the bottom of the product page */}
-        <div className="space-y-6 pt-4 border-t border-brand-border">
-          <h3 className="text-[10px] font-bold text-brand-muted uppercase">Detailed Description</h3>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Description (English)
-            </label>
-            <textarea
-              value={descEn}
-              onChange={(e) => setDescEn(e.target.value)}
-              placeholder="Write product detailed specifications..."
-              rows={4}
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">
-              বিবরণ (বাংলা)
-            </label>
-            <textarea
-              value={descBn}
-              onChange={(e) => setDescBn(e.target.value)}
-              placeholder="পণ্যের বিস্তারিত বিবরণ ও বৈশিষ্ট্য লিখুন..."
-              rows={4}
-              className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
-            />
-          </div>
-        </div>
-
-        {/* Landing Page Toggle */}
-        <div className="pt-4 border-t border-brand-border flex items-center justify-between">
-          <div>
-            <label className="text-xs font-bold text-brand-text block">
-              {locale === 'bn' ? 'ল্যান্ডিং পেজ সক্রিয়' : 'Landing Page Active'}
-            </label>
-            <p className="text-[10px] text-brand-muted mt-0.5">
-              {locale === 'bn' ? 'চালু করলে /p/[slug] এ একটি মার্কেটিং ল্যান্ডিং পেজ পাওয়া যাবে।' : 'When on, this product gets a dedicated /p/[slug] marketing landing page.'}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setLandingPageActive((v) => !v)}
-            className={`relative h-6 w-11 rounded-full transition-all-custom flex-shrink-0 ${landingPageActive ? 'bg-brand-primary' : 'bg-brand-border'}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-all-custom ${landingPageActive ? 'translate-x-5' : ''}`} />
-          </button>
-        </div>
-
-        {/* SEO Fields */}
-        <div className="space-y-6 pt-4 border-t border-brand-border">
-          <h3 className="text-[10px] font-bold text-brand-muted uppercase">
-            {locale === 'bn' ? 'এসইও তথ্য (ঐচ্ছিক)' : 'SEO Metadata (Optional)'}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Title (English)</label>
-              <input
-                type="text"
-                value={seoTitleEn}
-                onChange={(e) => setSeoTitleEn(e.target.value)}
-                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও টাইটেল (বাংলা)</label>
-              <input
-                type="text"
-                value={seoTitleBn}
-                onChange={(e) => setSeoTitleBn(e.target.value)}
-                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Description (English)</label>
-              <textarea
-                value={seoDescEn}
-                onChange={(e) => setSeoDescEn(e.target.value)}
-                rows={2}
-                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও বিবরণ (বাংলা)</label>
-              <textarea
-                value={seoDescBn}
-                onChange={(e) => setSeoDescBn(e.target.value)}
-                rows={2}
-                className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Save CTA */}
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="w-full py-3.5 rounded-2xl bg-brand-primary text-white font-extrabold text-xs hover:bg-brand-primary-alt shadow-lg shadow-brand-primary/25 transition-all-custom flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
-        >
-          {isSaving ? (
-            <Sparkles className="h-4.5 w-4.5 animate-spin" />
-          ) : (
-            <Save className="h-4.5 w-4.5" />
-          )}
-          <span>{locale === 'bn' ? 'পরিবর্তনগুলো সংরক্ষণ করুন' : 'Save Changes'}</span>
-        </button>
-      </form>
+      <ProductForm
+        locale={locale}
+        data={form}
+        onChange={setForm}
+        onSubmit={handleSubmit}
+        isSaving={isSaving}
+        submitLabel={locale === 'bn' ? 'পরিবর্তনগুলো সংরক্ষণ করুন' : 'Save Changes'}
+      />
     </div>
   );
 }

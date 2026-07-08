@@ -5,17 +5,10 @@ import { useLocale } from 'next-intl';
 import { X } from 'lucide-react';
 import { fetchSettings } from '@/lib/settings';
 
-const SEASONAL_BANNERS: Record<string, { en: string; bn: string; color: string }> = {
-  eid: { en: '🌙 Eid Special Offer — Shop Now!', bn: '🌙 ঈদ স্পেশাল অফার', color: '#2D6A4F' },
-  valentine: { en: '❤️ Valentine\'s Day Collection', bn: '❤️ ভালোবাসা দিবসের অফার', color: '#C1121F' },
-  newyear: { en: '🎉 New Year Offer', bn: '🎉 নববর্ষ অফার', color: '#B45309' },
-};
-
 export default function AnnouncementBar() {
   const locale = useLocale();
   const isBn = locale === 'bn';
   const [text, setText] = useState('');
-  const [color, setColor] = useState('');
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
@@ -24,21 +17,15 @@ export default function AnnouncementBar() {
 
     fetchSettings([
       'announcement_active', 'announcement_text_en', 'announcement_text_bn',
-      'seasonal_banner_active', 'seasonal_banner_type',
+      'seasonal_banner_active',
     ]).then((s) => {
-      if (s.seasonal_banner_active === 'true' && SEASONAL_BANNERS[s.seasonal_banner_type]) {
-        const preset = SEASONAL_BANNERS[s.seasonal_banner_type];
-        setText(isBn ? preset.bn : preset.en);
-        setColor(preset.color);
-        setDismissed(!!isDismissedToday);
-        return;
-      }
+      // Seasonal banner takes visual priority — don't show both at once
+      if (s.seasonal_banner_active === 'true') return;
 
       if (s.announcement_active === 'true') {
         const message = isBn ? s.announcement_text_bn : s.announcement_text_en;
         if (!message) return;
         setText(message);
-        setColor('');
         setDismissed(!!isDismissedToday);
       }
     });
@@ -52,10 +39,7 @@ export default function AnnouncementBar() {
   if (!text || dismissed) return null;
 
   return (
-    <div
-      className="text-white text-center py-2 px-4 relative"
-      style={{ backgroundColor: color || 'var(--color-primary)' }}
-    >
+    <div className="text-white text-center py-2 px-4 relative bg-brand-primary">
       <p className="text-[11px] sm:text-xs font-bold">{text}</p>
       <button
         onClick={handleDismiss}

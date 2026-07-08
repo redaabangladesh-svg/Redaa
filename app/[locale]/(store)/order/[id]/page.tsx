@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
-import { CheckCircle2, PhoneCall, MapPin, CreditCard, ShoppingBag, ArrowRight, Truck, Package, Copy, Check } from 'lucide-react';
+import { CheckCircle2, PhoneCall, MapPin, CreditCard, ShoppingBag, ArrowRight, Truck, Package, Copy, Check, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase';
 
 interface OrderDetails {
   orderId: string;
@@ -12,7 +11,8 @@ interface OrderDetails {
   customerPhone: string;
   customerAddress: string;
   customerDistrict: string;
-  paymentMethod: 'cod' | 'bkash';
+  paymentMethod: 'cod' | 'online';
+  paymentStatus?: string;
   shippingCharge: number;
   discountAmount?: number;
   subtotal?: number;
@@ -39,18 +39,21 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
   const isBn = locale === 'bn';
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isFreshCheckout, setIsFreshCheckout] = useState(false);
 
   useEffect(() => {
     const loadOrder = async () => {
-      // Fast path: order was just placed in this session (checkout flow)
+      // Fast path: order was just placed in this session (checkout flow).
+      // Skipped for online payments — those redirect through the gateway and
+      // back, so only a fresh server fetch has the real payment_status.
       const sessionDetails = sessionStorage.getItem('last_order_details');
       if (sessionDetails) {
         try {
           const parsed = JSON.parse(sessionDetails);
-          if (parsed.orderId === params.id) {
-            setOrder(parsed);
+          if (parsed.orderId === params.id && parsed.paymentMethod !== 'online') {
+            setOrder({ ...parsed, paymentStatus: 'pending' });
             setIsFreshCheckout(true);
             setLoading(false);
             return;
@@ -60,38 +63,33 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
         }
       }
 
-      // Otherwise, look up a real past order from Supabase by its UUID
-      const supabase = createClient();
-      const { data: orderRow } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', params.id)
-        .maybeSingle();
-
-      if (orderRow) {
-        const { data: itemRows } = await supabase
-          .from('order_items')
-          .select('product_name, qty, price')
-          .eq('order_id', orderRow.id);
-
-        setOrder({
-          orderId: orderRow.id,
-          orderNumber: orderRow.order_number,
-          customerName: orderRow.customer_name,
-          customerPhone: orderRow.phone,
-          customerAddress: orderRow.address,
-          customerDistrict: orderRow.district,
-          paymentMethod: orderRow.payment_method === 'cod' ? 'cod' : 'bkash',
-          shippingCharge: orderRow.delivery_charge,
-          discountAmount: orderRow.discount,
-          subtotal: orderRow.subtotal,
-          grandTotal: orderRow.total,
-          orderStatus: orderRow.order_status,
-          trackingNumber: orderRow.tracking_number,
-          courier: orderRow.courier,
-          items: itemRows || [],
-        });
+      // Otherwise, look up a real past order via the server (service-role — orders aren't publicly readable)
+      const response = await fetch(`/api/orders/${params.id}`);
+      if (!response.ok) {
+        setNotFound(true);
+        setLoading(false);
+        return;
       }
+
+      const { order: orderRow, items } = await response.json();
+      setOrder({
+        orderId: orderRow.id,
+        orderNumber: orderRow.order_number,
+        customerName: orderRow.customer_name,
+        customerPhone: orderRow.phone,
+        customerAddress: orderRow.address,
+        customerDistrict: orderRow.district,
+        paymentMethod: orderRow.payment_method === 'cod' ? 'cod' : 'online',
+        paymentStatus: orderRow.payment_status,
+        shippingCharge: orderRow.delivery_charge,
+        discountAmount: orderRow.discount,
+        subtotal: orderRow.subtotal,
+        grandTotal: orderRow.total,
+        orderStatus: orderRow.order_status,
+        trackingNumber: orderRow.tracking_number,
+        courier: orderRow.courier,
+        items: items || [],
+      });
       setLoading(false);
     };
 
@@ -106,13 +104,30 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
     );
   }
 
-  // Safe fallback if order was not created in current session or page reloaded directly
-  const orderId = order?.orderNumber || order?.orderId || params.id || 'ORD-982761';
+  if (notFound || !order) {
+    return (
+      <div className="max-w-md mx-auto py-20 text-center space-y-4">
+        <XCircle className="h-12 w-12 text-rose-500 mx-auto" />
+        <h1 className="text-xl font-extrabold text-brand-text">
+          {isBn ? 'অর্ডার খুঁজে পাওয়া যায়নি' : 'Order not found'}
+        </h1>
+        <p className="text-xs text-brand-muted">
+          {isBn ? 'এই লিংকটি সঠিক নয় অথবা অর্ডারটি মুছে ফেলা হয়েছে।' : 'This link is invalid, or the order no longer exists.'}
+        </p>
+        <Link href={`/track-order`} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-brand-primary">
+          {isBn ? 'অর্ডার ট্র্যাক করুন' : 'Track an order'} <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    );
+  }
+
+  const orderId = order?.orderNumber || order?.orderId || params.id;
   const name = order?.customerName || (isBn ? 'সম্মানিত কাস্টমার' : 'Valued Customer');
   const phone = order?.customerPhone || '017XXXXXXXX';
   const address = order?.customerAddress || (isBn ? 'সরাসরি ডেলিভারি ঠিকানা' : 'Specified shipping address');
   const district = order?.customerDistrict || (isBn ? 'ঢাকা' : 'Dhaka');
   const payment = order?.paymentMethod || 'cod';
+  const isPaid = order?.paymentStatus === 'paid';
   const shipping = order?.shippingCharge !== undefined ? order.shippingCharge : 80;
   const discount = order?.discountAmount || 0;
   const subtotal = order?.subtotal !== undefined ? order.subtotal : 0;
@@ -192,13 +207,15 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
               {isBn ? 'পেমেন্ট স্ট্যাটাস' : 'Payment Status'}
             </span>
             <span className={`inline-block px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-bold border ${
-              payment === 'cod'
-                ? 'bg-amber-50 border-amber-200 text-amber-700'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              isPaid
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'bg-amber-50 border-amber-200 text-amber-700'
             }`}>
-              {payment === 'cod'
-                ? (isBn ? 'ডেলিভারিতে পরিশোধ' : 'Pay on Delivery')
-                : (isBn ? 'ইনস্ট্যান্ট পেমেন্ট' : 'Instant Paid')}
+              {isPaid
+                ? (isBn ? 'পরিশোধিত' : 'Paid')
+                : payment === 'cod'
+                  ? (isBn ? 'ডেলিভারিতে পরিশোধ' : 'Pay on Delivery')
+                  : (isBn ? 'পেমেন্ট বাকি' : 'Payment Pending')}
             </span>
           </div>
         </div>
@@ -244,7 +261,7 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
                 <span className="font-bold text-brand-muted mt-1 block">
                   {payment === 'cod'
                     ? (isBn ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery (COD)')
-                    : (isBn ? 'বিকাশ (bKash Wallet)' : 'bKash Mobile Wallet')}
+                    : (isBn ? 'অনলাইন পেমেন্ট (SSLCommerz)' : 'Online Payment (SSLCommerz)')}
                 </span>
               </div>
             </div>
@@ -279,7 +296,7 @@ export default function OrderConfirmationPage({ params }: { params: { id: string
       {/* Navigation CTA */}
       <div className="flex justify-center">
         <Link
-          href={`/${locale}/shop`}
+          href={`/shop`}
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-brand-primary text-white font-extrabold text-xs shadow-lg shadow-brand-primary/25 hover:bg-brand-primary-alt transition-all-custom"
         >
           <ShoppingBag className="h-4 w-4" />

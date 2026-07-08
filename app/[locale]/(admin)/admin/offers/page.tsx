@@ -4,19 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { Tag, Plus, Trash2, ShieldCheck, ShieldAlert, Percent, BadgeDollarSign, Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
-
-interface Coupon {
-  id: string;
-  code: string;
-  type: 'percentage' | 'fixed' | 'free_delivery';
-  value: number;
-  min_order: number;
-  max_uses: number | null;
-  used_count: number;
-  expires_at: string | null;
-  is_active: boolean;
-  created_at: string;
-}
+import type { Coupon, CouponType } from '@/types';
 
 export default function AdminOffersPage() {
   const locale = useLocale();
@@ -27,7 +15,7 @@ export default function AdminOffersPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const [code, setCode] = useState('');
-  const [type, setType] = useState<'percentage' | 'fixed' | 'free_delivery'>('percentage');
+  const [type, setType] = useState<CouponType>('percentage');
   const [value, setValue] = useState('');
   const [minOrder, setMinOrder] = useState('0');
   const [maxUses, setMaxUses] = useState('');

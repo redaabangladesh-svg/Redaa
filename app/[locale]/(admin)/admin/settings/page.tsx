@@ -30,16 +30,9 @@ export default function AdminSettingsPage() {
 
   // Load configured settings on mount
   useEffect(() => {
-    const storedInside = localStorage.getItem('sicily_delivery_inside');
-    const storedOutside = localStorage.getItem('sicily_delivery_outside');
-    const storedThreshold = localStorage.getItem('sicily_delivery_threshold');
-
-    if (storedInside) setInsideFee(storedInside);
-    if (storedOutside) setOutsideFee(storedOutside);
-    if (storedThreshold) setThreshold(storedThreshold);
-
     fetchSettings([
       'store_name', 'store_phone', 'store_email', 'store_address',
+      'delivery_inside', 'delivery_outside', 'delivery_threshold',
       'announcement_active', 'announcement_text_en', 'announcement_text_bn',
       'seasonal_banner_active', 'seasonal_banner_type',
     ]).then((s) => {
@@ -47,6 +40,9 @@ export default function AdminSettingsPage() {
       if (s.store_phone) setStorePhone(s.store_phone);
       if (s.store_email) setStoreEmail(s.store_email);
       if (s.store_address) setStoreAddress(s.store_address);
+      if (s.delivery_inside) setInsideFee(s.delivery_inside);
+      if (s.delivery_outside) setOutsideFee(s.delivery_outside);
+      if (s.delivery_threshold) setThreshold(s.delivery_threshold);
       setAnnouncementActive(s.announcement_active === 'true');
       if (s.announcement_text_en) setAnnouncementTextEn(s.announcement_text_en);
       if (s.announcement_text_bn) setAnnouncementTextBn(s.announcement_text_bn);
@@ -77,15 +73,14 @@ export default function AdminSettingsPage() {
       return;
     }
 
-    localStorage.setItem('sicily_delivery_inside', insideFee);
-    localStorage.setItem('sicily_delivery_outside', outsideFee);
-    localStorage.setItem('sicily_delivery_threshold', threshold);
-
     const ok = await saveSettings({
       store_name: storeName,
       store_phone: storePhone,
       store_email: storeEmail,
       store_address: storeAddress,
+      delivery_inside: insideFee,
+      delivery_outside: outsideFee,
+      delivery_threshold: threshold,
       announcement_active: String(announcementActive),
       announcement_text_en: announcementTextEn,
       announcement_text_bn: announcementTextBn,

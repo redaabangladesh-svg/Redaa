@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Heart, Search, Crown, Flower2, Sprout, Frame } from 'lucide-react';
 import Link from 'next/link';
@@ -9,13 +9,10 @@ import { useWishlist } from '@/lib/wishlist';
 
 export default function Navbar() {
   const locale = useLocale();
-  const pathname = usePathname();
   const router = useRouter();
   const { wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
-
-  const currentLocale = pathname.split('/')[1] === 'en' ? 'en' : 'bn';
 
   const categories = [
     { en: 'All Categories',      bn: 'সব ক্যাটাগরি',            icon: Crown },
@@ -27,7 +24,7 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
-      router.push(`/${currentLocale}/shop?q=${encodeURIComponent(search.trim())}`);
+      router.push(`/shop?q=${encodeURIComponent(search.trim())}`);
       setMenuOpen(false);
     }
   };
@@ -66,7 +63,7 @@ export default function Navbar() {
             </div>
 
             {/* Center: Brand Logo & Tagline (matches footer lockup) */}
-            <Link href={`/${currentLocale}`} className="flex items-center gap-2.5 group select-none justify-self-center">
+            <Link href="/" className="flex items-center gap-2.5 group select-none justify-self-center">
               <img
                 src="/Sicily_icon.png"
                 alt="Sicily"
@@ -81,7 +78,7 @@ export default function Navbar() {
             {/* Right: Wishlist Action */}
             <div className="flex items-center justify-end">
               <Link
-                href={`/${currentLocale}/wishlist`}
+                href={`/wishlist`}
                 className="relative p-2 rounded-lg text-brand-muted hover:text-brand-secondary hover:bg-brand-surface transition-all duration-200"
                 title="Wishlist"
               >
@@ -127,7 +124,7 @@ export default function Navbar() {
                 return (
                   <Link
                     key={i}
-                    href={`/${currentLocale}/shop`}
+                    href={`/shop`}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold text-brand-text hover:bg-brand-surface hover:text-brand-primary transition-colors"
                   >

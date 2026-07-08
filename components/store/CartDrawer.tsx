@@ -14,7 +14,7 @@ export default function CartDrawer() {
 
   const handleCheckoutClick = () => {
     setIsCartOpen(false);
-    router.push(`/${currentLocale}/checkout`);
+    router.push(`/checkout`);
   };
 
   return (

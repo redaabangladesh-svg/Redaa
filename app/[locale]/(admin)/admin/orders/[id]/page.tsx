@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, User, MapPin, Calendar, ShoppingBag, ShieldCheck, ShieldAlert, Truck } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Calendar, ShoppingBag, ShieldCheck, ShieldAlert, Truck, Ban } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { WA_TEMPLATES, getWhatsAppURL } from '@/lib/whatsapp';
+import type { Order, OrderItem, OrderStatus } from '@/types';
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -13,34 +14,6 @@ function WhatsAppIcon({ className }: { className?: string }) {
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
     </svg>
   );
-}
-
-type OrderStatus = 'new' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
-
-interface Order {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  phone: string;
-  address: string;
-  district: string;
-  area: string | null;
-  subtotal: number;
-  delivery_charge: number;
-  discount: number;
-  total: number;
-  payment_method: string;
-  order_status: OrderStatus;
-  courier: string | null;
-  tracking_number: string | null;
-  created_at: string;
-}
-
-interface OrderItem {
-  id: string;
-  product_name: string;
-  qty: number;
-  price: number;
 }
 
 const STATUS_LABEL: Record<OrderStatus, { en: string; bn: string }> = {
@@ -68,11 +41,12 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   const isBn = locale === 'bn';
 
   const [order, setOrder] = useState<Order | null>(null);
-  const [items, setItems] = useState<OrderItem[]>([]);
+  const [items, setItems] = useState<Pick<OrderItem, 'id' | 'product_name' | 'qty' | 'price'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [assigningCourier, setAssigningCourier] = useState(false);
+  const [blockingPhone, setBlockingPhone] = useState(false);
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -101,13 +75,13 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     setSuccessMsg('');
     setErrorMsg('');
 
-    const supabase = createClient();
-    const { error } = await supabase
-      .from('orders')
-      .update({ order_status: newStatus })
-      .eq('id', order.id);
+    const response = await fetch(`/api/orders/${order.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderStatus: newStatus }),
+    });
 
-    if (error) {
+    if (!response.ok) {
       setErrorMsg(isBn ? 'স্ট্যাটাস আপডেট ব্যর্থ হয়েছে।' : 'Failed to update status.');
       return;
     }
@@ -116,14 +90,38 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     setSuccessMsg(isBn ? 'অর্ডারের স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে!' : 'Order status updated successfully!');
   };
 
-  const handleAssignSteadfast = async () => {
+  const handleBlockPhone = async () => {
+    if (!order) return;
+    setBlockingPhone(true);
+    setSuccessMsg('');
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('/api/fraud', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: order.phone, reason: `Blocked from order ${order.order_number}` }),
+      });
+
+      if (!response.ok) {
+        setErrorMsg(isBn ? 'ফোন নম্বর ব্লক করা যায়নি।' : 'Failed to block phone number.');
+        return;
+      }
+
+      setSuccessMsg(isBn ? 'ফোন নম্বর ব্লক করা হয়েছে।' : 'Phone number blocked.');
+    } finally {
+      setBlockingPhone(false);
+    }
+  };
+
+  const handleAssignCourier = async (courier: 'steadfast' | 'pathao' | 'redex') => {
     if (!order) return;
     setAssigningCourier(true);
     setSuccessMsg('');
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/courier/steadfast', {
+      const res = await fetch(`/api/courier/${courier}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id }),
@@ -135,8 +133,8 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
         return;
       }
 
-      setOrder({ ...order, courier: 'steadfast', tracking_number: data.trackingCode, order_status: 'shipped' });
-      setSuccessMsg(isBn ? 'Steadfast-এ পাঠানো হয়েছে!' : 'Sent to Steadfast successfully!');
+      setOrder({ ...order, courier, tracking_number: data.trackingCode, order_status: 'shipped' });
+      setSuccessMsg(isBn ? `${courier}-এ পাঠানো হয়েছে!` : `Sent to ${courier} successfully!`);
     } finally {
       setAssigningCourier(false);
     }
@@ -162,7 +160,7 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     <div className="max-w-4xl space-y-6 font-sans">
       {/* Back Button */}
       <Link
-        href={`/${locale}/admin/orders`}
+        href={`/admin/orders`}
         className="inline-flex items-center gap-2 text-xs font-bold text-brand-muted hover:text-brand-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -275,6 +273,45 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
 
         {/* Right Column: Workflow status editor */}
         <div className="lg:col-span-1 space-y-6">
+          {/* Fraud check card */}
+          <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-3 shadow-sm">
+            <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3 flex items-center gap-2">
+              <ShieldAlert className="h-4.5 w-4.5 text-brand-primary" />
+              <span>{isBn ? 'ফ্রড স্কোর' : 'Fraud Check'}</span>
+            </h3>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-brand-muted">{isBn ? 'স্কোর' : 'Score'}</span>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${
+                order.fraud_score <= 30
+                  ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
+                  : order.fraud_score <= 60
+                    ? 'text-amber-700 bg-amber-50 border-amber-100'
+                    : 'text-rose-700 bg-rose-50 border-rose-100'
+              }`}>
+                {order.fraud_score}/100
+              </span>
+            </div>
+            {order.fraud_flags && order.fraud_flags.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {order.fraud_flags.map((flag) => (
+                  <span key={flag} className="px-2 py-0.5 rounded-full bg-brand-surface border border-brand-border text-[10px] font-bold text-brand-muted">
+                    {flag}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-brand-muted font-semibold">{isBn ? 'কোনো ফ্ল্যাগ নেই' : 'No flags'}</p>
+            )}
+            <button
+              onClick={handleBlockPhone}
+              disabled={blockingPhone}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-rose-200 text-rose-600 font-bold text-[11px] hover:bg-rose-50 transition-all-custom disabled:opacity-60"
+            >
+              <Ban className="h-3.5 w-3.5" />
+              <span>{isBn ? 'ফোন নম্বর ব্লক করুন' : 'Block Phone Number'}</span>
+            </button>
+          </div>
+
           <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4 shadow-sm">
             <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3">
               {isBn ? 'স্ট্যাটাস আপডেট করুন' : 'Manage Workflow'}
@@ -315,20 +352,25 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
                 <span className="font-extrabold text-brand-text block">{order.tracking_number}</span>
               </div>
             ) : (
-              <button
-                onClick={handleAssignSteadfast}
-                disabled={assigningCourier}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-primary text-white font-extrabold text-xs shadow-sm hover:bg-brand-primary-alt transition-all-custom disabled:opacity-60"
-              >
-                {assigningCourier ? (
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Truck className="h-4 w-4" />
-                    <span>{isBn ? 'Steadfast-এ পাঠান' : 'Send to Steadfast'}</span>
-                  </>
-                )}
-              </button>
+              <div className="space-y-2">
+                {(['steadfast', 'pathao', 'redex'] as const).map((courier) => (
+                  <button
+                    key={courier}
+                    onClick={() => handleAssignCourier(courier)}
+                    disabled={assigningCourier}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-primary text-white font-extrabold text-xs shadow-sm hover:bg-brand-primary-alt transition-all-custom disabled:opacity-60 capitalize"
+                  >
+                    {assigningCourier ? (
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Truck className="h-4 w-4" />
+                        <span>{isBn ? `${courier}-এ পাঠান` : `Send to ${courier}`}</span>
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -380,6 +422,18 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
               >
                 <WhatsAppIcon className="h-3.5 w-3.5" />
                 <span>{isBn ? 'ডেলিভারি কনফার্মেশন পাঠান' : 'Send Delivery Confirmation'}</span>
+              </a>
+            )}
+
+            {order.order_status === 'cancelled' && (
+              <a
+                href={getWhatsAppURL(order.phone, WA_TEMPLATES.ORDER_CANCELLED(order.customer_name, order.order_number))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-[#25D366]/40 text-[#128C7E] font-bold text-[11px] hover:bg-[#25D366]/5 transition-all-custom"
+              >
+                <WhatsAppIcon className="h-3.5 w-3.5" />
+                <span>{isBn ? 'বাতিল বার্তা পাঠান' : 'Send Cancellation Message'}</span>
               </a>
             )}
           </div>

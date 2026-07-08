@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2, Download, CheckSquare, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 
@@ -45,20 +45,69 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
+
+  const loadOrders = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('id, order_number, customer_name, phone, total, payment_method, order_status, created_at')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) setOrders(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const loadOrders = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('orders')
-        .select('id, order_number, customer_name, phone, total, payment_method, order_status, created_at')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) setOrders(data);
-      setLoading(false);
-    };
     loadOrders();
   }, []);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (ids: string[]) => {
+    setSelectedIds((prev) => (prev.size === ids.length ? new Set() : new Set(ids)));
+  };
+
+  const handleBulkStatus = async (newStatus: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkWorking(true);
+    await Promise.all(
+      Array.from(selectedIds).map((id) =>
+        fetch(`/api/orders/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderStatus: newStatus }),
+        })
+      )
+    );
+    setSelectedIds(new Set());
+    setBulkWorking(false);
+    loadOrders();
+  };
+
+  const handleExportExcel = async () => {
+    const XLSX = await import('xlsx');
+    const rows = filteredOrders.map((o) => ({
+      'Order Number': o.order_number,
+      'Customer': o.customer_name,
+      'Phone': o.phone,
+      'Total': o.total,
+      'Payment Method': o.payment_method,
+      'Status': o.order_status,
+      'Date': new Date(o.created_at).toLocaleString(),
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+    XLSX.writeFile(workbook, `orders-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -162,12 +211,52 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
+      {/* Bulk actions + Export */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] font-bold text-brand-muted">
+            {isBn ? `${selectedIds.size}টি নির্বাচিত` : `${selectedIds.size} selected`}
+          </span>
+          <button
+            onClick={() => handleBulkStatus('confirmed')}
+            disabled={selectedIds.size === 0 || bulkWorking}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white font-extrabold text-[10px] transition-all-custom disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            <span>{isBn ? 'কনফার্ম করুন' : 'Confirm selected'}</span>
+          </button>
+          <button
+            onClick={() => handleBulkStatus('shipped')}
+            disabled={selectedIds.size === 0 || bulkWorking}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white font-extrabold text-[10px] transition-all-custom disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <Truck className="h-3.5 w-3.5" />
+            <span>{isBn ? 'পাঠানো হয়েছে চিহ্নিত করুন' : 'Mark shipped'}</span>
+          </button>
+        </div>
+        <button
+          onClick={handleExportExcel}
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-brand-border bg-white text-brand-text hover:border-brand-primary/40 font-extrabold text-[10px] transition-all-custom"
+        >
+          <Download className="h-3.5 w-3.5" />
+          <span>{isBn ? 'এক্সপোর্ট (Excel)' : 'Export to Excel'}</span>
+        </button>
+      </div>
+
       {/* Orders Table */}
       <div className="bg-white border border-brand-border rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs font-medium">
             <thead>
               <tr className="border-b border-brand-border text-brand-muted bg-brand-surface font-bold">
+                <th className="py-4 px-4">
+                  <input
+                    type="checkbox"
+                    checked={filteredOrders.length > 0 && selectedIds.size === filteredOrders.length}
+                    onChange={() => toggleSelectAll(filteredOrders.map((o) => o.id))}
+                    className="h-3.5 w-3.5"
+                  />
+                </th>
                 <th className="py-4 px-6">{isBn ? 'অর্ডার আইডি' : 'Order ID'}</th>
                 <th className="py-4 px-6">{isBn ? 'গ্রাহকের তথ্য' : 'Customer Info'}</th>
                 <th className="py-4 px-6">{isBn ? 'তারিখ' : 'Date'}</th>
@@ -180,19 +269,27 @@ export default function AdminOrdersPage() {
             <tbody className="divide-y divide-brand-border">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-brand-muted font-bold">
+                  <td colSpan={8} className="py-12 text-center text-brand-muted font-bold">
                     {isBn ? 'লোড হচ্ছে...' : 'Loading...'}
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-brand-muted font-bold">
+                  <td colSpan={8} className="py-12 text-center text-brand-muted font-bold">
                     {isBn ? 'দুঃখিত, কোনো অর্ডার পাওয়া যায়নি! 📁' : 'No order details found! 📁'}
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-brand-surface/40 transition-colors">
+                    <td className="py-4 px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(order.id)}
+                        onChange={() => toggleSelected(order.id)}
+                        className="h-3.5 w-3.5"
+                      />
+                    </td>
                     <td className="py-4 px-6 font-bold text-brand-primary">{order.order_number}</td>
                     <td className="py-4 px-6">
                       <div className="font-extrabold text-brand-text text-sm">{order.customer_name}</div>
@@ -210,7 +307,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="py-4 px-6 text-right">
                       <Link
-                        href={`/${locale}/admin/orders/${order.id}`}
+                        href={`/admin/orders/${order.id}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white font-extrabold text-[10px] transition-all-custom"
                       >
                         <Eye className="h-3.5 w-3.5" />
