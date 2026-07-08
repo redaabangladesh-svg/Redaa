@@ -44,13 +44,13 @@ export default function WishlistPage() {
               const activePrice = item.sale_price ?? item.price;
               return (
                 <div key={item.id} className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-sm flex flex-col">
-                  <Link href={`/p/${item.id}`} className="block aspect-square bg-brand-surface overflow-hidden">
+                  <Link href={`/product/${item.id}`} className="block aspect-square bg-brand-surface overflow-hidden">
                     <img src={item.image} alt={name} className="h-full w-full object-cover" />
                   </Link>
                   <div className="p-3.5 flex-1 flex flex-col justify-between gap-2.5">
                     <div>
                       <h3 className="text-xs font-semibold text-brand-text line-clamp-2 leading-snug">
-                        <Link href={`/p/${item.id}`}>{name}</Link>
+                        <Link href={`/product/${item.id}`}>{name}</Link>
                       </h3>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className="text-sm font-bold text-brand-secondary">৳{activePrice}</span>

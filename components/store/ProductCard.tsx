@@ -22,7 +22,7 @@ export default function ProductCard({ p, locale }: { p: HomeProduct; locale: str
     <div className="group bg-white rounded-2xl border border-brand-border [@media(hover:hover)]:hover:border-[#C6A15B]/50 overflow-hidden shadow-sm [@media(hover:hover)]:hover:shadow-xl [@media(hover:hover)]:hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
       {/* Product Image Wrapper */}
       <div className="relative aspect-square bg-brand-surface overflow-hidden">
-        <Link href={`/p/${p.id}`} className="block h-full w-full">
+        <Link href={`/product/${p.id}`} className="block h-full w-full">
           <Image
             src={p.image}
             alt={name}
@@ -62,7 +62,7 @@ export default function ProductCard({ p, locale }: { p: HomeProduct; locale: str
       <div className="p-4 flex-1 flex flex-col justify-between gap-3">
         <div className="space-y-1.5">
           <h3 className="text-xs sm:text-sm font-semibold text-brand-text leading-snug line-clamp-2 [@media(hover:hover)]:hover:text-brand-primary transition-colors">
-            <Link href={`/p/${p.id}`}>{name}</Link>
+            <Link href={`/product/${p.id}`}>{name}</Link>
           </h3>
 
           {/* Price + Stock */}
