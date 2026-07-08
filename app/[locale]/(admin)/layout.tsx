@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
@@ -13,8 +12,6 @@ import {
   Tag,
   LogOut,
   Globe,
-  Menu,
-  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
@@ -27,12 +24,6 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Close the mobile drawer automatically whenever the route changes
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
 
   // The login screen and printable invoices render full-bleed, without the sidebar/header chrome
   if (pathname === '/admin/login' || pathname.endsWith('/invoice')) {
@@ -60,23 +51,11 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen bg-brand-surface font-sans antialiased text-brand-text overflow-hidden">
-      {/* Mobile backdrop, closes the drawer on outside tap */}
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
-        />
-      )}
-
-      {/* Sidebar — fixed drawer on mobile, static column on desktop */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-brand-ink text-white flex flex-col justify-between border-r border-white/5 transform transition-transform duration-300 lg:static lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
+      {/* Sidebar — desktop only, bottom nav takes over on mobile */}
+      <aside className="hidden lg:flex w-64 bg-brand-ink text-white flex-col justify-between border-r border-white/5 flex-shrink-0">
         <div>
           {/* Header */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
+          <div className="h-16 flex items-center px-6 border-b border-white/10">
             <Link href={`/${currentLocale}`} className="flex items-center gap-2.5 group">
               <img
                 src="/Sicily_icon.png"
@@ -88,13 +67,6 @@ export default function AdminLayout({
                 <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-brand-accent mt-0.5">অ্যাডমিন প্যানেল</span>
               </div>
             </Link>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all-custom lg:hidden"
-              aria-label="মেনু বন্ধ করুন"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
 
           {/* Menu */}
@@ -148,13 +120,6 @@ export default function AdminLayout({
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-brand-border flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 -ml-2 rounded-lg text-brand-text hover:bg-brand-surface transition-all-custom lg:hidden flex-shrink-0"
-              aria-label="মেনু খুলুন"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
             <h2 className="text-base sm:text-xl font-serif font-semibold text-brand-text truncate">{activeLabel}</h2>
           </div>
           <div className="flex items-center gap-4 flex-shrink-0">
@@ -165,14 +130,44 @@ export default function AdminLayout({
               </div>
               <span className="text-sm font-semibold hidden sm:inline">অ্যাডমিন</span>
             </div>
+            <button
+              onClick={handleLogout}
+              className="hidden lg:flex p-2 rounded-lg text-brand-muted hover:bg-brand-surface hover:text-brand-text transition-all-custom"
+              aria-label="লগ আউট"
+            >
+              <LogOut className="h-4.5 w-4.5" strokeWidth={1.75} />
+            </button>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-brand-surface">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24 lg:pb-8 bg-brand-surface">
           {children}
         </main>
       </div>
+
+      {/* Bottom nav — mobile only */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-brand-ink border-t border-white/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex items-stretch min-w-max">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center gap-1 px-4 py-2.5 min-w-[76px] transition-colors duration-150 ${
+                  isActive ? 'text-brand-accent' : 'text-white/55'
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={isActive ? 2.2 : 1.75} />
+                <span className="text-[9px] font-bold whitespace-nowrap">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
