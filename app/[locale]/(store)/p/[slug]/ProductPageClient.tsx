@@ -29,6 +29,8 @@ const BOX_ICON_MAP: Record<BoxItemIcon, typeof Frame> = {
   box: Package,
 };
 
+const BENEFIT_ICON_CYCLE = [Sparkles, Flower2, Wrench, Gift, ShieldCheck, Frame];
+
 function buildSizeOptions(product: ProductDetail): SizeOption[] {
   return product.variants.length > 0
     ? product.variants.map((v) => ({
@@ -538,12 +540,17 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
           <span>{locale === 'bn' ? 'এই প্রোডাক্টের চমৎকার সুবিধাসমূহ' : 'Premium Product Features'}</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs md:text-sm font-semibold text-brand-text">
-          {benefits.map((benefit, idx) => (
-            <div key={idx} className="flex items-start gap-2.5">
-              <Check className="h-5 w-5 text-brand-primary flex-shrink-0 mt-0.5" strokeWidth={1.75} />
-              <p className="leading-relaxed">{benefit}</p>
-            </div>
-          ))}
+          {benefits.map((benefit, idx) => {
+            const BenefitIcon = BENEFIT_ICON_CYCLE[idx % BENEFIT_ICON_CYCLE.length];
+            return (
+              <div key={idx} className="flex items-start gap-3">
+                <span className="h-9 w-9 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                  <BenefitIcon className="h-4.5 w-4.5 text-brand-primary" strokeWidth={1.75} />
+                </span>
+                <p className="leading-relaxed pt-1.5">{benefit}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -690,11 +697,6 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
 
       {/* Inline Checkout Order Form Card */}
       <div ref={formRef} id="order-form" className="max-w-2xl mx-auto bg-white border border-brand-border rounded-2xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
-
-        {/* Decorative corner tag */}
-        <div className="absolute top-0 right-0 bg-brand-primary text-white text-[9px] font-bold uppercase tracking-wider py-1 px-4 rounded-bl-lg">
-          {locale === 'bn' ? 'ক্যাশ অন ডেলিভারি' : 'Cash On Delivery'}
-        </div>
 
         {/* Title */}
         <div className="text-center space-y-2 border-b border-brand-border pb-4">
