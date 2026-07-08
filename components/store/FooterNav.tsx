@@ -126,7 +126,6 @@ export default function FooterNav() {
                 { en: 'FAQ', bn: 'সচরাচর জিজ্ঞাসা', icon: Info, href: `/faq` },
                 { en: 'Blog', bn: 'ব্লগ', icon: Info, href: `/blog` },
                 { en: 'Track Order', bn: 'অর্ডার ট্র্যাক করুন', icon: PackageSearch, href: `/track-order` },
-                { en: 'Live Chat', bn: 'লাইভ চ্যাট', icon: Phone, href: `/live-chat` },
                 { en: 'Delivery Policy', bn: 'ডেলিভারি পলিসি', icon: Truck, href: `/delivery-policy` },
                 { en: 'Return & Refund', bn: 'রিটার্ন ও রিফান্ড', icon: RefreshCw, href: `/return-refund` },
                 { en: 'Privacy Policy', bn: 'প্রাইভেসি পলিসি', icon: ShieldAlert, href: `/privacy-policy` },

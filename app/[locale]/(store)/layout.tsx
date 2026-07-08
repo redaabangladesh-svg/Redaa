@@ -3,7 +3,6 @@ import FooterNav from '@/components/store/FooterNav';
 import ClientOnlyWidgets from '@/components/store/ClientOnlyWidgets';
 import AnnouncementBar from '@/components/widgets/AnnouncementBar';
 import SeasonalBanner from '@/components/widgets/SeasonalBanner';
-import WhatsAppButton from '@/components/widgets/WhatsAppButton';
 
 export default function StoreLayout({
   children,
@@ -19,7 +18,6 @@ export default function StoreLayout({
         {children}
       </main>
       <FooterNav />
-      <WhatsAppButton />
       <ClientOnlyWidgets />
     </>
   );
