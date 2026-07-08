@@ -28,6 +28,16 @@ interface LowStockProduct {
   stock: number;
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  new: 'নতুন',
+  confirmed: 'কনফার্ম',
+  processing: 'প্রসেসিং',
+  shipped: 'পাঠানো হয়েছে',
+  delivered: 'ডেলিভার্ড',
+  cancelled: 'বাতিল',
+  returned: 'ফেরত',
+};
+
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [todayRevenue, setTodayRevenue] = useState(0);
@@ -83,17 +93,18 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = [
-    { label: 'Revenue (7 Days)', value: `৳${weeklySales.reduce((a, b) => a + b, 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600 bg-emerald-50' },
-    { label: 'New Orders (Today)', value: `${todayOrderCount}`, icon: ShoppingBag, color: 'text-brand-primary bg-brand-surface border border-brand-border' },
-    { label: 'Pending Orders', value: `${pendingCount}`, icon: Clock, color: 'text-amber-600 bg-amber-50' },
-    { label: 'Low Stock Alert', value: `${lowStockCount} products`, icon: AlertTriangle, color: 'text-brand-secondary bg-brand-secondary/5' },
+    { label: 'রেভিনিউ (৭ দিন)', value: `৳${weeklySales.reduce((a, b) => a + b, 0).toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'নতুন অর্ডার (আজ)', value: `${todayOrderCount}`, icon: ShoppingBag, color: 'text-brand-primary bg-brand-surface border border-brand-border' },
+    { label: 'পেন্ডিং অর্ডার', value: `${pendingCount}`, icon: Clock, color: 'text-amber-600 bg-amber-50' },
+    { label: 'লো স্টক অ্যালার্ট', value: `${lowStockCount}টি প্রোডাক্ট`, icon: AlertTriangle, color: 'text-brand-secondary bg-brand-secondary/5' },
   ];
 
   const maxSale = Math.max(...weeklySales, 1);
+  const dayLabelsBn = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র', 'শনি'];
   const dayLabels = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return d.toLocaleDateString('en-US', { weekday: 'short' });
+    return dayLabelsBn[d.getDay()];
   });
 
   return (
@@ -124,7 +135,7 @@ export default function AdminDashboard() {
         {/* Sales Chart */}
         <div className="bg-white p-6 rounded-2xl border border-brand-border lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="font-serif font-semibold text-brand-text text-lg">Weekly Sales Performance</h3>
+            <h3 className="font-serif font-semibold text-brand-text text-lg">সাপ্তাহিক সেলস পারফরম্যান্স</h3>
           </div>
           <div className="h-64 flex items-end justify-between gap-3 pt-4 border-b border-brand-border pb-1">
             {weeklySales.map((val, idx) => (
@@ -147,21 +158,21 @@ export default function AdminDashboard() {
         <div className="bg-white p-6 rounded-2xl border border-brand-border space-y-6">
           <h3 className="font-serif font-semibold text-brand-text text-lg flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-brand-secondary" />
-            <span>Low Stock Alerts</span>
+            <span>লো স্টক অ্যালার্ট</span>
           </h3>
           <div className="space-y-4">
             {lowStockProducts.length === 0 ? (
-              <p className="text-xs text-brand-muted font-semibold">No low-stock products.</p>
+              <p className="text-xs text-brand-muted font-semibold">কোনো লো-স্টক প্রোডাক্ট নেই।</p>
             ) : (
               lowStockProducts.map((prod, idx) => (
                 <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-brand-secondary/5 border border-brand-secondary/10">
                   <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-brand-text">{prod.name_en}</h4>
-                    <p className="text-xs text-brand-muted">{prod.name_bn}</p>
+                    <h4 className="text-sm font-bold text-brand-text">{prod.name_bn}</h4>
+                    <p className="text-xs text-brand-muted">{prod.name_en}</p>
                   </div>
                   <div className="text-right">
                     <span className="px-2.5 py-1 text-xs font-bold text-brand-secondary bg-white rounded-full border border-brand-secondary/20">
-                      {prod.stock} Left
+                      {prod.stock}টি বাকি
                     </span>
                   </div>
                 </div>
@@ -174,9 +185,9 @@ export default function AdminDashboard() {
       {/* Recent Orders Table */}
       <div className="bg-white p-6 rounded-2xl border border-brand-border space-y-6">
         <div className="flex justify-between items-center">
-          <h3 className="font-serif font-semibold text-brand-text text-lg">Recent Orders</h3>
+          <h3 className="font-serif font-semibold text-brand-text text-lg">সাম্প্রতিক অর্ডার</h3>
           <Link href="/admin/orders" className="text-sm font-semibold text-brand-primary hover:text-brand-primary-alt flex items-center gap-1">
-            <span>View All Orders</span>
+            <span>সব অর্ডার দেখুন</span>
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
@@ -185,12 +196,12 @@ export default function AdminDashboard() {
           <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-brand-border text-brand-muted">
-                <th className="py-3 px-4 font-semibold">Order ID</th>
-                <th className="py-3 px-4 font-semibold">Customer</th>
-                <th className="py-3 px-4 font-semibold">Amount</th>
-                <th className="py-3 px-4 font-semibold">Payment</th>
-                <th className="py-3 px-4 font-semibold">Status</th>
-                <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                <th className="py-3 px-4 font-semibold">অর্ডার আইডি</th>
+                <th className="py-3 px-4 font-semibold">কাস্টমার</th>
+                <th className="py-3 px-4 font-semibold">মূল্য</th>
+                <th className="py-3 px-4 font-semibold">পেমেন্ট</th>
+                <th className="py-3 px-4 font-semibold">স্ট্যাটাস</th>
+                <th className="py-3 px-4 font-semibold text-right">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border font-medium">
@@ -198,7 +209,7 @@ export default function AdminDashboard() {
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-brand-muted font-bold">
                     <Package className="h-5 w-5 inline mr-2" />
-                    {loading ? 'Loading...' : 'No orders yet.'}
+                    {loading ? 'লোড হচ্ছে...' : 'এখনো কোনো অর্ডার নেই।'}
                   </td>
                 </tr>
               ) : (
@@ -221,7 +232,7 @@ export default function AdminDashboard() {
                       <td className="py-3.5 px-4 text-xs font-bold text-brand-muted uppercase">{order.payment_method}</td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${statusColor}`}>
-                          {order.order_status}
+                          {STATUS_LABEL[order.order_status] || order.order_status}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -229,7 +240,7 @@ export default function AdminDashboard() {
                           href={`/admin/orders/${order.id}`}
                           className="text-xs font-bold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary hover:text-white px-3 py-1.5 rounded-lg transition-all-custom"
                         >
-                          Detail
+                          বিস্তারিত
                         </Link>
                       </td>
                     </tr>

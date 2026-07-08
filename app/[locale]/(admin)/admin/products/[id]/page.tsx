@@ -7,12 +7,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import ProductForm, { emptyProductForm, type ProductFormData } from '@/components/admin/ProductForm';
+import ProductReviewsManager from '@/components/admin/ProductReviewsManager';
 
 export default function AdminEditProductPage({ params }: { params: { id: string } }) {
   const locale = useLocale();
   const router = useRouter();
 
   const [productId, setProductId] = useState<string | null>(null);
+  const [productSlug, setProductSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<ProductFormData>(emptyProductForm);
   const [isSaving, setIsSaving] = useState(false);
@@ -22,14 +24,26 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
       const supabase = createClient();
       const { data } = await supabase
         .from('products')
-        .select('id, name_en, name_bn, price, sale_price, stock, low_stock_threshold, is_featured, images, variants, short_description_en, short_description_bn, description_en, description_bn, landing_page_active, landing_content, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)')
+        .select('id, name_en, name_bn, slug, price, sale_price, stock, low_stock_threshold, is_featured, images, variants, short_description_en, short_description_bn, description_en, description_bn, landing_page_active, landing_content, seo_title_en, seo_title_bn, seo_description_en, seo_description_bn, categories(slug)')
         .eq('id', params.id)
         .maybeSingle();
+
+      // Fetched separately and tolerated on failure: `cost_price` is a newer
+      // column (see supabase/add_cost_price.sql) that may not exist yet on
+      // every environment — the rest of the edit form must still load.
+      let costPriceValue: number | null = null;
+      try {
+        const { data: costRow } = await supabase.from('products').select('cost_price').eq('id', params.id).maybeSingle();
+        costPriceValue = costRow?.cost_price ?? null;
+      } catch {
+        costPriceValue = null;
+      }
 
       if (data) {
         const row = data as any;
         const landingContent = row.landing_content || {};
         setProductId(row.id);
+        setProductSlug(row.slug);
         setForm({
           nameEn: row.name_en,
           nameBn: row.name_bn,
@@ -39,6 +53,7 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
           descBn: row.description_bn || '',
           price: String(row.price),
           salePrice: row.sale_price !== null ? String(row.sale_price) : '',
+          costPrice: costPriceValue !== null ? String(costPriceValue) : '',
           stock: String(row.stock),
           lowStockThreshold: row.low_stock_threshold !== null && row.low_stock_threshold !== undefined ? String(row.low_stock_threshold) : '5',
           isFeatured: row.is_featured || false,
@@ -51,8 +66,17 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
             sale_price: v.sale_price !== undefined ? String(v.sale_price) : '',
           })),
           landingPageActive: row.landing_page_active || false,
+          taglineEn: landingContent.tagline_en || '',
+          taglineBn: landingContent.tagline_bn || '',
           benefitsEn: (landingContent.benefits_en || []).join('\n'),
           benefitsBn: (landingContent.benefits_bn || []).join('\n'),
+          boxItems: (landingContent.box_items || []).map((b: any) => ({
+            icon: b.icon || 'box',
+            title_en: b.title_en || '',
+            title_bn: b.title_bn || '',
+            subtitle_en: b.subtitle_en || '',
+            subtitle_bn: b.subtitle_bn || '',
+          })),
           videoUrl: landingContent.video_url || '',
           seoTitleEn: row.seo_title_en || '',
           seoTitleBn: row.seo_title_bn || '',
@@ -105,8 +129,11 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
         description_bn: form.descBn || null,
         landing_page_active: form.landingPageActive,
         landing_content: {
+          tagline_en: form.taglineEn || undefined,
+          tagline_bn: form.taglineBn || undefined,
           benefits_en: form.benefitsEn.split('\n').map((s) => s.trim()).filter(Boolean),
           benefits_bn: form.benefitsBn.split('\n').map((s) => s.trim()).filter(Boolean),
+          box_items: form.boxItems.filter((b) => b.title_en || b.title_bn),
           video_url: form.videoUrl || undefined,
         },
         seo_title_en: form.seoTitleEn || null,
@@ -123,6 +150,20 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
       console.error(error);
       return;
     }
+
+    // Best-effort: `cost_price` is a newer column (supabase/add_cost_price.sql)
+    // that may not exist yet everywhere — never let it block the main save.
+    try {
+      await supabase.from('products').update({ cost_price: form.costPrice ? Number(form.costPrice) : 0 }).eq('id', productId);
+    } catch {
+      // ignore — profit/loss reporting just won't have a cost basis until the migration runs
+    }
+
+    fetch('/api/revalidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: productSlug }),
+    }).catch(() => {});
 
     router.push(`/admin/products`);
   };
@@ -162,6 +203,8 @@ export default function AdminEditProductPage({ params }: { params: { id: string 
         isSaving={isSaving}
         submitLabel={locale === 'bn' ? 'পরিবর্তনগুলো সংরক্ষণ করুন' : 'Save Changes'}
       />
+
+      <ProductReviewsManager productId={productId} productSlug={productSlug} locale={locale} />
     </div>
   );
 }

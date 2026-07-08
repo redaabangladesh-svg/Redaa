@@ -2,9 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Tag, Plus, Trash2, ShieldCheck, ShieldAlert, Percent, BadgeDollarSign, Truck } from 'lucide-react';
+import { Tag, Plus, Trash2, ShieldCheck, ShieldAlert, Percent, BadgeDollarSign, Truck, Clock } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
+import { fetchSettings, saveSettings } from '@/lib/settings';
 import type { Coupon, CouponType } from '@/types';
+
+function toLocalDatetimeInput(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function AdminOffersPage() {
   const locale = useLocale();
@@ -13,6 +20,31 @@ export default function AdminOffersPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  const [flashActive, setFlashActive] = useState(false);
+  const [flashEndAt, setFlashEndAt] = useState('');
+  const [flashSaving, setFlashSaving] = useState(false);
+
+  const loadFlashSale = async () => {
+    const s = await fetchSettings(['flash_sale_active', 'flash_sale_end_at']);
+    setFlashActive(s.flash_sale_active === 'true');
+    setFlashEndAt(s.flash_sale_end_at ? toLocalDatetimeInput(s.flash_sale_end_at) : '');
+  };
+
+  useEffect(() => {
+    loadFlashSale();
+  }, []);
+
+  const handleSaveFlashSale = async () => {
+    setFlashSaving(true);
+    const ok = await saveSettings({
+      flash_sale_active: String(flashActive),
+      flash_sale_end_at: flashEndAt ? new Date(flashEndAt).toISOString() : '',
+    });
+    setFlashSaving(false);
+    setSuccessMsg(ok ? (isBn ? 'ফ্ল্যাশ সেল সেটিংস সংরক্ষিত হয়েছে।' : 'Flash sale settings saved.') : '');
+    if (!ok) setErrorMsg(isBn ? 'সংরক্ষণ ব্যর্থ হয়েছে।' : 'Failed to save.');
+  };
 
   const [code, setCode] = useState('');
   const [type, setType] = useState<CouponType>('percentage');
@@ -138,6 +170,57 @@ export default function AdminOffersPage() {
           <span>{errorMsg}</span>
         </div>
       )}
+
+      {/* Flash Sale Timer Control */}
+      <div className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-5 shadow-sm">
+        <h3 className="font-bold text-brand-text text-base border-b border-brand-border pb-3 flex items-center gap-2">
+          <Clock className="h-5 w-5 text-brand-primary" />
+          <span>{isBn ? 'ফ্ল্যাশ সেল টাইমার' : 'Flash Sale Timer'}</span>
+        </h3>
+        <p className="text-xs text-brand-muted font-medium -mt-2">
+          {isBn
+            ? 'হোমপেজের "ফ্ল্যাশ ডিলস" সেকশন ও কাউন্টডাউন টাইমার এখান থেকে নিয়ন্ত্রণ করুন। মেয়াদ শেষ হলে সেকশনটি হোমপেজ থেকে সরে যাবে।'
+            : 'Controls the homepage "Flash Deals" section and its countdown. The section disappears once the end time passes.'}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-brand-text">{isBn ? 'শেষ সময়' : 'End Date & Time'}</label>
+            <input
+              type="datetime-local"
+              value={flashEndAt}
+              onChange={(e) => setFlashEndAt(e.target.value)}
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-brand-text block">{isBn ? 'স্ট্যাটাস' : 'Status'}</label>
+            <button
+              type="button"
+              onClick={() => setFlashActive((v) => !v)}
+              className={`inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition-all-custom ${
+                flashActive
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+                  : 'bg-brand-surface border border-brand-border text-brand-muted'
+              }`}
+            >
+              {flashActive ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Inactive')}
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-brand-border pt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSaveFlashSale}
+            disabled={flashSaving}
+            className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-brand-primary text-white font-extrabold hover:bg-brand-primary-alt shadow-lg shadow-brand-primary/25 transition-all-custom text-xs disabled:opacity-50"
+          >
+            {flashSaving ? (isBn ? 'সংরক্ষণ হচ্ছে...' : 'Saving...') : (isBn ? 'সংরক্ষণ করুন' : 'Save Flash Sale')}
+          </button>
+        </div>
+      </div>
 
       {/* Coupon Creator */}
       <form onSubmit={handleCreate} className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
@@ -292,7 +375,7 @@ export default function AdminOffersPage() {
                       <button
                         onClick={() => handleDelete(c.id)}
                         className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-red-300 hover:text-red-600 transition-all-custom"
-                        title="Delete"
+                        title="ডিলিট"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

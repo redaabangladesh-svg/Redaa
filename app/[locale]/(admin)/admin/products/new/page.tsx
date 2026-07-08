@@ -40,10 +40,11 @@ export default function AdminNewProductPage() {
       .eq('slug', form.categorySlug)
       .maybeSingle();
 
-    const { error } = await supabase.from('products').insert({
+    const slug = slugify(form.nameEn);
+    const { data: inserted, error } = await supabase.from('products').insert({
       name_en: form.nameEn,
       name_bn: form.nameBn,
-      slug: slugify(form.nameEn),
+      slug,
       price: Number(form.price),
       sale_price: form.salePrice ? Number(form.salePrice) : null,
       stock: Number(form.stock),
@@ -63,15 +64,18 @@ export default function AdminNewProductPage() {
       description_bn: form.descBn || null,
       landing_page_active: form.landingPageActive,
       landing_content: {
+        tagline_en: form.taglineEn || undefined,
+        tagline_bn: form.taglineBn || undefined,
         benefits_en: form.benefitsEn.split('\n').map((s) => s.trim()).filter(Boolean),
         benefits_bn: form.benefitsBn.split('\n').map((s) => s.trim()).filter(Boolean),
+        box_items: form.boxItems.filter((b) => b.title_en || b.title_bn),
         video_url: form.videoUrl || undefined,
       },
       seo_title_en: form.seoTitleEn || null,
       seo_title_bn: form.seoTitleBn || null,
       seo_description_en: form.seoDescEn || null,
       seo_description_bn: form.seoDescBn || null,
-    });
+    }).select('id').single();
 
     setIsSaving(false);
 
@@ -80,6 +84,22 @@ export default function AdminNewProductPage() {
       console.error(error);
       return;
     }
+
+    // Best-effort: `cost_price` is a newer column (supabase/add_cost_price.sql)
+    // that may not exist yet everywhere — never let it block product creation.
+    if (inserted?.id) {
+      try {
+        await supabase.from('products').update({ cost_price: form.costPrice ? Number(form.costPrice) : 0 }).eq('id', inserted.id);
+      } catch {
+        // ignore — profit/loss reporting just won't have a cost basis until the migration runs
+      }
+    }
+
+    fetch('/api/revalidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug }),
+    }).catch(() => {});
 
     router.push(`/admin/products`);
   };

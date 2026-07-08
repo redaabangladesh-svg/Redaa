@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ArrowLeft, User, MapPin, Calendar, ShoppingBag, ShieldCheck, ShieldAlert, Truck, Ban } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Calendar, ShoppingBag, ShieldCheck, ShieldAlert, Truck, Ban, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { WA_TEMPLATES, getWhatsAppURL } from '@/lib/whatsapp';
@@ -17,7 +17,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 const STATUS_LABEL: Record<OrderStatus, { en: string; bn: string }> = {
-  new: { en: 'New / Pending', bn: 'নতুন (New)' },
+  new: { en: 'New / Pending', bn: 'নতুন' },
   confirmed: { en: 'Confirmed', bn: 'কনফার্ম' },
   processing: { en: 'Processing', bn: 'প্রসেসিং' },
   shipped: { en: 'Shipped', bn: 'পাঠানো হয়েছে' },
@@ -47,6 +47,7 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   const [errorMsg, setErrorMsg] = useState('');
   const [assigningCourier, setAssigningCourier] = useState(false);
   const [blockingPhone, setBlockingPhone] = useState(false);
+  const [orderList, setOrderList] = useState<Pick<Order, 'id' | 'order_number' | 'customer_name' | 'total' | 'order_status'>[]>([]);
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -69,6 +70,19 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     };
     loadOrder();
   }, [params.id]);
+
+  useEffect(() => {
+    const loadOrderList = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('orders')
+        .select('id, order_number, customer_name, total, order_status')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      setOrderList(data || []);
+    };
+    loadOrderList();
+  }, []);
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order) return;
@@ -116,6 +130,13 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
 
   const handleAssignCourier = async (courier: 'steadfast' | 'pathao' | 'redex') => {
     if (!order) return;
+    const confirmed = window.confirm(
+      isBn
+        ? `আপনি কি নিশ্চিত ${courier}-এ এই অর্ডারটি পাঠাতে চান? এটি সত্যিকারের কুরিয়ার শিপমেন্ট তৈরি করবে, ফিরিয়ে নেওয়া যাবে না।`
+        : `Are you sure you want to send this order to ${courier}? This creates a real courier shipment and cannot be undone.`
+    );
+    if (!confirmed) return;
+
     setAssigningCourier(true);
     setSuccessMsg('');
     setErrorMsg('');
@@ -157,7 +178,8 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   }
 
   return (
-    <div className="max-w-4xl space-y-6 font-sans">
+    <div className="max-w-7xl grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 items-start font-sans">
+    <div className="space-y-6 min-w-0">
       {/* Back Button */}
       <Link
         href={`/admin/orders`}
@@ -179,9 +201,19 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
           </p>
         </div>
 
-        <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide ${STATUS_COLORS[order.order_status]}`}>
-          {isBn ? STATUS_LABEL[order.order_status].bn : STATUS_LABEL[order.order_status].en}
-        </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/orders/${order.id}/invoice`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-border text-xs font-bold text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>{isBn ? 'ইনভয়েস প্রিন্ট/ডাউনলোড' : 'Print/Download Invoice'}</span>
+          </Link>
+          <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wide ${STATUS_COLORS[order.order_status]}`}>
+            {isBn ? STATUS_LABEL[order.order_status].bn : STATUS_LABEL[order.order_status].en}
+          </span>
+        </div>
       </div>
 
       {successMsg && (
@@ -216,7 +248,25 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] text-brand-muted font-bold block">{isBn ? 'ফোন নম্বর' : 'Phone Number'}</span>
-                <span className="text-brand-primary font-bold block text-sm">{order.phone}</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-brand-primary font-bold block text-sm">{order.phone}</span>
+                  <a
+                    href={getWhatsAppURL(
+                      order.phone,
+                      WA_TEMPLATES.ORDER_CONFIRM(
+                        order.customer_name,
+                        items.length > 0 ? (items.length > 1 ? `${items[0].product_name} ও আরও ${items.length - 1}টি পণ্য` : items[0].product_name) : (isBn ? 'পণ্য' : 'product'),
+                        order.total
+                      )
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={isBn ? 'হোয়াটসঅ্যাপে মেসেজ পাঠান' : 'Send WhatsApp message'}
+                    className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#25D366] text-white flex-shrink-0 hover:opacity-80 transition-opacity"
+                  >
+                    <WhatsAppIcon className="h-3 w-3" />
+                  </a>
+                </span>
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <span className="text-[10px] text-brand-muted font-bold block">{isBn ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}</span>
@@ -240,7 +290,7 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
                 <div key={item.id} className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold text-brand-text">{item.product_name}</h4>
-                    <p className="text-[10px] text-brand-muted mt-0.5">Qty: {item.qty}</p>
+                    <p className="text-[10px] text-brand-muted mt-0.5">পরিমাণ: {item.qty}</p>
                   </div>
                   <span className="font-bold block text-brand-text">৳{item.price * item.qty}</span>
                 </div>
@@ -374,35 +424,19 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
             )}
           </div>
 
-          {/* WhatsApp one-click messaging card */}
+          {/* WhatsApp status-update messages (order confirmation lives next to the phone number above) */}
+          {(order.tracking_number || order.order_status === 'delivered' || order.order_status === 'cancelled') && (
           <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-3 shadow-sm">
             <h3 className="font-extrabold text-brand-text text-sm border-b border-brand-border pb-3 flex items-center gap-2">
               <WhatsAppIcon className="h-4.5 w-4.5 text-[#25D366]" />
               <span>{isBn ? 'হোয়াটসঅ্যাপ মেসেজ' : 'WhatsApp Message'}</span>
             </h3>
 
-            <a
-              href={getWhatsAppURL(
-                order.phone,
-                WA_TEMPLATES.ORDER_CONFIRM(
-                  order.customer_name,
-                  items.length > 0 ? (items.length > 1 ? `${items[0].product_name} ও আরও ${items.length - 1}টি পণ্য` : items[0].product_name) : (isBn ? 'পণ্য' : 'product'),
-                  order.total
-                )
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#25D366] text-white font-bold text-[11px] shadow-sm hover:opacity-90 transition-all-custom"
-            >
-              <WhatsAppIcon className="h-3.5 w-3.5" />
-              <span>{isBn ? 'অর্ডার কনফার্মেশন পাঠান' : 'Send Order Confirmation'}</span>
-            </a>
-
             {order.tracking_number && (
               <a
                 href={getWhatsAppURL(
                   order.phone,
-                  WA_TEMPLATES.ORDER_SHIPPED(order.customer_name, order.courier || 'Courier', order.tracking_number)
+                  WA_TEMPLATES.ORDER_SHIPPED(order.customer_name, order.courier || 'কুরিয়ার', order.tracking_number)
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -437,8 +471,37 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
               </a>
             )}
           </div>
+          )}
         </div>
       </div>
+    </div>
+
+    {/* Order list side panel — switch orders without leaving this page */}
+    <div className="hidden xl:block bg-white border border-brand-border rounded-2xl shadow-sm sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
+      <h3 className="font-extrabold text-brand-text text-sm p-4 border-b border-brand-border sticky top-0 bg-white">
+        {isBn ? 'সাম্প্রতিক অর্ডার' : 'Recent Orders'}
+      </h3>
+      <div className="divide-y divide-brand-border">
+        {orderList.map((o) => (
+          <Link
+            key={o.id}
+            href={`/admin/orders/${o.id}`}
+            className={`block p-3.5 text-xs transition-colors ${o.id === order.id ? 'bg-brand-primary/5 border-l-2 border-brand-primary' : 'hover:bg-brand-surface border-l-2 border-transparent'}`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-brand-primary truncate">{o.order_number}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase ${STATUS_COLORS[o.order_status]}`}>
+                {isBn ? STATUS_LABEL[o.order_status].bn : STATUS_LABEL[o.order_status].en}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2 mt-1">
+              <span className="text-brand-text font-semibold truncate">{o.customer_name}</span>
+              <span className="text-brand-muted font-bold flex-shrink-0">৳{o.total}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
     </div>
   );
 }

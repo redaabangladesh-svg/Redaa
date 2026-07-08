@@ -129,28 +129,28 @@ export default function AdminNewOrderPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Order Source <span className="text-rose-500">*</span>
+              অর্ডার সোর্স <span className="text-rose-500">*</span>
             </label>
             <select
               value={source}
               onChange={(e) => setSource(e.target.value)}
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             >
-              <option value="facebook">Facebook Page</option>
-              <option value="instagram">Instagram Direct Message</option>
-              <option value="phone">Phone Call</option>
+              <option value="facebook">ফেসবুক পেজ</option>
+              <option value="instagram">ইনস্টাগ্রাম ডিরেক্ট মেসেজ</option>
+              <option value="phone">ফোন কল</option>
             </select>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Customer Name <span className="text-rose-500">*</span>
+              কাস্টমারের নাম <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Karim Rahman"
+              placeholder="যেমন: করিম রহমান"
               className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
               required
             />
@@ -161,7 +161,7 @@ export default function AdminNewOrderPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Phone Number <span className="text-rose-500">*</span>
+              মোবাইল নম্বর <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -175,7 +175,7 @@ export default function AdminNewOrderPage() {
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              District <span className="text-rose-500">*</span>
+              জেলা <span className="text-rose-500">*</span>
             </label>
             <select
               value={district}
@@ -189,7 +189,7 @@ export default function AdminNewOrderPage() {
 
           <div className="space-y-1.5 md:col-span-1">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Payment Status <span className="text-rose-500">*</span>
+              পেমেন্ট স্ট্যাটাস <span className="text-rose-500">*</span>
             </label>
             <select
               value={paymentNote}
@@ -206,12 +206,12 @@ export default function AdminNewOrderPage() {
         {/* Address textarea */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-brand-muted uppercase">
-            Delivery Address <span className="text-rose-500">*</span>
+            ডেলিভারি ঠিকানা <span className="text-rose-500">*</span>
           </label>
           <textarea
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="House, Road, Area, Landmark info..."
+            placeholder="বাসা, রোড, এলাকা, ল্যান্ডমার্ক বিস্তারিত..."
             rows={2}
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
             required
@@ -222,7 +222,7 @@ export default function AdminNewOrderPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-brand-border">
           <div className="space-y-1.5 md:col-span-2">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Select Product <span className="text-rose-500">*</span>
+              প্রোডাক্ট নির্বাচন করুন <span className="text-rose-500">*</span>
             </label>
             <select
               value={selectedProductId}
@@ -243,7 +243,7 @@ export default function AdminNewOrderPage() {
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
-              Quantity <span className="text-rose-500">*</span>
+              পরিমাণ <span className="text-rose-500">*</span>
             </label>
             <input
               type="number"

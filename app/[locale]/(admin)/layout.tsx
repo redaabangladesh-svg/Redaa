@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
@@ -11,7 +12,9 @@ import {
   Settings,
   Tag,
   LogOut,
-  Globe
+  Globe,
+  Menu,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
@@ -24,9 +27,15 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // The login screen renders full-bleed, without the sidebar/header chrome
-  if (pathname === '/admin/login') {
+  // Close the mobile drawer automatically whenever the route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  // The login screen and printable invoices render full-bleed, without the sidebar/header chrome
+  if (pathname === '/admin/login' || pathname.endsWith('/invoice')) {
     return <>{children}</>;
   }
 
@@ -38,21 +47,33 @@ export default function AdminLayout({
 
   // Admin routes are locale-free — only the storefront uses /${currentLocale}
   const menuItems = [
-    { label: 'Overview', icon: LayoutDashboard, href: '/admin' },
-    { label: 'Orders', icon: ShoppingBag, href: '/admin/orders' },
-    { label: 'Products', icon: Layers, href: '/admin/products' },
-    { label: 'Customers', icon: Users, href: '/admin/customers' },
-    { label: 'Reports', icon: BarChart3, href: '/admin/reports' },
-    { label: 'Offers', icon: Tag, href: '/admin/offers' },
-    { label: 'Settings', icon: Settings, href: '/admin/settings' },
+    { label: 'ওভারভিউ', icon: LayoutDashboard, href: '/admin' },
+    { label: 'অর্ডার', icon: ShoppingBag, href: '/admin/orders' },
+    { label: 'প্রোডাক্টস', icon: Layers, href: '/admin/products' },
+    { label: 'কাস্টমার', icon: Users, href: '/admin/customers' },
+    { label: 'রিপোর্ট', icon: BarChart3, href: '/admin/reports' },
+    { label: 'অফার', icon: Tag, href: '/admin/offers' },
+    { label: 'সেটিংস', icon: Settings, href: '/admin/settings' },
   ];
 
-  const activeLabel = menuItems.find((item) => pathname === item.href)?.label || 'Dashboard';
+  const activeLabel = menuItems.find((item) => pathname === item.href)?.label || 'ড্যাশবোর্ড';
 
   return (
-    <div className="flex h-screen bg-brand-surface font-sans antialiased text-brand-text">
-      {/* Sidebar */}
-      <aside className="w-64 bg-brand-ink text-white flex flex-col justify-between border-r border-white/5">
+    <div className="flex h-screen bg-brand-surface font-sans antialiased text-brand-text overflow-hidden">
+      {/* Mobile backdrop, closes the drawer on outside tap */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+        />
+      )}
+
+      {/* Sidebar — fixed drawer on mobile, static column on desktop */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-brand-ink text-white flex flex-col justify-between border-r border-white/5 transform transition-transform duration-300 lg:static lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div>
           {/* Header */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
@@ -64,16 +85,16 @@ export default function AdminLayout({
               />
               <div className="leading-none">
                 <span className="block text-[15px] font-serif font-semibold tracking-tight text-white">Sicily</span>
-                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-brand-accent mt-0.5">Admin Panel</span>
+                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-brand-accent mt-0.5">অ্যাডমিন প্যানেল</span>
               </div>
             </Link>
-            <Link
-              href={`/${currentLocale}`}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all-custom"
-              title="View Website"
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all-custom lg:hidden"
+              aria-label="মেনু বন্ধ করুন"
             >
-              <Globe className="h-4 w-4" />
-            </Link>
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           {/* Menu */}
@@ -105,34 +126,50 @@ export default function AdminLayout({
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-white/10">
+          <Link
+            href={`/${currentLocale}`}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-white/55 hover:bg-white/5 hover:text-white transition-all-custom"
+          >
+            <Globe className="h-4.5 w-4.5" strokeWidth={1.75} />
+            <span>ওয়েবসাইট দেখুন</span>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-white/55 hover:bg-white/5 hover:text-white transition-all-custom"
           >
             <LogOut className="h-4.5 w-4.5" strokeWidth={1.75} />
-            <span>Log Out</span>
+            <span>লগ আউট</span>
           </button>
         </div>
       </aside>
 
       {/* Main Page Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-brand-border flex items-center justify-between px-8">
-          <h2 className="text-xl font-serif font-semibold text-brand-text">{activeLabel}</h2>
-          <div className="flex items-center gap-4">
+        <header className="h-16 bg-white border-b border-brand-border flex items-center justify-between px-4 sm:px-8 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-2 rounded-lg text-brand-text hover:bg-brand-surface transition-all-custom lg:hidden flex-shrink-0"
+              aria-label="মেনু খুলুন"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h2 className="text-base sm:text-xl font-serif font-semibold text-brand-text truncate">{activeLabel}</h2>
+          </div>
+          <div className="flex items-center gap-4 flex-shrink-0">
             {/* User Info */}
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-full bg-brand-secondary text-white flex items-center justify-center text-xs font-bold shadow-md shadow-brand-secondary/20">
                 AD
               </div>
-              <span className="text-sm font-semibold">Admin</span>
+              <span className="text-sm font-semibold hidden sm:inline">অ্যাডমিন</span>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-8 bg-brand-surface">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-brand-surface">
           {children}
         </main>
       </div>

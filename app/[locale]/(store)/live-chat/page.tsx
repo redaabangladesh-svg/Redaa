@@ -50,7 +50,7 @@ export default function LiveChatPage() {
               <img
                 key={idx}
                 src={img}
-                alt="Support Agent"
+                alt="সাপোর্ট এজেন্ট"
                 className="h-12 w-12 rounded-full object-cover border-2 border-white ring-2 ring-gray-50 flex-shrink-0"
               />
             ))}

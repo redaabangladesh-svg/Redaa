@@ -8,6 +8,7 @@ import type { HomeProduct } from '@/lib/products';
 import ProductCard from '@/components/store/ProductCard';
 import CountdownTimer from '@/components/widgets/CountdownTimer';
 import InstagramFeed from '@/components/widgets/InstagramFeed';
+import { fetchSettings } from '@/lib/settings';
 
 /* ── BANNER SLIDES (image-only — all copy/CTA lives inside the banner artwork) ── */
 const SLIDES = [
@@ -76,6 +77,17 @@ function HeroSlider({ locale }: { locale: string }) {
 /* ── MAIN PAGE ──────────────────────────────────────── */
 export default function HomePageClient({ products }: { products: HomeProduct[] }) {
   const locale = useLocale();
+  const [flashEndAt, setFlashEndAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSettings(['flash_sale_active', 'flash_sale_end_at']).then((s) => {
+      const active = s.flash_sale_active === 'true';
+      const endAt = s.flash_sale_end_at;
+      if (active && endAt && new Date(endAt).getTime() > Date.now()) {
+        setFlashEndAt(endAt);
+      }
+    });
+  }, []);
 
   return (
     <div className="bg-white min-h-screen pb-16">
@@ -124,25 +136,27 @@ export default function HomePageClient({ products }: { products: HomeProduct[] }
       {/* ══════════════════════════════════════════
           4. FLASH DEALS WITH COUNTDOWN TIMER
       ══════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
-            <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
-          </h2>
+      {flashEndAt && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <h2 className="font-serif text-base sm:text-lg font-semibold text-brand-text tracking-tight flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[#C6A15B]" strokeWidth={1.75} />
+              <span>{locale === 'bn' ? 'ফ্ল্যাশ ডিলস' : 'Flash Deals'}</span>
+            </h2>
 
-          <div className="flex items-center gap-3">
-            <CountdownTimer locale={locale} />
-            <Link href={`/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-brand-secondary transition-colors uppercase tracking-wide">
-              {locale === 'bn' ? 'সব দেখুন' : 'View all'}
-            </Link>
+            <div className="flex items-center gap-3">
+              <CountdownTimer locale={locale} endAt={flashEndAt} />
+              <Link href={`/shop`} className="text-[11px] font-semibold text-brand-primary hover:text-brand-secondary transition-colors uppercase tracking-wide">
+                {locale === 'bn' ? 'সব দেখুন' : 'View all'}
+              </Link>
+            </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {products.slice(0, 6).map((p) => <ProductCard key={p.id} p={p} locale={locale} />)}
-        </div>
-      </section>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            {products.slice(0, 6).map((p) => <ProductCard key={p.id} p={p} locale={locale} />)}
+          </div>
+        </section>
+      )}
 
       {/* ══════════════════════════════════════════
           5. PROMO BANNERS DOUBLE ROW

@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from 'react';
 
-export default function CountdownTimer({ locale, initialSeconds = 2 * 3600 + 45 * 60 + 30 }: { locale: string; initialSeconds?: number }) {
-  const [seconds, setSeconds] = useState(initialSeconds);
+function secondsUntil(endAt: string) {
+  return Math.max(0, Math.floor((new Date(endAt).getTime() - Date.now()) / 1000));
+}
+
+export default function CountdownTimer({ locale, endAt }: { locale: string; endAt: string }) {
+  const [seconds, setSeconds] = useState(() => secondsUntil(endAt));
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setSeconds((s) => (s > 0 ? s - 1 : 9 * 3600 + 59 * 60 + 59));
-    }, 1000);
+    setSeconds(secondsUntil(endAt));
+    const id = setInterval(() => setSeconds(secondsUntil(endAt)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [endAt]);
 
   const hh = String(Math.floor(seconds / 3600)).padStart(2, '0');
   const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');

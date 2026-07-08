@@ -4,19 +4,30 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
 import { useCart } from '@/lib/cart';
 import { useRouter } from 'next/navigation';
-import { Star, ShoppingBag, ShoppingCart, ShieldCheck, Truck, RefreshCw, Plus, Minus, ArrowLeft, Check, ClipboardCheck, Phone, MapPin, PackageCheck, PackageX, Flame, Sparkles } from 'lucide-react';
+import { Star, ShoppingBag, ShoppingCart, ShieldCheck, Truck, RefreshCw, Plus, Minus, ArrowLeft, Check, ClipboardCheck, Phone, MapPin, PackageCheck, PackageX, Flame, Sparkles, Frame, Flower2, Wrench, BookOpen, Gift, Package, Tag, X as XIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { HomeProduct } from '@/lib/products';
-import { fetchProducts, type ProductDetail } from '@/lib/products-db';
+import { fetchProducts, type ProductDetail, type BoxItemIcon } from '@/lib/products-db';
 import { BD_DISTRICTS } from '@/lib/districts';
 import { fetchSettings } from '@/lib/settings';
+import { createClient } from '@/lib/supabase';
+import type { Coupon } from '@/types';
 import ProductCard from '@/components/store/ProductCard';
 import ViewerCount from '@/components/widgets/ViewerCount';
 import StockBadge from '@/components/widgets/StockBadge';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 
 interface SizeOption { en: string; bn: string; price: number; sale_price: number | null; }
+
+const BOX_ICON_MAP: Record<BoxItemIcon, typeof Frame> = {
+  frame: Frame,
+  flower: Flower2,
+  tool: Wrench,
+  guide: BookOpen,
+  gift: Gift,
+  box: Package,
+};
 
 function buildSizeOptions(product: ProductDetail): SizeOption[] {
   return product.variants.length > 0
@@ -34,6 +45,8 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
   const router = useRouter();
   const { addToCart } = useCart();
   const formRef = useRef<HTMLDivElement>(null);
+  const reviewSliderRef = useRef<HTMLDivElement>(null);
+  const [reviewIndex, setReviewIndex] = useState(0);
 
   const [otherProducts, setOtherProducts] = useState<HomeProduct[]>([]);
   const [otherProductsLoading, setOtherProductsLoading] = useState(true);
@@ -54,6 +67,13 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
   const [shippingCharge, setShippingCharge] = useState(80);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Coupon / offer code (same validation rules as /checkout)
+  type CheckoutCoupon = Pick<Coupon, 'code' | 'type' | 'value' | 'min_order'>;
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<CheckoutCoupon | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
   useEffect(() => {
     fetchProducts().then((all) => {
       setOtherProducts(all.filter((p) => p.id !== product.id).slice(0, 3));
@@ -70,6 +90,32 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
     });
   }, [district]);
 
+  // Auto-advance the review carousel; pauses whenever the visitor scrolls it themselves
+  useEffect(() => {
+    const count = product.reviews_list.length;
+    if (count <= 1) return;
+
+    const timer = setInterval(() => {
+      setReviewIndex((prev) => {
+        const next = (prev + 1) % count;
+        const el = reviewSliderRef.current;
+        const card = el?.children[next] as HTMLElement | undefined;
+        card?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+        return next;
+      });
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [product.reviews_list.length]);
+
+  const handleReviewScroll = () => {
+    const el = reviewSliderRef.current;
+    if (!el || !el.firstElementChild) return;
+    const cardWidth = (el.firstElementChild as HTMLElement).offsetWidth + 14; // + gap-3.5
+    const idx = Math.round(el.scrollLeft / cardWidth);
+    setReviewIndex(Math.max(0, Math.min(idx, product.reviews_list.length - 1)));
+  };
+
   const sizeOptions: SizeOption[] | undefined = product.variants.length > 0 ? buildSizeOptions(product) : undefined;
 
   const price = selectedSize ? selectedSize.price : product.price;
@@ -78,10 +124,68 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
   const nameLabel = locale === 'bn' ? product.name_bn : product.name_en;
   const shortDesc = (locale === 'bn' ? product.short_description_bn : product.short_description_en) || nameLabel;
   const desc = (locale === 'bn' ? product.description_bn : product.description_en) || nameLabel;
+  const tagline = locale === 'bn' ? product.landingContent.tagline_bn : product.landingContent.tagline_en;
+  const boxItems = product.landingContent.box_items || [];
   const stockCount = product.stock;
+  const cartSubtotal = activePrice * quantity;
+
+  let couponDiscount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.type === 'percentage') {
+      couponDiscount = Math.round((cartSubtotal * appliedCoupon.value) / 100);
+    } else if (appliedCoupon.type === 'fixed') {
+      couponDiscount = appliedCoupon.value;
+    } else if (appliedCoupon.type === 'free_delivery') {
+      couponDiscount = shippingCharge;
+    }
+  }
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleApplyCoupon = async () => {
+    setCouponError('');
+    const cleanCode = couponInput.trim().toUpperCase();
+    if (!cleanCode) return;
+
+    setApplyingCoupon(true);
+    const supabase = createClient();
+    const { data: coupon } = await supabase
+      .from('coupons')
+      .select('code, type, value, min_order, max_uses, used_count, is_active, expires_at')
+      .eq('code', cleanCode)
+      .maybeSingle();
+    setApplyingCoupon(false);
+
+    if (!coupon || !coupon.is_active) {
+      setCouponError(locale === 'bn' ? 'ভুল কুপন কোড! অনুগ্রহ করে সঠিক কোড দিন।' : 'Invalid coupon code! Please try again.');
+      return;
+    }
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+      setCouponError(locale === 'bn' ? 'এই কুপনের মেয়াদ শেষ হয়ে গেছে।' : 'This coupon has expired.');
+      return;
+    }
+    if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
+      setCouponError(locale === 'bn' ? 'এই কুপনের ব্যবহারসীমা শেষ হয়ে গেছে।' : 'This coupon has reached its usage limit.');
+      return;
+    }
+    if (cartSubtotal < coupon.min_order) {
+      setCouponError(
+        locale === 'bn'
+          ? `এই কুপন ব্যবহার করতে সর্বনিম্ন ৳${coupon.min_order} অর্ডার করতে হবে।`
+          : `This coupon requires a minimum order of ৳${coupon.min_order}.`
+      );
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponInput('');
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
   };
 
   const handleAddToCart = () => {
@@ -116,7 +220,7 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
     setIsSubmitting(true);
 
     const districtLabel = BD_DISTRICTS.find((d) => d.id === district)?.bn || district;
-    const totalBill = activePrice * quantity + shippingCharge;
+    const totalBill = activePrice * quantity + shippingCharge - couponDiscount;
 
     const response = await fetch('/api/orders', {
       method: 'POST',
@@ -135,6 +239,8 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
         }],
         paymentMethod: paymentMethod === 'online' ? 'sslcommerz' : 'cod',
         shippingCharge,
+        discountAmount: couponDiscount,
+        couponCode: appliedCoupon?.code,
         source: 'website',
       }),
     });
@@ -259,6 +365,11 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
               {nameLabel}
             </h1>
             <p className="text-xs md:text-sm text-brand-muted leading-relaxed pt-1">{shortDesc}</p>
+            {tagline && (
+              <p className="text-xs md:text-sm text-brand-primary font-bold pt-1.5 border-l-2 border-brand-primary pl-2.5">
+                {tagline}
+              </p>
+            )}
 
             <div className="flex items-center gap-2 pt-1 flex-wrap">
               {product.reviews > 0 && (
@@ -436,6 +547,34 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
         </div>
       </div>
 
+      {boxItems.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-serif font-semibold text-base text-brand-text">
+            {locale === 'bn' ? 'বক্সের ভিতরে যা থাকছে' : "What's in the Box"}
+          </h3>
+          <div className="bg-white border border-brand-border rounded-2xl p-2">
+          {boxItems.map((item, idx) => {
+            const BoxIcon = BOX_ICON_MAP[item.icon] || Package;
+            const title = locale === 'bn' ? item.title_bn : item.title_en;
+            const subtitle = locale === 'bn' ? item.subtitle_bn : item.subtitle_en;
+            return (
+              <div
+                key={idx}
+                className={`flex items-center gap-3 p-3 ${idx < boxItems.length - 1 ? 'border-b border-brand-border' : ''}`}
+              >
+                <BoxIcon className="h-7 w-7 text-[#C6A15B] flex-shrink-0" strokeWidth={1.6} />
+                <div className="flex-1 min-w-0">
+                  <b className="text-sm font-extrabold text-brand-text block">{title}</b>
+                  {subtitle && <span className="text-[11px] text-brand-muted font-semibold">{subtitle}</span>}
+                </div>
+                <Check className="h-4 w-4 text-brand-primary flex-shrink-0" strokeWidth={2.5} />
+              </div>
+            );
+          })}
+          </div>
+        </div>
+      )}
+
       {/* 3-Step Workflow */}
       <div className="bg-brand-surface border border-brand-border rounded-2xl p-6 space-y-6">
         <h3 className="font-serif font-semibold text-brand-text text-base border-b border-brand-border pb-3 flex items-center gap-2">
@@ -498,37 +637,54 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
             {locale === 'bn' ? 'এই প্রোডাক্টে এখনো কোনো রিভিউ নেই। প্রথম রিভিউ আপনিই দিন!' : 'No reviews yet — be the first to review this product!'}
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {product.reviews_list.slice(0, 6).map((rev) => (
-              <div key={rev.id} className="p-5 rounded-2xl border border-brand-border bg-white space-y-3.5 shadow-sm relative">
-                <div className="flex items-center gap-2">
-                  {rev.image ? (
-                    <img src={rev.image} alt={rev.customerName} className="h-8 w-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-brand-secondary/15 flex items-center justify-center font-bold text-xs text-brand-secondary">
-                      {rev.customerName.charAt(0)}
+          <>
+            <div
+              ref={reviewSliderRef}
+              onScroll={handleReviewScroll}
+              className="flex overflow-x-auto gap-3.5 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: 'none' }}
+            >
+              {product.reviews_list.map((rev) => (
+                <div key={rev.id} className="p-5 rounded-2xl border border-brand-border bg-white space-y-3.5 shadow-sm relative flex-none w-[82%] sm:w-[32%] snap-start">
+                  <div className="flex items-center gap-2">
+                    {rev.image ? (
+                      <img src={rev.image} alt={rev.customerName} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-brand-secondary/15 flex items-center justify-center font-bold text-xs text-brand-secondary">
+                        {rev.customerName.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-xs font-bold text-brand-text block">{rev.customerName}</span>
+                      <span className="text-[9px] font-semibold text-emerald-600 flex items-center gap-0.5">
+                        <Check className="h-2.5 w-2.5 stroke-[3]" /> {locale === 'bn' ? 'ভেরিফাইড ক্রেতা' : 'Verified Buyer'}
+                      </span>
                     </div>
-                  )}
-                  <div>
-                    <span className="text-xs font-bold text-brand-text block">{rev.customerName}</span>
-                    <span className="text-[9px] font-semibold text-emerald-600 flex items-center gap-0.5">
-                      <Check className="h-2.5 w-2.5 stroke-[3]" /> {locale === 'bn' ? 'ভেরিফাইড ক্রেতা' : 'Verified Buyer'}
-                    </span>
                   </div>
+                  <div className="flex text-[#C6A15B]">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 fill-current" strokeWidth={1.5} />
+                    ))}
+                  </div>
+                  {rev.comment && (
+                    <p className="text-[11px] leading-relaxed text-brand-text font-semibold italic">
+                      &ldquo;{rev.comment}&rdquo;
+                    </p>
+                  )}
                 </div>
-                <div className="flex text-[#C6A15B]">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="h-3 w-3 fill-current" strokeWidth={1.5} />
-                  ))}
-                </div>
-                {rev.comment && (
-                  <p className="text-[11px] leading-relaxed text-brand-text font-semibold italic">
-                    &ldquo;{rev.comment}&rdquo;
-                  </p>
-                )}
+              ))}
+            </div>
+            {product.reviews_list.length > 1 && (
+              <div className="flex items-center justify-center gap-1.5">
+                {product.reviews_list.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${i === reviewIndex ? 'w-4.5 bg-brand-secondary' : 'w-1.5 bg-brand-border'}`}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
 
@@ -673,6 +829,43 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
             </div>
           </div>
 
+          {/* Coupon / offer code */}
+          <div className="space-y-2 pt-2 border-t border-brand-border">
+            <label className="text-[10px] font-bold text-brand-muted uppercase block flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" />
+              {locale === 'bn' ? 'কুপন কোড আছে?' : 'Have a coupon code?'}
+            </label>
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl py-2 px-3.5">
+                <span className="text-xs font-bold text-emerald-700">
+                  {appliedCoupon.code} — {appliedCoupon.type === 'percentage' ? `${appliedCoupon.value}% ${locale === 'bn' ? 'ছাড়' : 'off'}` : appliedCoupon.type === 'fixed' ? `৳${appliedCoupon.value} ${locale === 'bn' ? 'ছাড়' : 'off'}` : (locale === 'bn' ? 'ফ্রি ডেলিভারি' : 'Free delivery')}
+                </span>
+                <button type="button" onClick={handleRemoveCoupon} className="text-emerald-700 hover:text-rose-600">
+                  <XIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                  placeholder={locale === 'bn' ? 'কুপন কোড লিখুন' : 'Enter coupon code'}
+                  className="flex-1 bg-brand-surface border border-brand-border rounded-xl py-2 px-3.5 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold uppercase"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon || !couponInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-brand-text text-white text-xs font-bold disabled:opacity-50"
+                >
+                  {applyingCoupon ? '...' : (locale === 'bn' ? 'প্রয়োগ' : 'Apply')}
+                </button>
+              </div>
+            )}
+            {couponError && <p className="text-[10px] text-rose-600 font-semibold">{couponError}</p>}
+          </div>
+
           {/* Pricing calculations */}
           <div className="border-t border-brand-border pt-4 space-y-1.5 text-xs">
             <div className="flex justify-between text-brand-muted">
@@ -683,9 +876,15 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
               <span>{locale === 'bn' ? 'শিপিং চার্জ' : 'Shipping Charge'}</span>
               <span>৳{shippingCharge}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-brand-primary font-semibold">
+                <span>{locale === 'bn' ? 'কুপন ছাড়' : 'Coupon Discount'}</span>
+                <span>-৳{couponDiscount}</span>
+              </div>
+            )}
             <div className="border-t border-brand-border pt-3 flex justify-between items-baseline text-sm font-extrabold text-brand-text">
               <span>{locale === 'bn' ? 'সর্বমোট মূল্য' : 'Grand Total'}</span>
-              <span className="text-base font-black text-brand-secondary">৳{activePrice * quantity + shippingCharge}</span>
+              <span className="text-base font-black text-brand-secondary">৳{activePrice * quantity + shippingCharge - couponDiscount}</span>
             </div>
           </div>
 
@@ -699,7 +898,7 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
             <span>
               {isSubmitting
                 ? (locale === 'bn' ? 'অর্ডার প্রসেস হচ্ছে...' : 'Processing Order...')
-                : (locale === 'bn' ? `অর্ডার নিশ্চিত করুন (৳${activePrice * quantity + shippingCharge})` : `Confirm Order (৳${activePrice * quantity + shippingCharge})`)}
+                : (locale === 'bn' ? `অর্ডার নিশ্চিত করুন (৳${activePrice * quantity + shippingCharge - couponDiscount})` : `Confirm Order (৳${activePrice * quantity + shippingCharge - couponDiscount})`)}
             </span>
           </button>
         </form>

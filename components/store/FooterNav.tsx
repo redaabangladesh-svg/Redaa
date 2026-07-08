@@ -51,7 +51,7 @@ export default function FooterNav() {
               />
               <div className="leading-none text-left">
                 <span className="block text-[19px] font-serif font-semibold tracking-tight text-white">Sicily</span>
-                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-[#C6A15B] mt-1">Focus On Quality</span>
+                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-[#C6A15B] mt-1">মান নিয়ে আপোষহীন</span>
               </div>
             </Link>
 
@@ -174,7 +174,7 @@ export default function FooterNav() {
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-center gap-2">
             <img
               src="/SSLCommerz-Pay-With-logo-All-Size-01.png"
-              alt="SSLCommerz Payment Methods"
+              alt="এসএসএলকমার্স পেমেন্ট মেথড"
               className="h-14 md:h-16 object-contain"
             />
             <p className="text-[11px] text-[#F2EDE3]/35">

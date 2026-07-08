@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { BarChart3, Download, TrendingUp, MapPin, Package, RefreshCw, CreditCard, XCircle } from 'lucide-react';
+import { BarChart3, Download, TrendingUp, MapPin, Package, RefreshCw, CreditCard, XCircle, Wallet, PackageX } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 
 interface OrderRow {
@@ -17,9 +17,15 @@ interface OrderRow {
 
 interface ItemRow {
   order_id: string;
+  product_id: string | null;
   product_name: string;
   qty: number;
   price: number;
+}
+
+interface ProductCostRow {
+  id: string;
+  cost_price: number | null;
 }
 
 type RangeKey = 'today' | 'week' | 'month' | 'all';
@@ -31,17 +37,22 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
+  const [productCosts, setProductCosts] = useState<Map<string, number>>(new Map());
   const [range, setRange] = useState<RangeKey>('week');
 
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const [ordersRes, itemsRes] = await Promise.all([
+      const [ordersRes, itemsRes, productsRes] = await Promise.all([
         supabase.from('orders').select('id, order_number, total, payment_method, order_status, district, created_at').order('created_at', { ascending: false }),
-        supabase.from('order_items').select('order_id, product_name, qty, price'),
+        supabase.from('order_items').select('order_id, product_id, product_name, qty, price'),
+        supabase.from('products').select('id, cost_price'),
       ]);
       if (ordersRes.data) setOrders(ordersRes.data);
       if (itemsRes.data) setItems(itemsRes.data);
+      if (productsRes.data) {
+        setProductCosts(new Map((productsRes.data as ProductCostRow[]).map((p) => [p.id, Number(p.cost_price) || 0])));
+      }
       setLoading(false);
     };
     load();
@@ -66,8 +77,25 @@ export default function AdminReportsPage() {
   const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
   const codCount = filteredOrders.filter((o) => o.payment_method === 'cod').length;
   const onlineCount = totalOrders - codCount;
-  const cancelledCount = filteredOrders.filter((o) => o.order_status === 'cancelled' || o.order_status === 'returned').length;
+
+  const returnedOrders = filteredOrders.filter((o) => o.order_status === 'returned');
+  const cancelledOrdersOnly = filteredOrders.filter((o) => o.order_status === 'cancelled');
+  const cancelledCount = returnedOrders.length + cancelledOrdersOnly.length;
   const cancelRate = totalOrders > 0 ? Math.round((cancelledCount / totalOrders) * 100) : 0;
+  const returnedLoss = returnedOrders.reduce((sum, o) => sum + Number(o.total), 0);
+  const cancelledLoss = cancelledOrdersOnly.reduce((sum, o) => sum + Number(o.total), 0);
+
+  // Profit & Loss — cost basis only exists for items tied to a real product
+  // (product_id set); items on deleted/manual products fall back to 0 cost.
+  const deliverableStatuses = new Set(['new', 'confirmed', 'processing', 'shipped', 'delivered']);
+  const deliverableOrderIds = new Set(filteredOrders.filter((o) => deliverableStatuses.has(o.order_status)).map((o) => o.id));
+  const sellableItems = filteredItems.filter((i) => deliverableOrderIds.has(i.order_id));
+  const totalCost = sellableItems.reduce((sum, i) => sum + (productCosts.get(i.product_id || '') || 0) * i.qty, 0);
+  const sellableRevenue = filteredOrders
+    .filter((o) => deliverableStatuses.has(o.order_status))
+    .reduce((sum, o) => sum + Number(o.total), 0);
+  const grossProfit = sellableRevenue - totalCost;
+  const profitMargin = sellableRevenue > 0 ? Math.round((grossProfit / sellableRevenue) * 100) : 0;
 
   const districtTotals = new Map<string, number>();
   filteredOrders.forEach((o) => districtTotals.set(o.district, (districtTotals.get(o.district) || 0) + 1));
@@ -81,7 +109,7 @@ export default function AdminReportsPage() {
   const maxProduct = Math.max(...topProducts.map((p) => p[1]), 1);
 
   const handleExportCSV = () => {
-    const header = 'Order Number,Date,District,Payment Method,Status,Total\n';
+    const header = 'অর্ডার নম্বর,তারিখ,জেলা,পেমেন্ট পদ্ধতি,স্ট্যাটাস,মোট\n';
     const rows = filteredOrders.map((o) =>
       `${o.order_number},${new Date(o.created_at).toLocaleDateString()},${o.district},${o.payment_method},${o.order_status},${o.total}`
     ).join('\n');
@@ -160,6 +188,64 @@ export default function AdminReportsPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Profit & Loss + Returns/Damage */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white border border-brand-border rounded-3xl p-6 space-y-6 shadow-sm">
+          <h3 className="font-extrabold text-brand-text text-sm flex items-center gap-2">
+            <Wallet className="h-4.5 w-4.5 text-brand-primary" />
+            <span>{isBn ? 'লাভ-ক্ষতির হিসাব' : 'Profit & Loss'}</span>
+          </h3>
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'বিক্রয়যোগ্য রেভিনিউ' : 'Sellable Revenue'}</span>
+              <span className="text-brand-text font-bold">৳{sellableRevenue.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'মোট ক্রয়মূল্য' : 'Total Cost'}</span>
+              <span className="text-brand-text font-bold">-৳{totalCost.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm font-extrabold text-brand-text border-t border-brand-border pt-3">
+              <span>{isBn ? 'নিট লাভ' : 'Net Profit'}</span>
+              <span className={grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}>৳{grossProfit.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'প্রফিট মার্জিন' : 'Profit Margin'}</span>
+              <span className="text-brand-text font-bold">{profitMargin}%</span>
+            </div>
+            <p className="text-[9px] text-brand-muted leading-relaxed pt-2 border-t border-brand-border">
+              {isBn
+                ? '* প্রোডাক্টে "ক্রয়মূল্য" সেট না থাকলে সেই আইটেমের কস্ট ৳০ ধরা হয়েছে — অ্যাডমিন প্রোডাক্ট এডিট পেজে গিয়ে ক্রয়মূল্য দিন।'
+                : '* Items without a cost price set on the product are counted as ৳0 cost — set it on the product edit page for accurate numbers.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white border border-brand-border rounded-3xl p-6 space-y-6 shadow-sm">
+          <h3 className="font-extrabold text-brand-text text-sm flex items-center gap-2">
+            <PackageX className="h-4.5 w-4.5 text-brand-secondary" />
+            <span>{isBn ? 'রিটার্ন ও বাতিল' : 'Returns & Cancellations'}</span>
+          </h3>
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'ফেরত অর্ডার' : 'Returned Orders'}</span>
+              <span className="text-brand-text font-bold">{returnedOrders.length} {isBn ? 'টি' : ''} — ৳{returnedLoss.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'বাতিল অর্ডার' : 'Cancelled Orders'}</span>
+              <span className="text-brand-text font-bold">{cancelledOrdersOnly.length} {isBn ? 'টি' : ''} — ৳{cancelledLoss.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm font-extrabold text-brand-text border-t border-brand-border pt-3">
+              <span>{isBn ? 'মোট ক্ষতি (রেভিনিউ)' : 'Total Lost Revenue'}</span>
+              <span className="text-rose-600">৳{(returnedLoss + cancelledLoss).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-brand-muted">
+              <span>{isBn ? 'বাতিল/ফেরত হার' : 'Cancel/Return Rate'}</span>
+              <span className="text-brand-text font-bold">{cancelRate}%</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

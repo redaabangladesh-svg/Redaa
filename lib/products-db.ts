@@ -66,6 +66,26 @@ export async function fetchProductBySlugOrId(slugOrId: string): Promise<HomeProd
   return mapRow(data as unknown as ProductRow);
 }
 
+export const BOX_ITEM_ICONS = ['frame', 'flower', 'tool', 'guide', 'gift', 'box'] as const;
+export type BoxItemIcon = typeof BOX_ITEM_ICONS[number];
+
+export interface BoxItem {
+  icon: BoxItemIcon;
+  title_en: string;
+  title_bn: string;
+  subtitle_en?: string;
+  subtitle_bn?: string;
+}
+
+export interface LandingContent {
+  benefits_en?: string[];
+  benefits_bn?: string[];
+  video_url?: string;
+  tagline_en?: string;
+  tagline_bn?: string;
+  box_items?: BoxItem[];
+}
+
 export interface ProductReview {
   id: string;
   customerName: string;
@@ -83,7 +103,7 @@ export interface ProductDetail extends HomeProduct {
   short_description_bn: string | null;
   variants: { size_en?: string; size_bn?: string; price?: number; sale_price?: number | null }[];
   landingPageActive: boolean;
-  landingContent: { benefits_en?: string[]; benefits_bn?: string[]; video_url?: string };
+  landingContent: LandingContent;
   reviews_list: ProductReview[];
   seo_title_en: string | null;
   seo_title_bn: string | null;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2, Download, CheckSquare, Truck } from 'lucide-react';
+import { ShoppingBag, Search, Eye, Clock, ArrowLeftRight, CheckCircle2, Download, CheckSquare, Truck, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 
@@ -95,13 +95,13 @@ export default function AdminOrdersPage() {
   const handleExportExcel = async () => {
     const XLSX = await import('xlsx');
     const rows = filteredOrders.map((o) => ({
-      'Order Number': o.order_number,
-      'Customer': o.customer_name,
-      'Phone': o.phone,
-      'Total': o.total,
-      'Payment Method': o.payment_method,
-      'Status': o.order_status,
-      'Date': new Date(o.created_at).toLocaleString(),
+      'অর্ডার নম্বর': o.order_number,
+      'কাস্টমার': o.customer_name,
+      'ফোন': o.phone,
+      'মোট': o.total,
+      'পেমেন্ট পদ্ধতি': o.payment_method,
+      'স্ট্যাটাস': o.order_status,
+      'তারিখ': new Date(o.created_at).toLocaleString(),
     }));
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
@@ -306,13 +306,23 @@ export default function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white font-extrabold text-[10px] transition-all-custom"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>{isBn ? 'বিস্তারিত' : 'Detail'}</span>
-                      </Link>
+                      <div className="inline-flex items-center gap-2">
+                        <Link
+                          href={`/admin/orders/${order.id}/invoice`}
+                          target="_blank"
+                          title={isBn ? 'ইনভয়েস' : 'Invoice'}
+                          className="inline-flex items-center justify-center p-1.5 rounded-xl border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                        </Link>
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white font-extrabold text-[10px] transition-all-custom"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>{isBn ? 'বিস্তারিত' : 'Detail'}</span>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

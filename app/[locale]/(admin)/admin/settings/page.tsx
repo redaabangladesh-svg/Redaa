@@ -97,7 +97,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6 font-sans">
+    <div className="max-w-6xl space-y-6 font-sans">
       {/* Page Header */}
       <div className="border-b border-brand-border pb-4">
         <h1 className="text-2xl font-black text-brand-text flex items-center gap-2">
@@ -124,6 +124,7 @@ export default function AdminSettingsPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Store Info */}
         <div className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <h3 className="font-bold text-brand-text text-base border-b border-brand-border pb-3 flex items-center gap-2">
@@ -248,7 +249,7 @@ export default function AdminSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-text">Text (English)</label>
+              <label className="text-xs font-bold text-brand-text">টেক্সট (ইংরেজি)</label>
               <input
                 type="text"
                 value={announcementTextEn}
@@ -304,6 +305,7 @@ export default function AdminSettingsPage() {
             </p>
           </div>
         </div>
+      </div>
 
         {/* Submit */}
         <div className="flex justify-end">

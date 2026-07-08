@@ -34,16 +34,16 @@ function AdminLoginForm() {
           <ShieldCheck className="h-6 w-6" strokeWidth={1.5} />
         </div>
         <div className="space-y-1.5">
-          <h1 className="text-xl font-black text-brand-text">Admin Panel</h1>
+          <h1 className="text-xl font-black text-brand-text">অ্যাডমিন প্যানেল</h1>
           <p className="text-xs text-brand-muted font-semibold">
-            Sign in with an authorized Google account to manage the store.
+            স্টোর পরিচালনা করতে অনুমোদিত গুগল অ্যাকাউন্ট দিয়ে সাইন ইন করুন।
           </p>
         </div>
 
         {unauthorized && (
           <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2 text-left">
             <ShieldAlert className="h-4 w-4 flex-shrink-0" />
-            <span>This Google account isn&apos;t authorized for admin access.</span>
+            <span>এই গুগল অ্যাকাউন্টটি অ্যাডমিন অ্যাক্সেসের জন্য অনুমোদিত নয়।</span>
           </div>
         )}
 
@@ -62,7 +62,7 @@ function AdminLoginForm() {
               <path fill="#EA4335" d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.61l4 3.11C6.22 6.88 8.87 4.77 12 4.77Z"/>
             </svg>
           )}
-          <span>{signingIn ? 'Signing in...' : 'Sign in with Google'}</span>
+          <span>{signingIn ? 'সাইন ইন হচ্ছে...' : 'গুগল দিয়ে সাইন ইন করুন'}</span>
         </button>
       </div>
     </div>

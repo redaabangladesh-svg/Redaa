@@ -42,7 +42,7 @@ export default function Navbar() {
             <div className="flex items-center justify-start">
               <button
                 onClick={() => setMenuOpen(o => !o)}
-                aria-label="Menu"
+                aria-label="মেনু"
                 className="p-2 -ml-2 flex items-center justify-center text-brand-text hover:text-[#C6A15B] active:scale-95 focus:outline-none transition-colors duration-200"
               >
                 <span className="relative block h-4 w-6">
@@ -71,7 +71,7 @@ export default function Navbar() {
               />
               <div className="leading-none text-left">
                 <span className="block text-[19px] font-serif font-semibold tracking-tight text-brand-text">Sicily</span>
-                <span className="block whitespace-nowrap text-[7px] font-semibold tracking-[0.18em] uppercase text-[#C6A15B] mt-1">Focus On Quality</span>
+                <span className="block whitespace-nowrap text-[7px] font-semibold tracking-[0.18em] uppercase text-[#C6A15B] mt-1">মান নিয়ে আপোষহীন</span>
               </div>
             </Link>
 
@@ -80,7 +80,7 @@ export default function Navbar() {
               <Link
                 href={`/wishlist`}
                 className="relative p-2 rounded-lg text-brand-muted hover:text-brand-secondary hover:bg-brand-surface transition-all duration-200"
-                title="Wishlist"
+                title="উইশলিস্ট"
               >
                 <Heart className="h-5 w-5" strokeWidth={1.75} />
                 {wishlistCount > 0 && (

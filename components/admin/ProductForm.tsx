@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, UploadCloud, X, Plus, Trash2, Save } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
+import { BOX_ITEM_ICONS, type BoxItemIcon } from '@/lib/products-db';
 
 export interface Variant {
   size_en: string;
@@ -10,6 +11,23 @@ export interface Variant {
   price?: string;
   sale_price?: string;
 }
+
+export interface BoxItemForm {
+  icon: BoxItemIcon;
+  title_en: string;
+  title_bn: string;
+  subtitle_en: string;
+  subtitle_bn: string;
+}
+
+const BOX_ICON_LABEL: Record<BoxItemIcon, string> = {
+  frame: 'ফ্রেম',
+  flower: 'ফুল',
+  tool: 'টুল',
+  guide: 'গাইড',
+  gift: 'গিফট',
+  box: 'বক্স',
+};
 
 export interface ProductFormData {
   nameEn: string;
@@ -20,6 +38,7 @@ export interface ProductFormData {
   descBn: string;
   price: string;
   salePrice: string;
+  costPrice: string;
   stock: string;
   lowStockThreshold: string;
   isFeatured: boolean;
@@ -27,8 +46,11 @@ export interface ProductFormData {
   images: string[];
   variants: Variant[];
   landingPageActive: boolean;
+  taglineEn: string;
+  taglineBn: string;
   benefitsEn: string;
   benefitsBn: string;
+  boxItems: BoxItemForm[];
   videoUrl: string;
   seoTitleEn: string;
   seoTitleBn: string;
@@ -38,9 +60,10 @@ export interface ProductFormData {
 
 export const emptyProductForm: ProductFormData = {
   nameEn: '', nameBn: '', shortDescEn: '', shortDescBn: '', descEn: '', descBn: '',
-  price: '', salePrice: '', stock: '10', lowStockThreshold: '5', isFeatured: false,
+  price: '', salePrice: '', costPrice: '', stock: '10', lowStockThreshold: '5', isFeatured: false,
   categorySlug: '', images: [], variants: [], landingPageActive: false,
-  benefitsEn: '', benefitsBn: '', videoUrl: '',
+  taglineEn: '', taglineBn: '',
+  benefitsEn: '', benefitsBn: '', boxItems: [], videoUrl: '',
   seoTitleEn: '', seoTitleBn: '', seoDescEn: '', seoDescBn: '',
 };
 
@@ -121,6 +144,19 @@ export default function ProductForm({
     set('variants', data.variants.filter((_, i) => i !== idx));
   };
 
+  const addBoxItem = () => {
+    set('boxItems', [...data.boxItems, { icon: 'box', title_en: '', title_bn: '', subtitle_en: '', subtitle_bn: '' }]);
+  };
+
+  const updateBoxItem = (idx: number, field: keyof BoxItemForm, value: string) => {
+    const updated = data.boxItems.map((b, i) => (i === idx ? { ...b, [field]: value } : b));
+    set('boxItems', updated);
+  };
+
+  const removeBoxItem = (idx: number) => {
+    set('boxItems', data.boxItems.filter((_, i) => i !== idx));
+  };
+
   return (
     <form onSubmit={onSubmit} className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
 
@@ -128,13 +164,13 @@ export default function ProductForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-brand-muted uppercase">
-            Product Name (English) <span className="text-rose-500">*</span>
+            প্রোডাক্টের নাম (ইংরেজি) <span className="text-rose-500">*</span>
           </label>
           <input
             type="text"
             value={data.nameEn}
             onChange={(e) => set('nameEn', e.target.value)}
-            placeholder="e.g. Handmade Ceramic Flower Vase"
+            placeholder="যেমন: Handmade Ceramic Flower Vase"
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
             required
           />
@@ -157,12 +193,12 @@ export default function ProductForm({
       {/* Short Description */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Short Description (English)</label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">সংক্ষিপ্ত বিবরণ (ইংরেজি)</label>
           <input
             type="text"
             value={data.shortDescEn}
             onChange={(e) => set('shortDescEn', e.target.value)}
-            placeholder="One-line summary shown under the title"
+            placeholder="টাইটেলের নিচে দেখানো এক লাইনের বিবরণ"
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
           />
         </div>
@@ -179,9 +215,9 @@ export default function ProductForm({
       </div>
 
       {/* Pricing, Category, Stock, Low Stock Threshold */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Price (৳) <span className="text-rose-500">*</span></label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">দাম (৳) <span className="text-rose-500">*</span></label>
           <input
             type="number"
             value={data.price}
@@ -192,7 +228,7 @@ export default function ProductForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Sale Price (৳)</label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">সেল প্রাইস (৳)</label>
           <input
             type="number"
             value={data.salePrice}
@@ -202,7 +238,20 @@ export default function ProductForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Category <span className="text-rose-500">*</span></label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">
+            ক্রয়মূল্য (৳)
+          </label>
+          <input
+            type="number"
+            value={data.costPrice}
+            onChange={(e) => set('costPrice', e.target.value)}
+            placeholder="600"
+            className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
+          />
+          <p className="text-[9px] text-brand-muted font-semibold">প্রফিট/লস রিপোর্ট হিসাব করতে ব্যবহৃত হয়, কাস্টমার দেখবে না।</p>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-brand-muted uppercase">ক্যাটাগরি <span className="text-rose-500">*</span></label>
           <select
             value={data.categorySlug}
             onChange={(e) => set('categorySlug', e.target.value)}
@@ -216,7 +265,7 @@ export default function ProductForm({
           </select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Stock Quantity <span className="text-rose-500">*</span></label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">স্টক পরিমাণ <span className="text-rose-500">*</span></label>
           <input
             type="number"
             value={data.stock}
@@ -262,13 +311,13 @@ export default function ProductForm({
       {/* Multi-Image Upload */}
       <div className="space-y-2">
         <label className="text-[10px] font-bold text-brand-muted uppercase">
-          Product Images <span className="text-rose-500">*</span>
+          প্রোডাক্ট ছবি <span className="text-rose-500">*</span>
         </label>
 
         <div className="flex flex-wrap gap-3">
           {data.images.map((img, idx) => (
             <div key={idx} className="relative w-28 h-28 rounded-xl overflow-hidden border border-brand-border">
-              <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+              <img src={img} alt={`প্রোডাক্ট ${idx + 1}`} className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={() => set('images', data.images.filter((_, i) => i !== idx))}
@@ -325,7 +374,7 @@ export default function ProductForm({
                   type="text"
                   value={v.size_en}
                   onChange={(e) => updateVariant(idx, 'size_en', e.target.value)}
-                  placeholder="Size (EN) e.g. 12&quot;"
+                  placeholder="সাইজ (ইংরেজি) যেমন: 12&quot;"
                   className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
                 />
                 <input
@@ -364,13 +413,13 @@ export default function ProductForm({
 
       {/* Detailed Description */}
       <div className="space-y-6 pt-4 border-t border-brand-border">
-        <h3 className="text-[10px] font-bold text-brand-muted uppercase">Detailed Description (Optional)</h3>
+        <h3 className="text-[10px] font-bold text-brand-muted uppercase">বিস্তারিত বিবরণ (ঐচ্ছিক)</h3>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-brand-muted uppercase">Description (English)</label>
+          <label className="text-[10px] font-bold text-brand-muted uppercase">বিবরণ (ইংরেজি)</label>
           <textarea
             value={data.descEn}
             onChange={(e) => set('descEn', e.target.value)}
-            placeholder="Write product detailed specifications..."
+            placeholder="প্রোডাক্টের বিস্তারিত স্পেসিফিকেশন লিখুন..."
             rows={4}
             className="w-full bg-brand-surface border border-brand-border rounded-xl py-3 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold leading-relaxed"
           />
@@ -410,6 +459,33 @@ export default function ProductForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-brand-muted uppercase">
+              {isBn ? 'ট্যাগলাইন (English)' : 'Tagline (English)'}
+            </label>
+            <input
+              type="text"
+              value={data.taglineEn}
+              onChange={(e) => set('taglineEn', e.target.value)}
+              placeholder="A unique blend of beauty and premium design"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              {isBn ? 'ট্যাগলাইন (বাংলা)' : 'Tagline (Bangla)'}
+            </label>
+            <input
+              type="text"
+              value={data.taglineBn}
+              onChange={(e) => set('taglineBn', e.target.value)}
+              placeholder="সৌন্দর্য, নান্দনিকতা ও প্রিমিয়াম ডিজাইনের অনন্য সমন্বয়"
+              className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-semibold"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
               {isBn ? 'কাস্টম সুবিধাসমূহ (English, এক লাইনে একটি)' : 'Custom Benefits (English, one per line)'}
             </label>
             <textarea
@@ -434,6 +510,81 @@ export default function ProductForm({
           </div>
         </div>
 
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-bold text-brand-muted uppercase">
+              {isBn ? 'বক্সে কী থাকছে (ঐচ্ছিক)' : "What's in the Box (optional)"}
+            </label>
+            <button
+              type="button"
+              onClick={addBoxItem}
+              className="flex items-center gap-1 text-[10px] font-bold text-brand-primary hover:text-brand-primary-alt"
+            >
+              <Plus className="h-3.5 w-3.5" /> {isBn ? 'যোগ করুন' : 'Add Item'}
+            </button>
+          </div>
+          {data.boxItems.length === 0 ? (
+            <p className="text-[10px] text-brand-muted font-semibold">
+              {isBn ? 'কোনো বক্স-আইটেম নেই — এই সেকশন ল্যান্ডিং পেজে দেখানো হবে না।' : 'No box items — this section will be hidden on the landing page.'}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {data.boxItems.map((item, idx) => (
+                <div key={idx} className="bg-brand-surface rounded-xl p-3 space-y-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 items-center">
+                    <select
+                      value={item.icon}
+                      onChange={(e) => updateBoxItem(idx, 'icon', e.target.value)}
+                      className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary sm:col-span-1"
+                    >
+                      {BOX_ITEM_ICONS.map((ic) => (
+                        <option key={ic} value={ic}>{BOX_ICON_LABEL[ic]}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={item.title_en}
+                      onChange={(e) => updateBoxItem(idx, 'title_en', e.target.value)}
+                      placeholder="টাইটেল (ইংরেজি) যেমন: Wooden Wall Frame"
+                      className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary sm:col-span-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.title_bn}
+                      onChange={(e) => updateBoxItem(idx, 'title_bn', e.target.value)}
+                      placeholder="টাইটেল (বাংলা)"
+                      className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary sm:col-span-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeBoxItem(idx)}
+                      className="flex items-center justify-center gap-1 py-2 rounded-lg border border-rose-200 text-rose-600 text-[10px] font-bold hover:bg-rose-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={item.subtitle_en}
+                      onChange={(e) => updateBoxItem(idx, 'subtitle_en', e.target.value)}
+                      placeholder="সাবটাইটেল (ইংরেজি, ঐচ্ছিক)"
+                      className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
+                    />
+                    <input
+                      type="text"
+                      value={item.subtitle_bn}
+                      onChange={(e) => updateBoxItem(idx, 'subtitle_bn', e.target.value)}
+                      placeholder="সাবটাইটেল (ঐচ্ছিক)"
+                      className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold text-brand-muted uppercase">
             {isBn ? 'কাস্টম ভিডিও URL (ঐচ্ছিক)' : 'Custom Video URL (optional)'}
@@ -455,7 +606,7 @@ export default function ProductForm({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Title (English)</label>
+            <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও টাইটেল (ইংরেজি)</label>
             <input
               type="text"
               value={data.seoTitleEn}
@@ -473,7 +624,7 @@ export default function ProductForm({
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-brand-muted uppercase">SEO Description (English)</label>
+            <label className="text-[10px] font-bold text-brand-muted uppercase">এসইও বিবরণ (ইংরেজি)</label>
             <textarea
               value={data.seoDescEn}
               onChange={(e) => set('seoDescEn', e.target.value)}

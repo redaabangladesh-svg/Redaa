@@ -140,14 +140,14 @@ export default function AdminProductsPage() {
                         <Link
                           href={`/admin/products/${p.id}`}
                           className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-all-custom"
-                          title="Edit"
+                          title="এডিট"
                         >
                           <Pencil className="h-4 w-4" />
                         </Link>
                         <button
                           onClick={() => handleDeleteProduct(p.id)}
                           className="inline-flex p-1.5 rounded-lg border border-brand-border text-brand-muted hover:border-red-300 hover:text-red-600 transition-all-custom"
-                          title="Delete"
+                          title="ডিলিট"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

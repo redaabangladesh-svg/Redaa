@@ -1,3 +1,16 @@
+// Courier providers occasionally hang instead of erroring — without a hard
+// timeout, a stalled fetch runs past Vercel's function execution limit and
+// the platform kills it with a raw 502, which the admin UI can't parse as JSON.
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export interface SteadfastOrderInput {
   invoice: string;
   recipient_name: string;
@@ -15,7 +28,7 @@ export interface SteadfastOrderResult {
 
 export async function createSteadfastOrder(order: SteadfastOrderInput): Promise<SteadfastOrderResult> {
   try {
-    const response = await fetch('https://portal.steadfast.com.bd/api/v1/create_order', {
+    const response = await fetchWithTimeout('https://portal.steadfast.com.bd/api/v1/create_order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +74,7 @@ export interface PathaoOrderResult {
 
 async function getPathaoToken(): Promise<string | null> {
   try {
-    const response = await fetch('https://api-hermes.pathao.com/aladdin/api/v1/issue-token', {
+    const response = await fetchWithTimeout('https://api-hermes.pathao.com/aladdin/api/v1/issue-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -86,7 +99,7 @@ export async function createPathaoOrder(order: PathaoOrderInput): Promise<Pathao
   }
 
   try {
-    const response = await fetch('https://api-hermes.pathao.com/aladdin/api/v1/orders', {
+    const response = await fetchWithTimeout('https://api-hermes.pathao.com/aladdin/api/v1/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -135,7 +148,7 @@ export interface RedexOrderResult {
 
 export async function createRedexOrder(order: RedexOrderInput): Promise<RedexOrderResult> {
   try {
-    const response = await fetch('https://redex.com.bd/api/parcel/add', {
+    const response = await fetchWithTimeout('https://redex.com.bd/api/parcel/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
