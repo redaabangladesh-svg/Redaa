@@ -582,52 +582,6 @@ export default function ProductPageClient({ product }: { product: ProductDetail 
         </div>
       )}
 
-      {/* 3-Step Workflow */}
-      <div className="bg-brand-surface border border-brand-border rounded-2xl p-6 space-y-6">
-        <h3 className="font-serif font-semibold text-brand-text text-base border-b border-brand-border pb-3 flex items-center gap-2">
-          <Truck className="h-5 w-5 text-brand-primary" />
-          <span>{locale === 'bn' ? 'অর্ডার করার সহজ ৩টি ধাপ' : '3 Easy Steps to Order'}</span>
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          <div className="space-y-2 relative">
-            <div className="flex items-center gap-3">
-              <span className="h-7 w-7 rounded-full bg-brand-primary text-white flex items-center justify-center text-xs font-extrabold">১</span>
-              <h4 className="text-xs font-bold text-brand-text">{locale === 'bn' ? 'ফর্মটি পূরণ করুন' : 'Fill the Form'}</h4>
-            </div>
-            <p className="text-[10.5px] leading-relaxed text-brand-muted pl-10 font-semibold">
-              {locale === 'bn'
-                ? 'নিচের দেওয়া অর্ডার ফর্মটিতে আপনার নাম, সচল মোবাইল নম্বর এবং ডেলিভারির সঠিক ঠিকানা দিন।'
-                : 'Enter your name, active phone number, and full address in the checkout form below.'}
-            </p>
-          </div>
-
-          <div className="space-y-2 relative">
-            <div className="flex items-center gap-3">
-              <span className="h-7 w-7 rounded-full bg-brand-primary text-white flex items-center justify-center text-xs font-extrabold">২</span>
-              <h4 className="text-xs font-bold text-brand-text">{locale === 'bn' ? 'অর্ডার ভেরিফিকেশন কল' : 'Call Verification'}</h4>
-            </div>
-            <p className="text-[10.5px] leading-relaxed text-brand-muted pl-10 font-semibold">
-              {locale === 'bn'
-                ? 'ফর্ম সাবমিট করার পর আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার ও ডেলিভারির সময় কনফার্ম করবে।'
-                : 'Our support team will call you within a few hours to confirm the product size and address details.'}
-            </p>
-          </div>
-
-          <div className="space-y-2 relative">
-            <div className="flex items-center gap-3">
-              <span className="h-7 w-7 rounded-full bg-brand-primary text-white flex items-center justify-center text-xs font-extrabold">৩</span>
-              <h4 className="text-xs font-bold text-brand-text">{locale === 'bn' ? 'পণ্য বুঝে নিয়ে পেমেন্ট' : 'Cash On Delivery'}</h4>
-            </div>
-            <p className="text-[10.5px] leading-relaxed text-brand-muted pl-10 font-semibold">
-              {locale === 'bn'
-                ? 'ডেলিভারি ম্যানের কাছ থেকে প্রোডাক্টটি বুঝে নিন এবং কোয়ালিটি দেখে সন্তুষ্ট হয়ে মূল্য পরিশোধ করুন।'
-                : 'Receive the parcel from the delivery agent, verify product condition, and pay cash on delivery.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Customer Reviews Section */}
       <div className="space-y-6">
         <div className="text-center space-y-1">
