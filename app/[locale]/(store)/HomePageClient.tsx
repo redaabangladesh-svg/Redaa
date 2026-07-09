@@ -44,7 +44,6 @@ function HeroSlider({ locale }: { locale: string }) {
 
   return (
     <div className="relative overflow-hidden rounded-none sm:rounded-2xl h-[240px] sm:h-[320px] md:h-[360px] shadow-sm">
-      {/* Full-bleed slide images — no text/CTA overlay, banner artwork carries the copy */}
       {SLIDES.map((slide, i) => (
         <img
           key={i}
