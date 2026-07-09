@@ -115,7 +115,8 @@ export async function POST(request: Request) {
     .single();
 
   if (orderError || !newOrder) {
-    return NextResponse.json({ error: 'Could not place order' }, { status: 500 });
+    console.error('Order creation failed:', orderError);
+    return NextResponse.json({ error: `Could not place order: ${orderError?.message || 'Unknown DB error'}` }, { status: 500 });
   }
 
   await supabase.from('order_items').insert(
