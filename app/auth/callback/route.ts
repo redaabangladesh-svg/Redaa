@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     if (!error && data.user) {
       // Admin login attempts must match the allowlist, not just any Google account
       if (next.startsWith('/admin')) {
-        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+        const adminEmails = (process.env.ADMIN_EMAILS || 'redaabangladesh@gmail.com')
+          .split(',')
+          .map((e) => e.trim().toLowerCase())
+          .filter(Boolean);
         const isAdmin = data.user.email && adminEmails.includes(data.user.email.toLowerCase());
         if (!isAdmin) {
           await supabase.auth.signOut();
