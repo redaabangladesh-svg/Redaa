@@ -8,8 +8,12 @@ import { BOX_ITEM_ICONS, type BoxItemIcon } from '@/lib/products-db';
 export interface Variant {
   size_en: string;
   size_bn: string;
+  color_en?: string;
+  color_bn?: string;
+  color_code?: string;
   price?: string;
   sale_price?: string;
+  stock?: string;
 }
 
 export interface BoxItemForm {
@@ -132,7 +136,7 @@ export default function ProductForm({
   };
 
   const addVariant = () => {
-    set('variants', [...data.variants, { size_en: '', size_bn: '', price: '', sale_price: '' }]);
+    set('variants', [...data.variants, { size_en: '', size_bn: '', color_en: '', color_bn: '', color_code: '#000000', price: '', sale_price: '', stock: '10' }]);
   };
 
   const updateVariant = (idx: number, field: keyof Variant, value: string) => {
@@ -369,42 +373,89 @@ export default function ProductForm({
         ) : (
           <div className="space-y-2">
             {data.variants.map((v, idx) => (
-              <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center bg-brand-surface rounded-xl p-3">
+              <div key={idx} className="grid grid-cols-2 md:grid-cols-8 gap-2 items-center bg-brand-surface rounded-xl p-3 border border-brand-border/40">
+                {/* Size Inputs */}
                 <input
                   type="text"
                   value={v.size_en}
                   onChange={(e) => updateVariant(idx, 'size_en', e.target.value)}
-                  placeholder="সাইজ (ইংরেজি) যেমন: 12&quot;"
-                  className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
+                  placeholder="Size EN (e.g. M, L)"
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
                 />
                 <input
                   type="text"
                   value={v.size_bn}
                   onChange={(e) => updateVariant(idx, 'size_bn', e.target.value)}
-                  placeholder="সাইজ (বাংলা)"
-                  className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
+                  placeholder="সাইজ (যেমন: M)"
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
+                />
+                
+                {/* Color Inputs */}
+                <input
+                  type="text"
+                  value={v.color_en || ''}
+                  onChange={(e) => updateVariant(idx, 'color_en', e.target.value)}
+                  placeholder="Color EN (e.g. Black)"
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
+                />
+                <input
+                  type="text"
+                  value={v.color_bn || ''}
+                  onChange={(e) => updateVariant(idx, 'color_bn', e.target.value)}
+                  placeholder="রঙ (যেমন: কালো)"
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
+                />
+                
+                {/* Color Code Picker */}
+                <div className="flex items-center gap-1.5 bg-white border border-brand-border rounded-lg py-1 px-1.5">
+                  <input
+                    type="color"
+                    value={v.color_code || '#000000'}
+                    onChange={(e) => updateVariant(idx, 'color_code', e.target.value)}
+                    className="h-7 w-7 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
+                  />
+                  <input
+                    type="text"
+                    value={v.color_code || '#000000'}
+                    onChange={(e) => updateVariant(idx, 'color_code', e.target.value)}
+                    placeholder="#Hex"
+                    className="w-full text-[10px] outline-none border-0 font-mono"
+                  />
+                </div>
+
+                {/* Stock & Prices */}
+                <input
+                  type="number"
+                  value={v.stock || ''}
+                  onChange={(e) => updateVariant(idx, 'stock', e.target.value)}
+                  placeholder={isBn ? 'স্টক' : 'Stock'}
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
                 />
                 <input
                   type="number"
                   value={v.price || ''}
                   onChange={(e) => updateVariant(idx, 'price', e.target.value)}
-                  placeholder={isBn ? 'দাম' : 'Price'}
-                  className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
+                  placeholder={isBn ? 'দাম (ঐচ্ছিক)' : 'Price (opt)'}
+                  className="bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
                 />
-                <input
-                  type="number"
-                  value={v.sale_price || ''}
-                  onChange={(e) => updateVariant(idx, 'sale_price', e.target.value)}
-                  placeholder={isBn ? 'সেল দাম' : 'Sale Price'}
-                  className="bg-white border border-brand-border rounded-lg py-2 px-2.5 text-xs outline-none focus:border-brand-primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeVariant(idx)}
-                  className="flex items-center justify-center gap-1 py-2 rounded-lg border border-rose-200 text-rose-600 text-[10px] font-bold hover:bg-rose-50"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                
+                {/* Action Row */}
+                <div className="flex gap-2 justify-end w-full">
+                  <input
+                    type="number"
+                    value={v.sale_price || ''}
+                    onChange={(e) => updateVariant(idx, 'sale_price', e.target.value)}
+                    placeholder={isBn ? 'সেল (ঐচ্ছিক)' : 'Sale (opt)'}
+                    className="w-full bg-white border border-brand-border rounded-lg py-2 px-2 text-xs outline-none focus:border-brand-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(idx)}
+                    className="flex items-center justify-center h-9 w-9 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
