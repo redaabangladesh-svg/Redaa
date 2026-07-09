@@ -12,6 +12,8 @@ export async function GET(request: Request) {
 
     if (!error && data.user) {
       // Admin login attempts must match the allowlist, not just any Google account
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com';
+
       if (next.includes('/admin')) {
         const adminEmails = (process.env.ADMIN_EMAILS || 'redaabangladesh@gmail.com')
           .split(',')
@@ -20,9 +22,9 @@ export async function GET(request: Request) {
         const isAdmin = data.user.email && adminEmails.includes(data.user.email.toLowerCase());
         if (!isAdmin) {
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${origin}/admin/login?error=unauthorized`);
+          return NextResponse.redirect(`${baseUrl}/admin/login?error=unauthorized`);
         }
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${baseUrl}${next}`);
       }
 
       // Ensure a matching row exists in the customers table
@@ -38,9 +40,10 @@ export async function GET(request: Request) {
           { onConflict: 'auth_user_id', ignoreDuplicates: true }
         );
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${baseUrl}${next}`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/account?error=auth_failed`);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com';
+  return NextResponse.redirect(`${baseUrl}/account?error=auth_failed`);
 }
