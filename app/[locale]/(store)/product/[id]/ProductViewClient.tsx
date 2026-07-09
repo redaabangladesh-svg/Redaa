@@ -39,22 +39,7 @@ export default function ProductViewClient({ product, otherProducts }: { product:
     return Array.from(colorMap.values());
   }, [product.variants]);
 
-  // Extract unique sizes from variants
-  const sizes = useMemo(() => {
-    if (!product.variants || product.variants.length === 0) return [];
-    const sizeMap = new Map<string, SizeOption>();
-    product.variants.forEach((v) => {
-      if (v.size_en) {
-        sizeMap.set(v.size_en, {
-          en: v.size_en,
-          bn: v.size_bn || v.size_en,
-        });
-      }
-    });
-    return Array.from(sizeMap.values());
-  }, [product.variants]);
-
-  // Selected states
+  // Selected color state — must be declared before sizes useMemo (which depends on it)
   const [selectedColor, setSelectedColor] = useState<ColorOption | null>(() => {
     if (!product.variants || product.variants.length === 0) return null;
     const firstColor = product.variants.find((v) => v.color_en)?.color_en;
@@ -67,9 +52,26 @@ export default function ProductViewClient({ product, otherProducts }: { product:
     };
   });
 
+  // Sizes filtered based on selected color (Option 2: smart filter)
+  const sizes = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) return [];
+    const sizeMap = new Map<string, SizeOption>();
+    product.variants.forEach((v) => {
+      const colorMatch = !selectedColor || v.color_en === selectedColor.en;
+      if (v.size_en && colorMatch) {
+        sizeMap.set(v.size_en, {
+          en: v.size_en,
+          bn: v.size_bn || v.size_en,
+        });
+      }
+    });
+    return Array.from(sizeMap.values());
+  }, [product.variants, selectedColor]);
+
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(() => {
     if (!product.variants || product.variants.length === 0) return null;
-    const firstSize = product.variants.find((v) => v.size_en)?.size_en;
+    const firstColor = product.variants.find((v) => v.color_en)?.color_en;
+    const firstSize = product.variants.find((v) => !firstColor || v.color_en === firstColor)?.size_en;
     if (!firstSize) return null;
     const v = product.variants.find((v) => v.size_en === firstSize);
     return {
@@ -77,6 +79,20 @@ export default function ProductViewClient({ product, otherProducts }: { product:
       bn: v?.size_bn || firstSize,
     };
   });
+
+  // When color changes, auto-select first available size for that color
+  const handleColorChange = (color: ColorOption) => {
+    setSelectedColor(color);
+    const firstVariantForColor = product.variants.find((v) => v.color_en === color.en && v.size_en);
+    if (firstVariantForColor?.size_en) {
+      setSelectedSize({
+        en: firstVariantForColor.size_en,
+        bn: firstVariantForColor.size_bn || firstVariantForColor.size_en,
+      });
+    } else if (!product.variants.some((v) => v.color_en === color.en && v.size_en)) {
+      setSelectedSize(null);
+    }
+  };
 
   const [quantity, setQuantity] = useState(1);
 
@@ -215,7 +231,7 @@ export default function ProductViewClient({ product, otherProducts }: { product:
                       <button
                         key={color.en}
                         type="button"
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => handleColorChange(color)}
                         title={locale === 'bn' ? color.bn : color.en}
                         className={`h-8 w-8 rounded-full border flex items-center justify-center transition-all ${
                           selectedColor?.en === color.en
