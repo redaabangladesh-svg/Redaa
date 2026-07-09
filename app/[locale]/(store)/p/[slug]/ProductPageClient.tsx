@@ -926,7 +926,7 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
 
         <button
           onClick={scrollToForm}
-          className="flex-1 py-2.5 px-6 rounded-full bg-brand-primary text-white font-extrabold text-xs text-center hover:bg-brand-primary-alt transition-all-custom animate-cta-glow"
+          className="flex-1 py-2.5 px-6 rounded-full bg-brand-primary text-white font-extrabold text-xs text-center hover:bg-brand-primary-alt shadow-md shadow-brand-primary/20 transition-all-custom animate-bounce"
         >
           {locale === 'bn' ? 'এখনই অর্ডার করুন' : 'Order Instantly'}
         </button>
