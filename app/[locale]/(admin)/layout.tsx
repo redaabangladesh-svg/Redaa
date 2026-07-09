@@ -26,6 +26,7 @@ export default function AdminLayout({
   const router = useRouter();
   const currentLocale = useLocale();
   const [mounted, setMounted] = useState(false);
+  const [adminUser, setAdminUser] = useState<{ name: string; avatarUrl: string | null } | null>(null);
 
   useEffect(() => {
     setMounted(true);
