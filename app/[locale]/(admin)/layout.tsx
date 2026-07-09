@@ -64,6 +64,7 @@ export default function AdminLayout({
     { label: 'ওভারভিউ', icon: LayoutDashboard, href: '/admin' },
     { label: 'অর্ডার', icon: ShoppingBag, href: '/admin/orders' },
     { label: 'প্রোডাক্টস', icon: Layers, href: '/admin/products' },
+    { label: 'ক্যাটাগরি', icon: Layers, href: '/admin/categories' },
     { label: 'কাস্টমার', icon: Users, href: '/admin/customers' },
     { label: 'রিপোর্ট', icon: BarChart3, href: '/admin/reports' },
     { label: 'অফার', icon: Tag, href: '/admin/offers' },
