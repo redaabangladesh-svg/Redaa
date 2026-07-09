@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     if (!error && data.user) {
       // Admin login attempts must match the allowlist, not just any Google account
-      if (next.startsWith('/admin')) {
+      if (next.includes('/admin')) {
         const adminEmails = (process.env.ADMIN_EMAILS || 'redaabangladesh@gmail.com')
           .split(',')
           .map((e) => e.trim().toLowerCase())
