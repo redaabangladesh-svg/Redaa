@@ -25,9 +25,10 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const currentLocale = useLocale();
-  const [adminUser, setAdminUser] = useState<{ name: string; avatarUrl: string | null } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       const user = data.user;
@@ -40,8 +41,14 @@ export default function AdminLayout({
     });
   }, []);
 
+  // Prevent hydration flash by rendering empty body or simple container until mounted on client
+  if (!mounted) {
+    return <div className="min-h-screen bg-brand-primary/5 animate-pulse" />;
+  }
+
   // The login screen and printable invoices render full-bleed, without the sidebar/header chrome
-  if (pathname === '/admin/login' || pathname.endsWith('/invoice')) {
+  const isFullBleed = pathname.includes('/admin/login') || pathname.endsWith('/invoice');
+  if (isFullBleed) {
     return <>{children}</>;
   }
 
