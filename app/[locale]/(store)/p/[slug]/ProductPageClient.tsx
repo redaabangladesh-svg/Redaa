@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useLocale } from 'next-intl';
 import { useCart } from '@/lib/cart';
 import { useRouter } from 'next/navigation';
@@ -17,7 +17,8 @@ import ViewerCount from '@/components/widgets/ViewerCount';
 import StockBadge from '@/components/widgets/StockBadge';
 import InstagramFeed from '@/components/widgets/InstagramFeed';
 
-interface SizeOption { en: string; bn: string; price: number; sale_price: number | null; }
+interface ColorOption { en: string; bn: string; code: string; }
+interface SizeOption { en: string; bn: string; }
 
 const BOX_ICON_MAP: Record<BoxItemIcon, typeof Frame> = {
   frame: Frame,
@@ -29,17 +30,6 @@ const BOX_ICON_MAP: Record<BoxItemIcon, typeof Frame> = {
 };
 
 const BENEFIT_ICON_CYCLE = [Sparkles, Flower2, Home, Gift, ShieldCheck, Frame];
-
-function buildSizeOptions(product: ProductDetail): SizeOption[] {
-  return product.variants.length > 0
-    ? product.variants.map((v) => ({
-        en: v.size_en || '',
-        bn: v.size_bn || v.size_en || '',
-        price: v.price ?? product.price,
-        sale_price: v.sale_price !== undefined ? v.sale_price : product.sale_price,
-      }))
-    : [];
-}
 
 interface ProductPageClientProps {
   product: ProductDetail;
@@ -56,10 +46,61 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
   const reviewSliderRef = useRef<HTMLDivElement>(null);
   const [reviewIndex, setReviewIndex] = useState(0);
 
-  const [selectedSize, setSelectedSize] = useState<SizeOption | null>(() => {
-    const sizes = buildSizeOptions(product);
-    return sizes.length > 0 ? sizes[0] : null;
+  // Extract unique colors from variants
+  const colors = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) return [];
+    const colorMap = new Map<string, ColorOption>();
+    product.variants.forEach((v) => {
+      if (v.color_en) {
+        colorMap.set(v.color_en, {
+          en: v.color_en,
+          bn: v.color_bn || v.color_en,
+          code: v.color_code || '#000000',
+        });
+      }
+    });
+    return Array.from(colorMap.values());
+  }, [product.variants]);
+
+  // Extract unique sizes from variants
+  const sizes = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) return [];
+    const sizeMap = new Map<string, SizeOption>();
+    product.variants.forEach((v) => {
+      if (v.size_en) {
+        sizeMap.set(v.size_en, {
+          en: v.size_en,
+          bn: v.size_bn || v.size_en,
+        });
+      }
+    });
+    return Array.from(sizeMap.values());
+  }, [product.variants]);
+
+  // Selected states
+  const [selectedColor, setSelectedColor] = useState<ColorOption | null>(() => {
+    if (!product.variants || product.variants.length === 0) return null;
+    const firstColor = product.variants.find((v) => v.color_en)?.color_en;
+    if (!firstColor) return null;
+    const v = product.variants.find((v) => v.color_en === firstColor);
+    return {
+      en: firstColor,
+      bn: v?.color_bn || firstColor,
+      code: v?.color_code || '#000000',
+    };
   });
+
+  const [selectedSize, setSelectedSize] = useState<SizeOption | null>(() => {
+    if (!product.variants || product.variants.length === 0) return null;
+    const firstSize = product.variants.find((v) => v.size_en)?.size_en;
+    if (!firstSize) return null;
+    const v = product.variants.find((v) => v.size_en === firstSize);
+    return {
+      en: firstSize,
+      bn: v?.size_bn || firstSize,
+    };
+  });
+
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -90,17 +131,21 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
     setReviewIndex(Math.max(0, Math.min(idx, product.reviews_list.length - 1)));
   };
 
-  const sizeOptions: SizeOption[] | undefined = product.variants.length > 0 ? buildSizeOptions(product) : undefined;
+  // Find matching variant details
+  const matchingVariant = product.variants.find((v) => 
+    (!selectedColor || v.color_en === selectedColor.en) &&
+    (!selectedSize || v.size_en === selectedSize.en)
+  );
 
-  const price = selectedSize ? selectedSize.price : product.price;
-  const salePrice = selectedSize ? selectedSize.sale_price : product.sale_price;
+  const price = matchingVariant ? (matchingVariant.price ?? product.price) : product.price;
+  const salePrice = matchingVariant ? (matchingVariant.sale_price !== undefined ? matchingVariant.sale_price : product.sale_price) : product.sale_price;
   const activePrice = salePrice ?? price;
   const nameLabel = locale === 'bn' ? product.name_bn : product.name_en;
   const shortDesc = (locale === 'bn' ? product.short_description_bn : product.short_description_en) || nameLabel;
   const desc = (locale === 'bn' ? product.description_bn : product.description_en) || nameLabel;
   const tagline = locale === 'bn' ? product.landingContent.tagline_bn : product.landingContent.tagline_en;
   const boxItems = product.landingContent.box_items || [];
-  const stockCount = product.stock;
+  const stockCount = matchingVariant ? (matchingVariant.stock ?? product.stock) : product.stock;
   const cartSubtotal = activePrice * quantity;
 
   let couponDiscount = 0;
@@ -170,7 +215,13 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
       image: product.images[0],
       price,
       sale_price: salePrice,
-      variant: selectedSize ? { size_en: selectedSize.en, size_bn: selectedSize.bn } : undefined,
+      variant: (selectedSize || selectedColor) ? {
+        size_en: selectedSize?.en || undefined,
+        size_bn: selectedSize?.bn || undefined,
+        color_en: selectedColor?.en || undefined,
+        color_bn: selectedColor?.bn || undefined,
+        color_code: selectedColor?.code || undefined,
+      } : undefined,
     }, quantity);
   };
 
@@ -207,7 +258,13 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
         items: [{
           productId: product.id,
           name: nameLabel,
-          variant: selectedSize ? { size_en: selectedSize.en, size_bn: selectedSize.bn } : null,
+          variant: (selectedSize || selectedColor) ? {
+            size_en: selectedSize?.en || null,
+            size_bn: selectedSize?.bn || null,
+            color_en: selectedColor?.en || null,
+            color_bn: selectedColor?.bn || null,
+            color_code: selectedColor?.code || null,
+          } : null,
           qty: quantity,
           price: activePrice,
         }],
@@ -384,27 +441,62 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
             </div>
           </div>
 
-          {/* Options: Sizes Only */}
-          {sizeOptions && sizeOptions.length > 0 && (
-            <div className="space-y-2 pt-4 border-t border-brand-border">
-              <span className="text-xs font-bold text-brand-muted">
-                {locale === 'bn' ? 'সাইজ (দাম পরিবর্তন হবে):' : 'Size (price varies):'}
-              </span>
-              <div className="flex gap-2 flex-wrap">
-                {sizeOptions.map((size) => (
-                  <button
-                    key={size.en}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all-custom ${
-                      selectedSize?.en === size.en
-                        ? 'bg-brand-primary border-brand-primary text-white'
-                        : 'bg-white border-brand-border text-brand-text hover:border-brand-primary/40'
-                    }`}
-                  >
-                    {locale === 'bn' ? size.bn : size.en}
-                  </button>
-                ))}
-              </div>
+          {/* Options: Colors & Sizes */}
+          {(colors.length > 0 || sizes.length > 0) && (
+            <div className="space-y-4 pt-4 border-t border-brand-border">
+              {/* Color swatches */}
+              {colors.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-brand-muted">
+                    {locale === 'bn' ? 'রঙ:' : 'Color:'}
+                  </span>
+                  <div className="flex gap-3 items-center">
+                    {colors.map((color) => (
+                      <button
+                        key={color.en}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        title={locale === 'bn' ? color.bn : color.en}
+                        className={`h-8 w-8 rounded-full border flex items-center justify-center transition-all ${
+                          selectedColor?.en === color.en
+                            ? 'border-brand-text ring-2 ring-brand-text/10 scale-105'
+                            : 'border-transparent hover:border-brand-border'
+                        }`}
+                      >
+                        <span
+                          className="h-6 w-6 rounded-full border border-black/5"
+                          style={{ backgroundColor: color.code }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Size buttons */}
+              {sizes.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-brand-muted">
+                    {locale === 'bn' ? 'সাইজ:' : 'Size:'}
+                  </span>
+                  <div className="flex gap-2 flex-wrap">
+                    {sizes.map((size) => (
+                      <button
+                        key={size.en}
+                        type="button"
+                        onClick={() => setSelectedSize(size)}
+                        className={`h-10 w-11 text-xs font-bold rounded-lg border transition-all flex items-center justify-center ${
+                          selectedSize?.en === size.en
+                            ? 'bg-brand-primary border-brand-primary text-white font-extrabold'
+                            : 'bg-white border-brand-border text-brand-text hover:border-brand-text/60'
+                        }`}
+                      >
+                        {size.bn}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -617,8 +709,17 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
           <Image src={product.images[activeImage]} alt={nameLabel} width={48} height={48} className="h-12 w-12 rounded-lg object-cover border border-brand-border" />
           <div className="flex-1 min-w-0">
             <span className="font-bold text-brand-text truncate block">{nameLabel}</span>
-            <span className="text-[10px] text-brand-muted block mt-0.5">
-              {selectedSize && `${locale === 'bn' ? 'সাইজ: ' + selectedSize.bn : 'Size: ' + selectedSize.en}`}
+            <span className="text-[10px] text-brand-muted block mt-0.5 space-y-0.5">
+              {selectedColor && (
+                <span className="block">
+                  {locale === 'bn' ? 'রঙ: ' + selectedColor.bn : 'Color: ' + selectedColor.en}
+                </span>
+              )}
+              {selectedSize && (
+                <span className="block">
+                  {locale === 'bn' ? 'সাইজ: ' + selectedSize.bn : 'Size: ' + selectedSize.en}
+                </span>
+              )}
             </span>
           </div>
           <div className="text-right">

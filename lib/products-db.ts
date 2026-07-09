@@ -11,7 +11,7 @@ interface ProductRow {
   sale_price: number | null;
   stock: number;
   images: string[];
-  variants: { size_en?: string; size_bn?: string }[] | null;
+  variants: { size_en?: string; size_bn?: string; color_en?: string; color_bn?: string; color_code?: string; price?: number; sale_price?: number | null; stock?: number }[] | null;
   is_featured: boolean;
   low_stock_threshold?: number;
   categories: { slug: string } | null;
@@ -101,7 +101,7 @@ export interface ProductDetail extends HomeProduct {
   description_bn: string | null;
   short_description_en: string | null;
   short_description_bn: string | null;
-  variants: { size_en?: string; size_bn?: string; price?: number; sale_price?: number | null }[];
+  variants: { size_en?: string; size_bn?: string; color_en?: string; color_bn?: string; color_code?: string; price?: number; sale_price?: number | null; stock?: number }[];
   landingPageActive: boolean;
   landingContent: LandingContent;
   reviews_list: ProductReview[];

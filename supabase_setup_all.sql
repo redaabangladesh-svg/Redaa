@@ -296,11 +296,11 @@ CREATE POLICY "Admin can manage categories" ON categories
   FOR ALL USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 
 
--- Seeding mock products for Redaa catalog
+-- Seeding mock products for Redaa catalog with variants
 INSERT INTO products (
   name_en, name_bn, slug, price, sale_price, stock, images,
   description_en, description_bn, short_description_en, short_description_bn,
-  is_featured, category_id
+  is_featured, category_id, variants
 ) VALUES
   (
     'Premium Embroidered Black Panjabi',
@@ -315,7 +315,8 @@ INSERT INTO products (
     'Premium cotton embroidered Panjabi for Eid and special occasions.',
     'à¦ˆà¦¦ à¦à¦¬à¦‚ à¦¬à¦¿à¦¶à§‡à¦· à¦…à¦¨à§à¦·à§à¦ à¦¾à¦¨à§‡à¦° à¦œà¦¨à§à¦¯ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦•à¦Ÿà¦¨ à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿à¥¤',
     true,
-    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1),
+    '[{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"S","size_bn":"S","stock":10,"price":2850,"sale_price":2250},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"M","size_bn":"M","stock":15,"price":2850,"sale_price":2250},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"L","size_bn":"L","stock":12,"price":2850,"sale_price":2250},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"XL","size_bn":"XL","stock":8,"price":2850,"sale_price":2250},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"XXL","size_bn":"XXL","stock":5,"price":2850,"sale_price":2250},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"S","size_bn":"S","stock":5,"price":2850,"sale_price":2250},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"M","size_bn":"M","stock":10,"price":2850,"sale_price":2250},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"L","size_bn":"L","stock":10,"price":2850,"sale_price":2250},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"XL","size_bn":"XL","stock":5,"price":2850,"sale_price":2250},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"XXL","size_bn":"XXL","stock":2,"price":2850,"sale_price":2250},{"color_en":"Brown","color_bn":"à¦¬à§à¦°à¦¾à¦‰à¦¨","color_code":"#8E704D","size_en":"S","size_bn":"S","stock":4,"price":2850,"sale_price":2250},{"color_en":"Brown","color_bn":"à¦¬à§à¦°à¦¾à¦‰à¦¨","color_code":"#8E704D","size_en":"M","size_bn":"M","stock":8,"price":2850,"sale_price":2250},{"color_en":"Brown","color_bn":"à¦¬à§à¦°à¦¾à¦‰à¦¨","color_code":"#8E704D","size_en":"L","size_bn":"L","stock":8,"price":2850,"sale_price":2250},{"color_en":"Brown","color_bn":"à¦¬à§à¦°à¦¾à¦‰à¦¨","color_code":"#8E704D","size_en":"XL","size_bn":"XL","stock":3,"price":2850,"sale_price":2250},{"color_en":"Beige","color_bn":"à¦¬à§‡à¦‡à¦œ","color_code":"#BFA89E","size_en":"S","size_bn":"S","stock":4,"price":2850,"sale_price":2250},{"color_en":"Beige","color_bn":"à¦¬à§‡à¦‡à¦œ","color_code":"#BFA89E","size_en":"M","size_bn":"M","stock":8,"price":2850,"sale_price":2250},{"color_en":"Beige","color_bn":"à¦¬à§‡à¦‡à¦œ","color_code":"#BFA89E","size_en":"L","size_bn":"L","stock":8,"price":2850,"sale_price":2250},{"color_en":"Beige","color_bn":"à¦¬à§‡à¦‡à¦œ","color_code":"#BFA89E","size_en":"XL","size_bn":"XL","stock":4,"price":2850,"sale_price":2250}]'::jsonb
   ),
   (
     'Classic Kabli Panjabi Suit',
@@ -330,7 +331,8 @@ INSERT INTO products (
     'Premium Kabli Panjabi suit set with matching pajama.',
     'à¦®à§à¦¯à¦¾à¦šà¦¿à¦‚ à¦ªà¦¾à§Ÿà¦œà¦¾à¦®à¦¾ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦•à¦¾à¦¬à¦²à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿ à¦¸à§‡à¦Ÿà¥¤',
     true,
-    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1),
+    '[{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"S","size_bn":"S","stock":5,"price":3450,"sale_price":2850},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"M","size_bn":"M","stock":8,"price":3450,"sale_price":2850},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"L","size_bn":"L","stock":8,"price":3450,"sale_price":2850},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"XL","size_bn":"XL","stock":4,"price":3450,"sale_price":2850},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"S","size_bn":"S","stock":4,"price":3450,"sale_price":2850},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"M","size_bn":"M","stock":6,"price":3450,"sale_price":2850},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"L","size_bn":"L","stock":6,"price":3450,"sale_price":2850},{"color_en":"Slate","color_bn":"à¦¸à§à¦²à§‡à¦Ÿ","color_code":"#5C6B73","size_en":"XL","size_bn":"XL","stock":3,"price":3450,"sale_price":2850}]'::jsonb
   ),
   (
     'Handmade Premium Prayer Tupi',
@@ -345,7 +347,8 @@ INSERT INTO products (
     'Handcrafted premium quality soft cotton prayer cap.',
     'à¦¹à¦¾à¦¤à§‡ à¦¤à§ˆà¦°à¦¿ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦®à¦¾à¦¨à§‡à¦° à¦¨à¦°à¦® à¦¸à§à¦¤à¦¿ à¦Ÿà§à¦ªà¦¿à¥¤',
     true,
-    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1),
+    '[{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"S","size_bn":"S","stock":20,"price":650,"sale_price":490},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"M","size_bn":"M","stock":30,"price":650,"sale_price":490},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"L","size_bn":"L","stock":25,"price":650,"sale_price":490},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"XL","size_bn":"XL","stock":15,"price":650,"sale_price":490},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"S","size_bn":"S","stock":10,"price":650,"sale_price":490},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"M","size_bn":"M","stock":15,"price":650,"sale_price":490},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"L","size_bn":"L","stock":15,"price":650,"sale_price":490},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"XL","size_bn":"XL","stock":8,"price":650,"sale_price":490}]'::jsonb
   ),
   (
     'Pure Cotton Premium Rumal',
@@ -360,7 +363,8 @@ INSERT INTO products (
     'Highly absorbent, ultra-soft pure cotton handkerchief.',
     'à¦‰à¦šà§à¦š à¦¶à§‹à¦·à¦£ à¦•à§à¦·à¦®à¦¤à¦¾ à¦¸à¦®à§à¦ªà¦¨à§à¦¨, à¦…à¦¤à¦¿-à¦¨à¦°à¦® à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦°à§à¦®à¦¾à¦²à¥¤',
     true,
-    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1),
+    '[{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","stock":100,"price":180,"sale_price":130},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","stock":80,"price":180,"sale_price":130},{"color_en":"Blue","color_bn":"à¦¨à§€à¦²","color_code":"#1E3A8A","stock":50,"price":180,"sale_price":130}]'::jsonb
   ),
   (
     'Royal Cotton White Panjabi',
@@ -375,7 +379,8 @@ INSERT INTO products (
     'Classic white cotton Panjabi with minimalist styling.',
     'à¦¨à§à¦¯à§‚à¦¨à¦¤à¦® à¦¸à§à¦Ÿà¦¾à¦‡à¦²à¦¿à¦¶ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨ à¦¸à¦¹ à¦•à§à¦²à¦¾à¦¸à¦¿à¦• à¦¸à¦¾à¦¦à¦¾ à¦¸à§à¦¤à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿à¥¤',
     false,
-    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1),
+    '[{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"S","size_bn":"S","stock":15,"price":2450,"sale_price":1850},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"M","size_bn":"M","stock":20,"price":2450,"sale_price":1850},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"L","size_bn":"L","stock":20,"price":2450,"sale_price":1850},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"XL","size_bn":"XL","stock":10,"price":2450,"sale_price":1850},{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","size_en":"XXL","size_bn":"XXL","stock":5,"price":2450,"sale_price":1850}]'::jsonb
   ),
   (
     'Premium Georgette Orna',
@@ -388,9 +393,10 @@ INSERT INTO products (
     'Luxury georgette Dupatta featuring golden lace borders. Lightweight, elegant, and perfect for matching with local outfits.',
     'à¦—à§‹à¦²à§à¦¡à§‡à¦¨ à¦²à§‡à¦¸ à¦¬à¦°à§à¦¡à¦¾à¦° à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾à¥¤ à¦“à¦œà¦¨à§‡ à¦¹à¦¾à¦²à¦•à¦¾, à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦à¦¬à¦‚ à¦¯à§‡à¦•à§‹à¦¨à§‹ à¦¥à§à¦°à¦¿-à¦ªà¦¿à¦¸à§‡à¦° à¦¸à¦¾à¦¥à§‡ à¦®à¦¾à¦¨à¦¾à¦¨à¦¸à¦‡à¥¤',
     'Elegant georgette dupatta with luxury golden lace border.',
-    'à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦—à§‹à¦²à§à¦¡à§‡à¦¨ à¦²à§‡à¦¸ à¦¬à¦°à§à¦¡à¦¾à¦° à¦¸à¦¹ à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾à¥¤',
+    'à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿à¦—à§‹à¦²à§à¦¡à§‡à¦¨ à¦²à§‡à¦¸ à¦¬à¦°à§à¦¡à¦¾à¦° à¦¸à¦¹ à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾à¥¤',
     true,
-    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1),
+    '[{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","stock":30,"price":1150,"sale_price":850},{"color_en":"Beige","color_bn":"à¦¬à§‡à¦‡à¦œ","color_code":"#BFA89E","stock":25,"price":1150,"sale_price":850},{"color_en":"Blue","color_bn":"à¦¨à§€à¦²","color_code":"#1E3A8A","stock":15,"price":1150,"sale_price":850}]'::jsonb
   ),
   (
     'Exclusive Velvet Prayer Tupi',
@@ -405,7 +411,8 @@ INSERT INTO products (
     'Premium velvet cap with inner soft lining.',
     'à¦¨à¦°à¦® à¦²à¦¾à¦‡à¦¨à¦¿à¦‚ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦­à§‡à¦²à¦­à§‡à¦Ÿ à¦Ÿà§à¦ªà¦¿à¥¤',
     false,
-    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1),
+    '[{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"S","size_bn":"S","stock":10,"price":550,"sale_price":399},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"M","size_bn":"M","stock":15,"price":550,"sale_price":399},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"L","size_bn":"L","stock":15,"price":550,"sale_price":399},{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","size_en":"XL","size_bn":"XL","stock":10,"price":550,"sale_price":399},{"color_en":"Navy","color_bn":"à¦¨à§‡à¦­à¦¿ à¦¬à§à¦²à§","color_code":"#0A1128","size_en":"S","size_bn":"S","stock":8,"price":550,"sale_price":399},{"color_en":"Navy","color_bn":"à¦¨à§‡à¦­à¦¿ à¦¬à§à¦²à§","color_code":"#0A1128","size_en":"M","size_bn":"M","stock":12,"price":550,"sale_price":399},{"color_en":"Navy","color_bn":"à¦¨à§‡à¦­à¦¿ à¦¬à§à¦²à§","color_code":"#0A1128","size_en":"L","size_bn":"L","stock":10,"price":550,"sale_price":399},{"color_en":"Maroon","color_bn":"à¦®à§‡à¦°à§à¦¨","color_code":"#4A0E17","size_en":"M","size_bn":"M","stock":10,"price":550,"sale_price":399},{"color_en":"Maroon","color_bn":"à¦®à§‡à¦°à§à¦¨","color_code":"#4A0E17","size_en":"L","size_bn":"L","stock":8,"price":550,"sale_price":399}]'::jsonb
   ),
   (
     'Premium Satin Hand Embroidered Rumal',
@@ -416,11 +423,12 @@ INSERT INTO products (
     120,
     ARRAY['/product-8.webp'],
     'Luxury satin handkerchief with hand-embroidered floral motifs. Perfect as a gift or for formal wear.',
-    'à¦¹à¦¾à¦¤à§‡ à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦•à¦°à¦¾ à¦«à§à¦²à§‡à¦° à¦®à§‹à¦Ÿà¦¿à¦« à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦°à§à¦®à¦¾à¦²à¥¤ à¤‰à¤ªà¤¹à¤¾à¤° à¦¹à¦¿à¦¸à§‡à¦¬à§‡ à¦¬à¦¾ à¦«à¦°à¦®à¦¾à¦² à¦¬à§à¦¯à¦¬à¦¹à¦¾à¦°à§‡à¦° à¦œà¦¨à§à¦¯ à¦ªà¦¾à¦°à¦«à§‡à¦•à§à¦Ÿà¥¤',
+    'à¦¹à¦¾à¦¤à§‡ à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦•à¦°à¦¾ à¦«à§à¦²à§‡à¦° à¦®à§‹à¦Ÿà¦¿à¦« à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦°à§à¦®à¦¾à¦²à¥¤ à¦‰à¦ªà¦¹à¦¾à¦° à¦¹à¦¿à¦¸à§‡à¦¬à§‡ à¦¬à¦¾ à¦«à¦°à¦®à¦¾à¦² à¦¬à§à¦¯à¦¬à¦¹à¦¾à¦°à§‡à¦° à¦œà¦¨à§à¦¯ à¦ªà¦¾à¦°à¦«à§‡à¦•à§à¦Ÿà¥¤',
     'Hand-embroidered floral satin luxury handkerchief.',
     'à¦¹à¦¾à¦¤à§‡ à¦¤à§ˆà¦°à¦¿ à¦«à§à¦²à§‡à¦° à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦°à§à¦®à¦¾à¦²à¥¤',
     false,
-    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1),
+    '[{"color_en":"White","color_bn":"à¦¸à¦¾à¦¦à¦¾","color_code":"#FFFFFF","stock":50,"price":290,"sale_price":199},{"color_en":"Pink","color_bn":"à¦—à§‹à¦²à¦¾à¦ªà§€","color_code":"#E8C5C8","stock":40,"price":290,"sale_price":199},{"color_en":"Peach","color_bn":"à¦ªà¦¿à¦š","color_code":"#F3D3C4","stock":30,"price":290,"sale_price":199}]'::jsonb
   ),
   (
     'Designer Cotton Dupatta Orna',
@@ -435,7 +443,8 @@ INSERT INTO products (
     'Pure cotton designer Orna with floral prints.',
     'à¦«à§à¦²à§‹à¦°à¦¾à¦² à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦“ à¦à¦¾à¦²à¦° à¦¸à¦¹ à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨à¦¾à¦° à¦“à§œà¦¨à¦¾à¥¤',
     false,
-    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1)
+    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1),
+    '[{"color_en":"Black","color_bn":"à¦•à¦¾à¦²à§‹","color_code":"#121212","stock":20,"price":950,"sale_price":690},{"color_en":"Pink","color_bn":"à¦—à§‹à¦²à¦¾à¦ªà§€","color_code":"#E8C5C8","stock":15,"price":950,"sale_price":690},{"color_en":"Blue","color_bn":"à¦¨à§€à¦²","color_code":"#1E3A8A","stock":15,"price":950,"sale_price":690}]'::jsonb
   )
 ON CONFLICT (slug) DO NOTHING;
 CREATE POLICY "Admin can view all customers" ON customers

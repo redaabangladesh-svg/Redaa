@@ -13,6 +13,7 @@ export interface CartItem {
   variant?: {
     color_en?: string;
     color_bn?: string;
+    color_code?: string;
     size_en?: string;
     size_bn?: string;
   };
