@@ -25,9 +25,10 @@ export default function ShopPageClient({ products }: { products: HomeProduct[] }
 
   const categories = [
     { id: 'all', label_en: 'All Categories', label_bn: 'সব ক্যাটাগরি' },
-    { id: 'flower-tub', label_en: 'Flower Tub', label_bn: 'ফ্লাওয়ার টাব' },
-    { id: 'tree-plant', label_en: 'Tree Plant', label_bn: 'ট্রি প্ল্যান্ট' },
-    { id: 'wall-stand', label_en: 'Wall Stand', label_bn: 'ওয়াল স্ট্যান্ড' },
+    { id: 'panjabi', label_en: 'Panjabi', label_bn: 'পাঞ্জাবি' },
+    { id: 'tupi', label_en: 'Tupi', label_bn: 'টুপি' },
+    { id: 'rumal', label_en: 'Rumal', label_bn: 'রুমাল' },
+    { id: 'orna', label_en: 'Orna', label_bn: 'ওড়না' },
   ];
 
   // Filtering
@@ -54,15 +55,15 @@ export default function ShopPageClient({ products }: { products: HomeProduct[] }
       <div className="pt-2 pb-4 border-b border-brand-border space-y-1.5">
         <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.25em] text-[#C6A15B] uppercase">
           <span className="h-px w-4 bg-[#C6A15B]" />
-          {locale === 'bn' ? 'সিসিলি' : 'Sicily'}
+          Redaa
         </span>
         <h1 className="font-serif text-2xl md:text-4xl font-semibold tracking-tight text-brand-text leading-tight">
-          {locale === 'bn' ? 'আমাদের ডেকোর কালেকশন' : 'Our Decor Collection'}
+          {locale === 'bn' ? 'আমাদের কালেকশন' : 'Our Collection'}
         </h1>
         <p className="text-xs md:text-sm text-brand-muted leading-relaxed font-medium">
           {locale === 'bn'
-            ? 'প্রিমিয়াম কোয়ালিটির ফ্লাওয়ার, ওয়াল আর্ট ফ্রেম এবং মেটাল হ্যাঙ্গার সংগ্রহ।'
-            : 'Explore our high-quality premium flowers, wall-art frames, and hanger stands.'}
+            ? 'প্রিমিয়াম কোয়ালিটির পাঞ্জাবি, টুপি, ওড়না ও রুমাল সংগ্রহ।'
+            : 'Explore our high-quality premium Panjabi, Tupi, Orna, and Rumal.'}
         </p>
       </div>
 

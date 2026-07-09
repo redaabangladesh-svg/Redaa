@@ -18,7 +18,7 @@ export default function SeasonalBanner() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    const dismissedAt = localStorage.getItem('sicily_seasonal_dismissed_at');
+    const dismissedAt = localStorage.getItem('redaa_seasonal_dismissed_at');
     const isDismissedToday = dismissedAt && Date.now() - Number(dismissedAt) < 24 * 60 * 60 * 1000;
 
     fetchSettings(['seasonal_banner_active', 'seasonal_banner_type']).then((s) => {
@@ -30,7 +30,7 @@ export default function SeasonalBanner() {
   }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem('sicily_seasonal_dismissed_at', String(Date.now()));
+    localStorage.setItem('redaa_seasonal_dismissed_at', String(Date.now()));
     setDismissed(true);
   };
 

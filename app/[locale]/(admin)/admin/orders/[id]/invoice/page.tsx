@@ -9,7 +9,7 @@ export default function OrderInvoicePage({ params }: { params: { id: string } })
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Pick<OrderItem, 'id' | 'product_name' | 'variant' | 'qty' | 'price'>[]>([]);
   const [store, setStore] = useState<{ name: string; phone: string; email: string; address: string }>({
-    name: 'Sicily', phone: '', email: '', address: '',
+    name: 'Redaa', phone: '', email: '', address: '',
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +30,7 @@ export default function OrderInvoicePage({ params }: { params: { id: string } })
         setItems(itemRows || []);
       }
       setStore({
-        name: settings.store_name || 'Sicily',
+        name: settings.store_name || 'Redaa',
         phone: settings.store_phone || '',
         email: settings.store_email || '',
         address: settings.store_address || '',
@@ -66,7 +66,7 @@ export default function OrderInvoicePage({ params }: { params: { id: string } })
 
       <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
         <div className="flex items-start gap-3">
-          <img src="/Sicily_icon.png" alt={store.name} className="h-12 w-12 object-contain flex-shrink-0" />
+          <img src="/logo.svg" alt={store.name} className="h-12 w-12 object-contain flex-shrink-0" />
           <div>
             <h1 className="text-2xl font-black">{store.name}</h1>
             {store.address && <p className="text-xs mt-1">{store.address}</p>}

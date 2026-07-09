@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getBlogPost, BLOG_POSTS } from '@/lib/blog';
 
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Sicily';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Redaa';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com/';
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));

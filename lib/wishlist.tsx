@@ -41,7 +41,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
           id: row.products.id,
           name_en: row.products.name_en,
           name_bn: row.products.name_bn,
-          image: row.products.images?.[0] || '/Sicily_icon.png',
+          image: row.products.images?.[0] || '/logo.svg',
           price: row.products.price,
           sale_price: row.products.sale_price,
         }));
@@ -51,7 +51,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loadFromLocalStorage = () => {
-    const stored = localStorage.getItem('sicily_wishlist');
+    const stored = localStorage.getItem('redaa_wishlist');
     if (stored) {
       try {
         setWishlistItems(JSON.parse(stored));
@@ -98,7 +98,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   // Guests: persist to localStorage whenever the list changes
   useEffect(() => {
     if (isLoaded && !customerId) {
-      localStorage.setItem('sicily_wishlist', JSON.stringify(wishlistItems));
+      localStorage.setItem('redaa_wishlist', JSON.stringify(wishlistItems));
     }
   }, [wishlistItems, isLoaded, customerId]);
 

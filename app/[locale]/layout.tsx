@@ -6,11 +6,11 @@ import { CartProvider } from '@/lib/cart';
 import { WishlistProvider } from '@/lib/wishlist';
 import '../globals.css';
 
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Sicily';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Redaa';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com/';
 
 // Sets a base for resolving any relative image path (e.g. og:image, favicon)
-// into an absolute URL — without this, Next.js can't turn "/Sicily_icon.png"
+// into an absolute URL — without this, Next.js can't turn "/logo.svg"
 // into a URL that Facebook/WhatsApp/Twitter crawlers can actually fetch, so
 // link previews silently show no image. Pages that define their own
 // `openGraph`/`twitter` metadata (products, blog, etc.) override this; every
@@ -18,24 +18,24 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: `${STORE_NAME} — প্রিমিয়াম হোম ডেকোর`,
+    default: `${STORE_NAME} — প্রিমিয়াম পাঞ্জাবি, টুপি, ওড়না ও রুমাল কালেকশন`,
     template: `%s | ${STORE_NAME}`,
   },
-  description: 'বাংলাদেশের সেরা প্রিমিয়াম হোম ডেকোর স্টোর। হাতে তৈরি ফ্লাওয়ার, ওয়াল আর্ট ও মেটাল হ্যাঙ্গার — সারাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করুন।',
+  description: 'বাংলাদেশের সেরা প্রিমিয়াম পোশাক ও লাইফস্টাইল ব্র্যান্ড। প্রিমিয়াম পাঞ্জাবি, টুপি, ওড়না ও রুমাল — সারাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করুন।',
   openGraph: {
-    title: `${STORE_NAME} — প্রিমিয়াম হোম ডেকোর`,
-    description: 'বাংলাদেশের সেরা প্রিমিয়াম হোম ডেকোর স্টোর। হাতে তৈরি, মনে রাখার মতো।',
+    title: `${STORE_NAME} — প্রিমিয়াম পাঞ্জাবি, টুপি, ওড়না ও রুমাল কালেকশন`,
+    description: 'বাংলাদেশের সেরা প্রিমিয়াম পোশাক ও লাইফস্টাইল ব্র্যান্ড। গুণগত মান ও আধুনিক ডিজাইন।',
     url: BASE_URL,
     siteName: STORE_NAME,
-    images: [{ url: '/Sicily_icon.png', width: 512, height: 512 }],
+    images: [{ url: '/logo.svg', width: 512, height: 512 }],
     locale: 'bn_BD',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${STORE_NAME} — প্রিমিয়াম হোম ডেকোর`,
-    description: 'বাংলাদেশের সেরা প্রিমিয়াম হোম ডেকোর স্টোর।',
-    images: ['/Sicily_icon.png'],
+    title: `${STORE_NAME} — প্রিমিয়াম পাঞ্জাবি, টুপি, ওড়না ও রুমাল কালেকশন`,
+    description: 'বাংলাদেশের সেরা প্রিমিয়াম পোশাক ও লাইফস্টাইল ব্র্যান্ড।',
+    images: ['/logo.svg'],
   },
 };
 

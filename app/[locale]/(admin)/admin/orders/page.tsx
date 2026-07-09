@@ -171,7 +171,7 @@ export default function AdminOrdersPage() {
             <span>{isBn ? 'অর্ডার তালিকা' : 'Orders Management'}</span>
           </h1>
           <p className="text-xs text-brand-muted mt-1.5 font-medium">
-            {isBn ? 'Sicily শপের অর্ডারসমূহ ট্র্যাক ও স্ট্যাটাস আপডেট করুন।' : 'Track and manage customer shopping invoices and workflow.'}
+            {isBn ? 'Redaa শপের অর্ডারসমূহ ট্র্যাক ও স্ট্যাটাস আপডেট করুন।' : 'Track and manage customer shopping invoices and workflow.'}
           </p>
         </div>
       </div>

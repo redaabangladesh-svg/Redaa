@@ -118,9 +118,9 @@ export default function ProductViewClient({ product, otherProducts }: { product:
           </div>
 
           {/* Price + Stock — single row, no empty space */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-secondary/5 to-brand-surface border border-brand-secondary/15 flex items-center justify-between gap-3 flex-wrap">
+          <div className="p-4 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-3xl font-bold text-brand-secondary">৳{activePrice}</span>
+              <span className="text-3xl font-bold text-brand-text">৳{activePrice}</span>
               {salePrice !== null && (
                 <span className="text-sm text-brand-muted line-through">৳{price}</span>
               )}
@@ -138,7 +138,7 @@ export default function ProductViewClient({ product, otherProducts }: { product:
                   {locale === 'bn' ? 'স্টকে নেই' : 'Out of Stock'}
                 </span>
               ) : stockCount <= 5 ? (
-                <span className="flex items-center gap-1 text-xs font-bold text-brand-primary whitespace-nowrap">
+                <span className="flex items-center gap-1 text-xs font-bold text-brand-secondary whitespace-nowrap">
                   <Flame className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
                   {locale === 'bn' ? `${stockCount}টি বাকি` : `${stockCount} left`}
                 </span>
@@ -188,7 +188,7 @@ export default function ProductViewClient({ product, otherProducts }: { product:
             <button
               onClick={handleAddToCart}
               disabled={stockCount === 0}
-              className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-white border border-brand-primary text-brand-primary font-bold text-xs sm:text-sm hover:bg-brand-surface transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
               <span>{locale === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
@@ -200,7 +200,7 @@ export default function ProductViewClient({ product, otherProducts }: { product:
             <button
               onClick={handleDirectOrder}
               disabled={stockCount === 0}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-gradient-to-br from-brand-secondary to-brand-secondary-dark text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-brand-secondary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary-alt text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow-lg hover:shadow-brand-primary/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Zap className="h-4 w-4" strokeWidth={1.75} />
               <span>{locale === 'bn' ? 'সরাসরি অর্ডার করুন' : 'Order Now'}</span>

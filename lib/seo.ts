@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import type { ProductDetail } from '@/lib/products-db';
 
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Sicily';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Redaa';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com/';
 
 export function generateProductMeta(product: ProductDetail, locale: string): Metadata {
   const isBn = locale === 'bn';

@@ -6,17 +6,17 @@
   --background: #FFFFFF;
   --foreground: #161513;
 
-  /* Refined Luxury palette — muted teal & wine, warm ivory surfaces, gold hairline accents */
+  /* Refined Luxury palette — premium matte black, natural red/gold accents */
   --color-bg:        #FFFFFF;  /* Clean white background */
   --color-surface:   #FAF7F1;  /* Warm ivory surface */
-  --color-primary:   #0B5D5C;  /* Deep muted teal — primary buttons & headers */
-  --color-primary-alt: #0F7573; /* Slightly lifted teal — hover state */
-  --color-secondary: #E6027C;  /* Bright pink/magenta (client-approved) — secondary accents */
-  --color-secondary-dark: #B80260; /* Darker pink — pressed state */
-  --color-secondary-light: #FF3D9A; /* Lighter pink — hover state */
+  --color-primary:   #121212;  /* Premium matte black — primary buttons & headers */
+  --color-primary-alt: #262626; /* Lifted gray-black — hover state */
+  --color-secondary: #DC2626;  /* Natural red — secondary accents & pricing */
+  --color-secondary-dark: #991B1B; /* Darker red — pressed state */
+  --color-secondary-light: #EF4444; /* Lighter red — hover state */
   --color-accent:    #C6A15B;  /* Warm gold — hairline accents, premium micro-highlights */
-  --color-ink:       #14201D;  /* Near-black ink for dark sections (footer, hero) */
-  --color-text:      #16130F;  /* Rich warm black for maximum readability */
+  --color-ink:       #0F0F10;  /* Rich matte black ink for dark sections (footer, hero) */
+  --color-text:      #121212;  /* Rich dark charcoal for maximum readability */
   --color-muted:     #6B6560;  /* Warm gray for secondary descriptions */
   --color-border:    #E9E3D8;  /* Warm hairline border */
 }
@@ -46,10 +46,10 @@ html {
 }
 
 .glassmorphism-dark {
-  background: rgba(5, 116, 118, 0.15);
+  background: rgba(18, 18, 18, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(5, 116, 118, 0.2);
+  border: 1px solid rgba(18, 18, 18, 0.12);
 }
 
 /* Marquee animation for announcement strip */

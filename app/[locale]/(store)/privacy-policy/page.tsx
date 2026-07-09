@@ -67,8 +67,8 @@ export default function PrivacyPolicyPage() {
 
         <div className="bg-brand-surface border border-brand-border rounded-2xl p-5 text-xs text-brand-muted leading-relaxed">
           {isBn
-            ? '* কোনো প্রশ্ন থাকলে info.sicilybd@gmail.com ঠিকানায় ইমেইল করুন অথবা ০১৭৮৮-৮২৫৪৯৫ নম্বরে যোগাযোগ করুন।'
-            : '* For any questions, email info.sicilybd@gmail.com or reach us at 01788-825495.'}
+            ? '* কোনো প্রশ্ন থাকলে redaabangladesh@gmail.com ঠিকানায় ইমেইল করুন অথবা ০১৯৭০-৪৫২৭২৩ নম্বরে যোগাযোগ করুন।'
+            : '* For any questions, email redaabangladesh@gmail.com or reach us at 01970-452723.'}
         </div>
       </div>
     </div>

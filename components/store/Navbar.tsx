@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Heart, Search, Crown, Flower2, Sprout, Frame } from 'lucide-react';
+import { Heart, Search, Crown, Sparkles, Gift, Shirt } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useWishlist } from '@/lib/wishlist';
@@ -15,10 +15,11 @@ export default function Navbar() {
   const [search, setSearch] = useState('');
 
   const categories = [
-    { en: 'All Categories',      bn: 'সব ক্যাটাগরি',            icon: Crown },
-    { en: 'Premium Flower Tub',  bn: 'প্রিমিয়াম ফ্লাওয়ার টাব',  icon: Flower2 },
-    { en: 'Premium Tree Plant',  bn: 'প্রিমিয়াম ট্রি প্ল্যান্ট', icon: Sprout },
-    { en: 'Premium Wall Stand',  bn: 'প্রিমিয়াম ওয়াল স্ট্যান্ড', icon: Frame },
+    { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: Crown },
+    { en: 'Panjabi',        bn: 'পাঞ্জাবি',     icon: Shirt },
+    { en: 'Tupi',           bn: 'টুপি',        icon: Crown },
+    { en: 'Rumal',          bn: 'রুমাল',       icon: Gift },
+    { en: 'Orna',           bn: 'ওড়না',        icon: Sparkles },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -62,17 +63,13 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Center: Brand Logo & Tagline (matches footer lockup) */}
-            <Link href="/" className="flex items-center gap-2.5 group select-none justify-self-center">
+            {/* Center: Brand Logo */}
+            <Link href="/" className="flex items-center group select-none justify-self-center">
               <img
-                src="/Sicily_icon.png"
-                alt="Sicily"
-                className="h-9 w-9 object-contain group-hover:scale-105 transition-transform duration-200"
+                src="/logo.svg"
+                alt="Redaa"
+                className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <div className="leading-none text-left">
-                <span className="block text-[19px] font-serif font-semibold tracking-tight text-brand-text">Sicily</span>
-                <span className="block max-w-[68px] text-[6px] leading-[1.3] font-semibold tracking-[0.05em] uppercase text-[#C6A15B] mt-1">Focus On Quality</span>
-              </div>
             </Link>
 
             {/* Right: Wishlist Action */}

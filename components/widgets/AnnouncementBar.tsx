@@ -12,7 +12,7 @@ export default function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    const dismissedAt = localStorage.getItem('sicily_announcement_dismissed_at');
+    const dismissedAt = localStorage.getItem('redaa_announcement_dismissed_at');
     const isDismissedToday = dismissedAt && Date.now() - Number(dismissedAt) < 24 * 60 * 60 * 1000;
 
     fetchSettings([
@@ -32,7 +32,7 @@ export default function AnnouncementBar() {
   }, [isBn]);
 
   const handleDismiss = () => {
-    localStorage.setItem('sicily_announcement_dismissed_at', String(Date.now()));
+    localStorage.setItem('redaa_announcement_dismissed_at', String(Date.now()));
     setDismissed(true);
   };
 

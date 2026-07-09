@@ -366,9 +366,9 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
           </div>
 
           {/* Pricing */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-secondary/5 to-brand-surface border border-brand-secondary/15 flex items-center justify-between gap-3 flex-wrap">
+          <div className="p-4 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-3xl font-bold text-brand-secondary">৳{activePrice}</span>
+              <span className="text-3xl font-bold text-brand-text">৳{activePrice}</span>
               {salePrice !== null && (
                 <span className="text-sm text-brand-muted line-through">৳{price}</span>
               )}
@@ -796,7 +796,7 @@ export default function ProductPageClient({ product, otherProducts, deliveryInsi
             )}
             <div className="border-t border-brand-border pt-3 flex justify-between items-baseline text-sm font-extrabold text-brand-text">
               <span>{locale === 'bn' ? 'সর্বমোট মূল্য' : 'Grand Total'}</span>
-              <span className="text-base font-black text-brand-secondary">৳{activePrice * quantity + shippingCharge - couponDiscount}</span>
+              <span className="text-base font-black text-brand-text">৳{activePrice * quantity + shippingCharge - couponDiscount}</span>
             </div>
           </div>
 

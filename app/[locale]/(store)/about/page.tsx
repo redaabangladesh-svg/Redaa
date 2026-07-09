@@ -37,8 +37,8 @@ export default function AboutPage() {
         icon={Info}
         title={isBn ? 'আমাদের সম্পর্কে' : 'About Us'}
         subtitle={isBn
-          ? 'আমরা ঢাকার একটি হাতে তৈরি হোম ডেকোর ব্র্যান্ড, যারা প্রতিটি ঘরকে সুন্দর ও প্রাণবন্ত করে তুলতে বিশ্বাসী।'
-          : "We're a Dhaka-based handcrafted home décor brand, dedicated to making every home beautiful and alive."}
+          ? 'আমরা একটি প্রিমিয়াম পোশাক ও লাইফস্টাইল ব্র্যান্ড, যা গুণগত মান এবং আধুনিক ডিজাইনে বিশ্বাসী।'
+          : "We're a premium clothing and lifestyle brand dedicated to quality and style."}
       />
 
       <div className="max-w-3xl mx-auto px-6 py-10 sm:py-14 space-y-10">
@@ -48,8 +48,8 @@ export default function AboutPage() {
           </h2>
           <p className="text-sm text-brand-muted leading-relaxed">
             {isBn
-              ? 'Sicily শুরু হয়েছিল একটি ছোট্ট স্বপ্ন দিয়ে — বাংলাদেশের প্রতিটি ঘরে প্রকৃতির ছোঁয়া ও প্রিমিয়াম সাজসজ্জা পৌঁছে দেওয়া। ফ্লাওয়ার টাব, হ্যাঙ্গার, ওয়াল স্ট্যান্ড থেকে শুরু করে হাতে তৈরি প্রতিটি পণ্যে আমরা গুণগত মান ও নান্দনিকতাকে সবচেয়ে বেশি গুরুত্ব দিই। আমাদের লক্ষ্য শুধু পণ্য বিক্রি করা নয়, বরং প্রতিটি গ্রাহকের ঘরকে আরও সুন্দর ও আরামদায়ক করে তোলা।'
-              : 'Sicily began with a simple dream — to bring a touch of nature and premium décor into every Bangladeshi home. From flower tubs and hangers to wall stands, every handcrafted piece we make puts quality and aesthetics first. Our goal isn\'t just to sell products — it\'s to make every customer\'s home more beautiful and comfortable.'}
+              ? 'Redaa শুরু হয়েছিল একটি ছোট্ট স্বপ্ন নিয়ে — আমাদের গ্রাহকদের জন্য প্রিমিয়াম কোয়ালিটির পাঞ্জাবি, টুপি, রুমাল ও ওড়নার একটি অনন্য কালেকশন পৌঁছে দেওয়া। প্রতিটি পণ্যের ক্ষেত্রে আমরা সর্বোচ্চ গুণগত মান এবং আরামদায়ক কাপড়কে সবচেয়ে বেশি গুরুত্ব দিই। আমাদের লক্ষ্য শুধু পণ্য বিক্রি করা নয়, বরং আপনাদের প্রতিটি বিশেষ মুহূর্তকে আরও সুন্দর ও আনন্দময় করে তোলা।'
+              : 'Redaa began with a simple dream — to bring premium clothing, Panjabi, Tupi, Rumal, and Orna collections to our customers. We prioritize quality, aesthetics, and premium comfort in every single piece. Our goal is to provide our customers with stylish, elegant, and high-quality lifestyle wear for every occasion.'}
           </p>
         </div>
 

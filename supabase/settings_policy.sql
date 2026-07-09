@@ -5,4 +5,4 @@ GRANT INSERT, UPDATE ON settings TO authenticated;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view settings" ON settings FOR SELECT USING (true);
 CREATE POLICY "Admin can manage settings" ON settings
-  FOR ALL USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR ALL USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');

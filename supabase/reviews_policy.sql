@@ -9,4 +9,4 @@ CREATE POLICY "Public can view approved reviews" ON reviews
   FOR SELECT USING (is_approved = true);
 
 CREATE POLICY "Admin can manage reviews" ON reviews
-  FOR ALL USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR ALL USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');

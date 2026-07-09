@@ -38,37 +38,37 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: isBn ? 'ফোন করুন' : 'Call Us',
-      value: '01788-825495',
-      href: 'tel:+8801788825495',
+      value: '01970452723',
+      href: 'tel:+8801970452723',
       color: 'text-brand-primary bg-brand-primary/10'
     },
     {
       icon: WhatsAppIcon,
       title: isBn ? 'হোয়াটসঅ্যাপ' : 'WhatsApp',
-      value: '01788-825495',
-      href: 'https://wa.me/8801788825495',
+      value: '01970452723',
+      href: 'https://wa.me/8801970452723',
       color: 'text-[#25D366] bg-[#25D366]/10'
     },
     {
       icon: Mail,
       title: isBn ? 'ইমেইল করুন' : 'Email Us',
-      value: 'info.sicilybd@gmail.com',
-      href: 'mailto:info.sicilybd@gmail.com',
+      value: 'redaabangladesh@gmail.com',
+      href: 'mailto:redaabangladesh@gmail.com',
       color: 'text-brand-secondary bg-brand-secondary/10'
     },
     {
       icon: MapPin,
       title: isBn ? 'ঠিকানা' : 'Address',
-      value: isBn ? 'ঢাকা, বাংলাদেশ' : 'Dhaka, Bangladesh',
+      value: isBn ? 'যাত্রাবাড়ী, ঢাকা' : 'Jatrabari, Dhaka',
       href: undefined,
       color: 'text-[#C6A15B] bg-[#C6A15B]/10'
     }
   ];
 
   const social = [
-    { icon: FacebookIcon, href: 'https://www.facebook.com/sicily7273', label: 'Facebook' },
-    { icon: InstagramIcon, href: 'https://www.instagram.com/sicilybd7273', label: 'Instagram' },
-    { icon: WhatsAppIcon, href: 'https://wa.me/8801788825495', label: 'WhatsApp' }
+    { icon: FacebookIcon, href: 'https://www.facebook.com/redaabangladesh', label: 'Facebook' },
+    { icon: InstagramIcon, href: 'https://www.instagram.com/redaabangladesh', label: 'Instagram' },
+    { icon: WhatsAppIcon, href: 'https://wa.me/8801970452723', label: 'WhatsApp' }
   ];
 
   return (

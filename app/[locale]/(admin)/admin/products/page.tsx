@@ -128,7 +128,7 @@ export default function AdminProductsPage() {
                     <tr key={p.id} className="hover:bg-brand-surface/40">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <img src={p.images?.[0] || '/Sicily_icon.png'} alt={name} className="h-10 w-10 rounded-lg object-cover border border-brand-border flex-shrink-0" />
+                          <img src={p.images?.[0] || '/logo.svg'} alt={name} className="h-10 w-10 rounded-lg object-cover border border-brand-border flex-shrink-0" />
                           <div className="min-w-0">
                             <span className="font-extrabold text-brand-text text-xs block truncate max-w-[200px]">{name}</span>
                           </div>

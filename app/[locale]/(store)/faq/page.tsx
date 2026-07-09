@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { HelpCircle } from 'lucide-react';
 import InfoPageHeader from '@/components/store/InfoPageHeader';
 
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Sicily';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Redaa';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com/';
 
 export const metadata: Metadata = {
   title: `সচরাচর জিজ্ঞাসিত প্রশ্নাবলী | ${STORE_NAME}`,
@@ -13,16 +13,16 @@ export const metadata: Metadata = {
 
 const FAQS = [
   {
-    q_bn: 'ঢাকায় সুন্দর ফুলের সাজসজ্জা কোথায় পাবো?',
-    q_en: 'Where can I find beautiful flower décor in Dhaka?',
-    a_bn: `${STORE_NAME}-তে আমরা হাতে তৈরি ফুলের টব, বার্ড নেস্ট ও ওয়াল স্ট্যান্ড সরবরাহ করি — সারা বাংলাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করা যায়।`,
-    a_en: `At ${STORE_NAME} we supply handcrafted flower tubs, bird nests, and wall stands — delivered anywhere in Bangladesh with cash on delivery.`,
+    q_bn: 'প্রিমিয়াম কোয়ালিটির পাঞ্জাবি, টুপি ও ওড়না কোথায় পাবো?',
+    q_en: 'Where can I find premium quality Panjabi, Tupi, and Orna?',
+    a_bn: `${STORE_NAME}-তে আমরা প্রিমিয়াম পাঞ্জাবি, টুপি, রুমাল ও ওড়না সরবরাহ করি — সারা বাংলাদেশে ক্যাশ অন ডেলিভারিতে অর্ডার করা যায়।`,
+    a_en: `At ${STORE_NAME} we supply premium Panjabi, Tupi, Rumal, and Orna — delivered anywhere in Bangladesh with cash on delivery.`,
   },
   {
-    q_bn: 'হ্যান্ডমেড হোম ডেকোর কোথায় কিনবো?',
-    q_en: 'Where can I buy handmade home décor?',
-    a_bn: `${STORE_NAME}-এর শপ পেজে আমাদের সম্পূর্ণ কালেকশন দেখুন — প্রতিটি পণ্য দেশীয় কারিগরদের হাতে তৈরি।`,
-    a_en: `Browse our full collection on the shop page — every item is handcrafted by local artisans.`,
+    q_bn: 'প্রিমিয়াম পোশাক ও লাইফস্টাইল পণ্য কোথায় কিনবো?',
+    q_en: 'Where can I buy premium clothing and lifestyle products?',
+    a_bn: `${STORE_NAME}-এর শপ পেজে আমাদের সম্পূর্ণ কালেকশন দেখুন — প্রতিটি পণ্য উন্নতমানের ফেব্রিক ও সুনিপুণ কারুকার্যে তৈরি।`,
+    a_en: `Browse our full collection on the shop page — every item is crafted with premium fabrics and excellent workmanship.`,
   },
   {
     q_bn: 'ডেলিভারি চার্জ কত এবং কতদিনের মধ্যে পাব?',

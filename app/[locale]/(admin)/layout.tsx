@@ -73,13 +73,12 @@ export default function AdminLayout({
           <div className="h-16 flex items-center px-6 border-b border-white/10">
             <Link href={`/${currentLocale}`} className="flex items-center gap-2.5 group">
               <img
-                src="/Sicily_icon.png"
-                alt="Sicily"
-                className="h-8 w-8 object-contain group-hover:scale-105 transition-transform duration-200"
+                src="/logo.svg"
+                alt="Redaa"
+                className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-200 invert"
               />
               <div className="leading-none">
-                <span className="block text-[15px] font-serif font-semibold tracking-tight text-white">Sicily</span>
-                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-brand-accent mt-0.5">অ্যাডমিন প্যানেল</span>
+                <span className="block text-[7px] font-semibold tracking-[0.18em] uppercase text-brand-accent">অ্যাডমিন প্যানেল</span>
               </div>
             </Link>
           </div>

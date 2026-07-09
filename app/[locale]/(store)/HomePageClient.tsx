@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { ArrowRight, Crown, Flower2, Sprout, Frame, Sparkles, Percent, Gift } from 'lucide-react';
+import { ArrowRight, Crown, Sparkles, Percent, Gift, Shirt } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import type { HomeProduct } from '@/lib/products';
@@ -10,19 +10,20 @@ import InstagramFeed from '@/components/widgets/InstagramFeed';
 
 /* ── BANNER SLIDES (image-only — all copy/CTA lives inside the banner artwork) ── */
 const SLIDES = [
-  { image: '/header-image-1.png', alt_en: 'Online Payment — Instant 10% Discount', alt_bn: 'অনলাইন পেমেন্টে ইনস্ট্যান্ট ১০% ডিসকাউন্ট' },
-  { image: '/header-image-2.png', alt_en: 'Premium Swing Stand', alt_bn: 'প্রিমিয়াম দোলনা স্ট্যান্ড' },
-  { image: '/header-image-3.png', alt_en: "Decorate Your Home Naturally", alt_bn: 'প্রকৃতির ছোঁয়ায় সাজুক আপনার ঘর' },
-  { image: '/header-image-4.png', alt_en: 'Premium Bird Nest', alt_bn: 'প্রিমিয়াম বার্ড নেস্ট' },
-  { image: '/header-image-5.png', alt_en: 'Premium Swing Stand', alt_bn: 'প্রিমিয়াম দোলনা স্ট্যান্ড' },
+  { image: '/header-image-1.webp', alt_en: 'Redaa — Premium Panjabi, Tupi, Rumal & Orna', alt_bn: 'Redaa — প্রিমিয়াম পাঞ্জাবি, টুপি, ওড়না ও রুমাল' },
+  { image: '/header-image-2.webp', alt_en: 'Elegant Panjabi Collection', alt_bn: 'অভিজাত পাঞ্জাবি কালেকশন' },
+  { image: '/header-image-3.webp', alt_en: 'With You, Always', alt_bn: 'সবসময় আপনার সাথে' },
+  { image: '/header-image-4.webp', alt_en: 'Exclusive Tupi & Rumal', alt_bn: 'এক্সক্লুসিভ টুপি ও রুমাল' },
+  { image: '/header-image-5.webp', alt_en: 'New Arrival — Eid Special', alt_bn: 'নতুন আগমন — ঈদ স্পেশাল' },
 ];
 
 /* ── SHOP BY CATEGORIES DATA ── */
 const CAT_ICONS = [
   { en: 'All Categories', bn: 'সব ক্যাটাগরি', icon: Crown, bg: 'bg-brand-surface text-brand-primary' },
-  { en: 'Flower Tub',  bn: 'ফ্লাওয়ার টাব',  icon: Flower2, bg: 'bg-brand-surface text-brand-primary' },
-  { en: 'Tree Plant',  bn: 'ট্রি প্ল্যান্ট', icon: Sprout, bg: 'bg-brand-surface text-brand-primary' },
-  { en: 'Wall Stand',  bn: 'ওয়াল স্ট্যান্ড', icon: Frame, bg: 'bg-brand-surface text-brand-primary' },
+  { en: 'Panjabi',  bn: 'পাঞ্জাবি',  icon: Shirt, bg: 'bg-brand-surface text-brand-primary' },
+  { en: 'Tupi',  bn: 'টুপি', icon: Crown, bg: 'bg-brand-surface text-brand-primary' },
+  { en: 'Rumal',  bn: 'রুমাল', icon: Gift, bg: 'bg-brand-surface text-brand-primary' },
+  { en: 'Orna',  bn: 'ওড়না', icon: Sparkles, bg: 'bg-brand-surface text-brand-primary' },
 ];
 
 /* ── HERO SLIDER ────────────────────────────────────── */
@@ -63,7 +64,7 @@ function HeroSlider({ locale }: { locale: string }) {
             className="h-1 rounded-full transition-all duration-300"
             style={{
               width: active === i ? 22 : 6,
-              background: active === i ? '#E6027C' : 'rgba(255,255,255,0.6)',
+              background: active === i ? '#C6A15B' : 'rgba(255,255,255,0.6)',
             }}
           />
         ))}
@@ -187,8 +188,8 @@ export default function HomePageClient({ initialProducts }: { initialProducts: H
       ══════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        {/* Left card Promo — wine-toned signature card */}
-        <div className="relative rounded-xl p-6 overflow-hidden bg-gradient-to-br from-brand-secondary to-brand-secondary-dark text-white flex flex-col justify-between min-h-[120px] border border-white/10">
+        {/* Left card Promo — matte black signature card */}
+        <div className="relative rounded-xl p-6 overflow-hidden bg-gradient-to-br from-brand-primary to-brand-ink text-white flex flex-col justify-between min-h-[120px] border border-white/10">
           <div className="absolute right-4 bottom-2 opacity-10">
             <Percent className="h-20 w-20" />
           </div>

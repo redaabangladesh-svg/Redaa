@@ -12,11 +12,11 @@ CREATE POLICY "Anyone can add items to an order" ON order_items
 -- Admin dashboard runs as a regular authenticated (Google-logged-in) browser
 -- session, not the service role, so it needs its own read/write policies.
 CREATE POLICY "Admin can view all orders" ON orders
-  FOR SELECT USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR SELECT USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 CREATE POLICY "Admin can update all orders" ON orders
-  FOR UPDATE USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR UPDATE USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 CREATE POLICY "Admin can view all order items" ON order_items
-  FOR SELECT USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR SELECT USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 
 -- Auto-generate order_number (e.g. ORD-2026-0001) on insert
 CREATE SEQUENCE IF NOT EXISTS orders_order_number_seq START 1;

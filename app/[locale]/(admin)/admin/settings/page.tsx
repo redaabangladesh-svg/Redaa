@@ -13,7 +13,7 @@ export default function AdminSettingsPage() {
   const [outsideFee, setOutsideFee] = useState('150');
   const [threshold, setThreshold] = useState('500');
 
-  const [storeName, setStoreName] = useState('Sicily');
+  const [storeName, setStoreName] = useState('Redaa');
   const [storePhone, setStorePhone] = useState('');
   const [storeEmail, setStoreEmail] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
@@ -148,7 +148,7 @@ export default function AdminSettingsPage() {
                 type="tel"
                 value={storePhone}
                 onChange={(e) => setStorePhone(e.target.value)}
-                placeholder="01788-825495"
+                placeholder="01970452723"
                 className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
               />
             </div>
@@ -158,7 +158,7 @@ export default function AdminSettingsPage() {
                 type="email"
                 value={storeEmail}
                 onChange={(e) => setStoreEmail(e.target.value)}
-                placeholder="info.sicilybd@gmail.com"
+                placeholder="redaabangladesh@gmail.com"
                 className="w-full bg-brand-surface border border-brand-border rounded-xl py-2.5 px-4 text-xs text-brand-text outline-none focus:border-brand-primary transition-all-custom font-bold"
               />
             </div>

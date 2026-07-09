@@ -1177,10 +1177,10 @@ Verify after modifications:
 2. **Admin panel** — Content adding pages contain input fields for product details.
 3. **Phone format** — `017XXXXXXXX` format (11 digits, no +88).
 4. **Currency** — Use the ৳ symbol.
-5. **Images** — Served from local `/public` assets (e.g., `bannerphn.jpeg`, `Banner1.png`, `SSLCommerz-Pay-With-logo-All-Size-01.png`, `Sicily_icon.png`).
+5. **Images** — Served from local `/public` assets (e.g., `bannerphn.jpeg`, `Banner1.png`, `SSLCommerz-Pay-With-logo-All-Size-01.png`, `Redaa_icon.png`).
 6. **Order number format** — `ORD-2025-0001` (auto-incrementing in localStorage database).
 7. **COD default** — Cash on Delivery as the default payment option.
 8. **District list** — Standard dropdown containing all districts of Bangladesh.
 9. **Responsive** — Mobile-first, header cart and search elements optimized for clean view.
-10. **Color Usage & Typography** — Descriptions use dark/black variables for reading accessibility, theme accents (Teal, Pink) are for highlight CTAs and badges only.
+10. **Color Usage & Typography** — Descriptions use dark/black variables for reading accessibility, theme accents (Matte Black, Red, Gold) are for highlight CTAs and badges only.
 

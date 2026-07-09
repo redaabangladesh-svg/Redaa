@@ -11,7 +11,7 @@ export default function ExitIntentPopup() {
 
   useEffect(() => {
     // Check if already shown in this session
-    const shown = sessionStorage.getItem('sicily_exit_intent_shown');
+    const shown = sessionStorage.getItem('redaa_exit_intent_shown');
     if (shown) return;
 
     // Desktop Mouse Leave Trigger
@@ -28,7 +28,7 @@ export default function ExitIntentPopup() {
 
     const triggerPopup = () => {
       setIsOpen(true);
-      sessionStorage.setItem('sicily_exit_intent_shown', 'true');
+      sessionStorage.setItem('redaa_exit_intent_shown', 'true');
       document.removeEventListener('mouseleave', handleMouseLeave);
       clearTimeout(mobileTimer);
     };

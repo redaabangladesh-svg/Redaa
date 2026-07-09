@@ -28,7 +28,7 @@ function mapRow(row: ProductRow, rating?: number, reviewCount?: number): HomePro
     name_bn: row.name_bn,
     price: row.price,
     sale_price: row.sale_price,
-    image: row.images?.[0] || '/Sicily_icon.png',
+    image: row.images?.[0] || '/logo.svg',
     discount,
     sizes: (row.variants || []).map((v) => v.size_en || '').filter(Boolean),
     stock: row.stock,
@@ -152,7 +152,7 @@ export async function fetchProductDetail(slugOrId: string, client?: SupabaseClie
 
   return {
     ...mapRow(row, avgRating, reviewCount),
-    images: row.images && row.images.length > 0 ? row.images : ['/Sicily_icon.png'],
+    images: row.images && row.images.length > 0 ? row.images : ['/logo.svg'],
     description_en: row.description_en,
     description_bn: row.description_bn,
     short_description_en: row.short_description_en,

@@ -15,7 +15,7 @@ export default function ViewerCount({ productId, locale }: { productId: string; 
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    const key = `sicily_viewer_${productId}`;
+    const key = `redaa_viewer_${productId}`;
     const stored = sessionStorage.getItem(key);
     if (stored) {
       setCount(Number(stored));

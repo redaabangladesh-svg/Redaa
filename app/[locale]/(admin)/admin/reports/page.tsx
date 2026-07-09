@@ -117,7 +117,7 @@ export default function AdminReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sicily_report_${range}.csv`;
+    a.download = `redaa_report_${range}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

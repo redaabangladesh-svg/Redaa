@@ -7,7 +7,7 @@ import { Camera } from 'lucide-react';
 import { fetchSettings } from '@/lib/settings';
 
 const FALLBACK_IMAGES = ['/02.09.23.jpg', '/37-5.jpg', '/38-7.jpg', '/47-3.jpg', '/49.jpg', '/51-2.jpg'];
-const FACEBOOK_URL = 'https://www.facebook.com/sicily7273';
+const FACEBOOK_URL = 'https://www.facebook.com/redaabangladesh';
 
 export default function InstagramFeed({ compact = false }: { compact?: boolean }) {
   const locale = useLocale();

@@ -27,15 +27,15 @@ CREATE POLICY "Anyone can add items to an order" ON order_items
 
 DROP POLICY IF EXISTS "Admin can view all orders" ON orders;
 CREATE POLICY "Admin can view all orders" ON orders
-  FOR SELECT USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR SELECT USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 
 DROP POLICY IF EXISTS "Admin can update all orders" ON orders;
 CREATE POLICY "Admin can update all orders" ON orders
-  FOR UPDATE USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR UPDATE USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 
 DROP POLICY IF EXISTS "Admin can view all order items" ON order_items;
 CREATE POLICY "Admin can view all order items" ON order_items
-  FOR SELECT USING (auth.jwt() ->> 'email' = 'info.sicilybd@gmail.com');
+  FOR SELECT USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 
 DROP POLICY IF EXISTS "Customers view own orders" ON orders;
 CREATE POLICY "Customers view own orders" ON orders

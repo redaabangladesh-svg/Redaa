@@ -4,12 +4,12 @@ import { BookOpen, ArrowRight } from 'lucide-react';
 import InfoPageHeader from '@/components/store/InfoPageHeader';
 import { BLOG_POSTS } from '@/lib/blog';
 
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Sicily';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Redaa';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com/';
 
 export const metadata: Metadata = {
   title: `ব্লগ | ${STORE_NAME}`,
-  description: 'ঘর সাজানো, হোম ডেকোর টিপস ও আইডিয়া নিয়ে আমাদের ব্লগ পোস্টসমূহ।',
+  description: 'পোশাকের যত্ন, পাঞ্জাবি ও ফ্যাশন টিপস নিয়ে আমাদের ব্লগ পোস্টসমূহ।',
   alternates: { canonical: `${BASE_URL}/blog` },
 };
 
