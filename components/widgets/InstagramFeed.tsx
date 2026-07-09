@@ -6,7 +6,14 @@ import Image from 'next/image';
 import { Camera } from 'lucide-react';
 import { fetchSettings } from '@/lib/settings';
 
-const FALLBACK_IMAGES = ['/02.09.23.jpg', '/37-5.jpg', '/38-7.jpg', '/47-3.jpg', '/49.jpg', '/51-2.jpg'];
+const FALLBACK_IMAGES = [
+  '/product-1.webp',
+  '/product-2.webp',
+  '/product-3.webp',
+  '/product-4.webp',
+  '/header-image-1.webp',
+  '/header-image-2.webp'
+];
 const FACEBOOK_URL = 'https://www.facebook.com/redaabangladesh';
 
 export default function InstagramFeed({ compact = false }: { compact?: boolean }) {

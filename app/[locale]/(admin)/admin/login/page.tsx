@@ -13,20 +13,18 @@ export default function AdminLoginPage() {
   );
 }
 
-import { useLocale } from 'next-intl';
-
 function AdminLoginForm() {
   const [signingIn, setSigningIn] = useState(false);
   const searchParams = useSearchParams();
-  const locale = useLocale();
   const unauthorized = searchParams.get('error') === 'unauthorized';
 
   const handleGoogleLogin = async () => {
     setSigningIn(true);
     const supabase = createClient();
+    // Admin routes are locale-free — do not prefix `next` with the locale
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/admin` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/admin` },
     });
   };
 

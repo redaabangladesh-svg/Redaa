@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/account';
 
@@ -12,10 +12,12 @@ export async function GET(request: Request) {
 
     if (!error && data.user) {
       // Admin login attempts must match the allowlist, not just any Google account
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com';
+      // Strip trailing slash — a trailing slash in the env var would otherwise
+      // produce a double-slash redirect (e.g. https://host//admin) that fails to route
+      const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com').replace(/\/+$/, '');
 
       if (next.includes('/admin')) {
-        const adminEmails = (process.env.ADMIN_EMAILS || 'redaabangladesh@gmail.com')
+        const adminEmails = (process.env.ADMIN_EMAILS || '')
           .split(',')
           .map((e) => e.trim().toLowerCase())
           .filter(Boolean);
@@ -44,6 +46,6 @@ export async function GET(request: Request) {
     }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com';
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL || 'https://www.redaarabia.com').replace(/\/+$/, '');
   return NextResponse.redirect(`${baseUrl}/account?error=auth_failed`);
 }
