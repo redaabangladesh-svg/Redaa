@@ -294,6 +294,150 @@ CREATE POLICY "Admin can manage products" ON products
   FOR ALL USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 CREATE POLICY "Admin can manage categories" ON categories
   FOR ALL USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
+
+
+-- Seeding mock products for Redaa catalog
+INSERT INTO products (
+  name_en, name_bn, slug, price, sale_price, stock, images,
+  description_en, description_bn, short_description_en, short_description_bn,
+  is_featured, category_id
+) VALUES
+  (
+    'Premium Embroidered Black Panjabi',
+    'à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦¬à§à¦²à§à¦¯à¦¾à¦• à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿',
+    'premium-embroidered-black-panjabi',
+    2850,
+    2250,
+    50,
+    ARRAY['/product-1.webp'],
+    'Crafted from premium quality cotton fabric with intricate embroidery on the collar and placket. Perfect for festivals and special occasions.',
+    'à¦•à¦²à¦¾à¦° à¦à¦¬à¦‚ à¦ªà§à¦²à§à¦¯à¦¾à¦•à§‡à¦Ÿà§‡ à¦¸à§‚à¦•à§à¦·à§à¦® à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦•à¦¾à¦œ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦®à¦¾à¦¨à§‡à¦° à¦¸à§à¦¤à¦¿ à¦•à¦¾à¦ªà¦¡à¦¼ à¦¥à§‡à¦•à§‡ à¦¤à§ˆà¦°à¦¿à¥¤ à¦‰à§Žà¦¸à¦¬ à¦à¦¬à¦‚ à¦¬à¦¿à¦¶à§‡à¦· à¦…à¦¨à§à¦·à§à¦ à¦¾à¦¨à§‡à¦° à¦œà¦¨à§à¦¯ à¦‰à¦ªà¦¯à§à¦•à§à¦¤à¥¤',
+    'Premium cotton embroidered Panjabi for Eid and special occasions.',
+    'à¦ˆà¦¦ à¦à¦¬à¦‚ à¦¬à¦¿à¦¶à§‡à¦· à¦…à¦¨à§à¦·à§à¦ à¦¾à¦¨à§‡à¦° à¦œà¦¨à§à¦¯ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦•à¦Ÿà¦¨ à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿à¥¤',
+    true,
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+  ),
+  (
+    'Classic Kabli Panjabi Suit',
+    'à¦•à§à¦²à¦¾à¦¸à¦¿à¦• à¦•à¦¾à¦¬à¦²à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿ à¦¸à§à¦Ÿ',
+    'classic-kabli-panjabi-suit',
+    3450,
+    2850,
+    35,
+    ARRAY['/product-2.webp'],
+    'Elegant Kabli suit featuring a matching pajama. Designed with high-quality fabric for ultimate comfort and style.',
+    'à¦®à§à¦¯à¦¾à¦šà¦¿à¦‚ à¦ªà¦¾à§Ÿà¦œà¦¾à¦®à¦¾ à¦¸à¦¹ à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦•à¦¾à¦¬à¦²à¦¿ à¦¸à§‡à¦Ÿà¥¤ à¦¸à¦°à§à¦¬à§‹à¦šà§à¦š à¦†à¦°à¦¾à¦® à¦à¦¬à¦‚ à¦¸à§à¦Ÿà¦¾à¦‡à¦²à§‡à¦° à¦œà¦¨à§à¦¯ à¦‰à¦šà§à¦š à¦®à¦¾à¦¨à§‡à¦° à¦•à¦¾à¦ªà¦¡à¦¼ à¦¦à¦¿à¦¯à¦¼à§‡ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨ à¦•à¦°à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡à¥¤',
+    'Premium Kabli Panjabi suit set with matching pajama.',
+    'à¦®à§à¦¯à¦¾à¦šà¦¿à¦‚ à¦ªà¦¾à§Ÿà¦œà¦¾à¦®à¦¾ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦•à¦¾à¦¬à¦²à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿ à¦¸à§‡à¦Ÿà¥¤',
+    true,
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+  ),
+  (
+    'Handmade Premium Prayer Tupi',
+    'à¦¹à§à¦¯à¦¾à¦¨à§à¦¡à¦®à§‡à¦¡ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦¨à¦¾à¦®à¦¾à¦œà§‡à¦° à¦Ÿà§à¦ªà¦¿',
+    'handmade-premium-prayer-tupi',
+    650,
+    490,
+    100,
+    ARRAY['/product-3.webp'],
+    'Beautifully hand-crafted premium prayer cap. Soft, breathable cotton threads, comfortable for all-day wear.',
+    'à¦¸à§à¦¨à§à¦¦à¦°à¦­à¦¾à¦¬à§‡ à¦¹à¦¾à¦¤à§‡ à¦¬à§‹à¦¨à¦¾ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦Ÿà§à¦ªà¦¿à¥¤ à¦¨à¦°à¦®, à¦†à¦°à¦¾à¦®à¦¦à¦¾à§Ÿà¦• à¦¸à§à¦¤à¦¿ à¦¸à§à¦¤à¦¾ à¦¦à¦¿à§Ÿà§‡ à¦¤à§ˆà¦°à¦¿, à¦¯à¦¾ à¦¸à¦¾à¦°à¦¾à¦¦à¦¿à¦¨ à¦ªà¦°à¦¾à¦° à¦œà¦¨à§à¦¯ à¦†à¦°à¦¾à¦®à¦¦à¦¾à¦¯à¦¼à¦•à¥¤',
+    'Handcrafted premium quality soft cotton prayer cap.',
+    'à¦¹à¦¾à¦¤à§‡ à¦¤à§ˆà¦°à¦¿ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦®à¦¾à¦¨à§‡à¦° à¦¨à¦°à¦® à¦¸à§à¦¤à¦¿ à¦Ÿà§à¦ªà¦¿à¥¤',
+    true,
+    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1)
+  ),
+  (
+    'Pure Cotton Premium Rumal',
+    'à¦ªà¦¿à¦‰à¦° à¦•à¦Ÿà¦¨ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦°à§à¦®à¦¾à¦²',
+    'pure-cotton-premium-rumal',
+    180,
+    130,
+    200,
+    ARRAY['/product-4.webp'],
+    'High absorbance pure cotton handkerchief. Soft texture that is gentle on skin, durable stitched edges.',
+    'à¦‰à¦šà§à¦š à¦¶à§‹à¦·à¦£ à¦•à§à¦·à¦®à¦¤à¦¾ à¦¸à¦®à§à¦ªà¦¨à§à¦¨ à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦°à§à¦®à¦¾à¦²à¥¤ à¦¨à¦°à¦® à¦Ÿà§‡à¦•à§à¦¸à¦šà¦¾à¦° à¦¯à¦¾ à¦¤à§à¦¬à¦•à§‡ à¦†à¦°à¦¾à¦® à¦¦à§‡à§Ÿ, à¦Ÿà§‡à¦•à¦¸à¦‡ à¦¸à§‡à¦²à¦¾à¦‡ à¦•à¦°à¦¾ à¦ªà§à¦°à¦¾à¦¨à§à¦¤à¥¤',
+    'Highly absorbent, ultra-soft pure cotton handkerchief.',
+    'à¦‰à¦šà§à¦š à¦¶à§‹à¦·à¦£ à¦•à§à¦·à¦®à¦¤à¦¾ à¦¸à¦®à§à¦ªà¦¨à§à¦¨, à¦…à¦¤à¦¿-à¦¨à¦°à¦® à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦°à§à¦®à¦¾à¦²à¥¤',
+    true,
+    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1)
+  ),
+  (
+    'Royal Cotton White Panjabi',
+    'à¦°à¦¯à¦¼à§à¦¯à¦¾à¦² à¦•à¦Ÿà¦¨ à¦¹à§‹à¦¯à¦¼à¦¾à¦‡à¦Ÿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿',
+    'royal-cotton-white-panjabi',
+    2450,
+    1850,
+    60,
+    ARRAY['/product-5.webp'],
+    'Timeless white cotton Panjabi with minimalist design. Light, breathable, and highly comfortable.',
+    'à¦¨à§à¦¯à§‚à¦¨à¦¤à¦® à¦¡à¦¿à¦œà¦¾à¦‡à¦¨à§‡à¦° à¦¸à¦¾à¦¦à¦¾ à¦¸à§à¦¤à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿à¥¤ à¦¹à¦¾à¦²à¦•à¦¾, à¦†à¦°à¦¾à¦®à¦¦à¦¾à§Ÿà¦• à¦à¦¬à¦‚ à¦¦à§€à¦°à§à¦˜à¦¸à§à¦¥à¦¾à§Ÿà§€à¥¤',
+    'Classic white cotton Panjabi with minimalist styling.',
+    'à¦¨à§à¦¯à§‚à¦¨à¦¤à¦® à¦¸à§à¦Ÿà¦¾à¦‡à¦²à¦¿à¦¶ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨ à¦¸à¦¹ à¦•à§à¦²à¦¾à¦¸à¦¿à¦• à¦¸à¦¾à¦¦à¦¾ à¦¸à§à¦¤à¦¿ à¦ªà¦¾à¦žà§à¦œà¦¾à¦¬à¦¿à¥¤',
+    false,
+    (SELECT id FROM categories WHERE slug = 'panjabi' LIMIT 1)
+  ),
+  (
+    'Premium Georgette Orna',
+    'à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾',
+    'premium-georgette-orna',
+    1150,
+    850,
+    45,
+    ARRAY['/product-6.webp'],
+    'Luxury georgette Dupatta featuring golden lace borders. Lightweight, elegant, and perfect for matching with local outfits.',
+    'à¦—à§‹à¦²à§à¦¡à§‡à¦¨ à¦²à§‡à¦¸ à¦¬à¦°à§à¦¡à¦¾à¦° à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾à¥¤ à¦“à¦œà¦¨à§‡ à¦¹à¦¾à¦²à¦•à¦¾, à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦à¦¬à¦‚ à¦¯à§‡à¦•à§‹à¦¨à§‹ à¦¥à§à¦°à¦¿-à¦ªà¦¿à¦¸à§‡à¦° à¦¸à¦¾à¦¥à§‡ à¦®à¦¾à¦¨à¦¾à¦¨à¦¸à¦‡à¥¤',
+    'Elegant georgette dupatta with luxury golden lace border.',
+    'à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦—à§‹à¦²à§à¦¡à§‡à¦¨ à¦²à§‡à¦¸ à¦¬à¦°à§à¦¡à¦¾à¦° à¦¸à¦¹ à¦®à¦¾à¦°à§à¦œà¦¿à¦¤ à¦œà¦°à§à¦œà§‡à¦Ÿ à¦“à§œà¦¨à¦¾à¥¤',
+    true,
+    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1)
+  ),
+  (
+    'Exclusive Velvet Prayer Tupi',
+    'à¦à¦•à§à¦¸à¦•à§à¦²à§à¦¸à¦¿à¦­ à¦­à§‡à¦²à¦­à§‡à¦Ÿ à¦Ÿà§à¦ªà¦¿',
+    'exclusive-velvet-prayer-tupi',
+    550,
+    399,
+    80,
+    ARRAY['/product-7.webp'],
+    'Premium velvet finish cap with comfortable inner lining. Sleek, stylish design that sits perfectly.',
+    'à¦­à§‡à¦¤à¦°à§‡ à¦¨à¦°à¦® à¦²à¦¾à¦‡à¦¨à¦¿à¦‚ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦­à§‡à¦²à¦­à§‡à¦Ÿ à¦Ÿà§à¦ªà¦¿à¥¤ à¦®à¦¸à§ƒà¦£, à¦¸à§à¦Ÿà¦¾à¦‡à¦²à¦¿à¦¶ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨ à¦¯à¦¾ à¦®à¦¾à¦¥à¦¾à§Ÿ à¦ªà¦¾à¦°à¦«à§‡à¦•à§à¦Ÿ à¦«à¦¿à¦Ÿ à¦¹à§Ÿà¥¤',
+    'Premium velvet cap with inner soft lining.',
+    'à¦¨à¦°à¦® à¦²à¦¾à¦‡à¦¨à¦¿à¦‚ à¦¸à¦¹ à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦­à§‡à¦²à¦­à§‡à¦Ÿ à¦Ÿà§à¦ªà¦¿à¥¤',
+    false,
+    (SELECT id FROM categories WHERE slug = 'tupi' LIMIT 1)
+  ),
+  (
+    'Premium Satin Hand Embroidered Rumal',
+    'à¦ªà§à¦°à¦¿à¦®à¦¿à¦¯à¦¼à¦¾à¦® à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦¨à¦•à¦¶à¦¿ à¦°à§à¦®à¦¾à¦²',
+    'premium-satin-hand-embroidered-rumal',
+    290,
+    199,
+    120,
+    ARRAY['/product-8.webp'],
+    'Luxury satin handkerchief with hand-embroidered floral motifs. Perfect as a gift or for formal wear.',
+    'à¦¹à¦¾à¦¤à§‡ à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦•à¦°à¦¾ à¦«à§à¦²à§‡à¦° à¦®à§‹à¦Ÿà¦¿à¦« à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦°à§à¦®à¦¾à¦²à¥¤ à¤‰à¤ªà¤¹à¤¾à¤° à¦¹à¦¿à¦¸à§‡à¦¬à§‡ à¦¬à¦¾ à¦«à¦°à¦®à¦¾à¦² à¦¬à§à¦¯à¦¬à¦¹à¦¾à¦°à§‡à¦° à¦œà¦¨à§à¦¯ à¦ªà¦¾à¦°à¦«à§‡à¦•à§à¦Ÿà¥¤',
+    'Hand-embroidered floral satin luxury handkerchief.',
+    'à¦¹à¦¾à¦¤à§‡ à¦¤à§ˆà¦°à¦¿ à¦«à§à¦²à§‡à¦° à¦à¦®à¦¬à§à¦°à¦¯à¦¼à¦¡à¦¾à¦°à¦¿ à¦¸à¦¹ à¦²à¦¾à¦•à§à¦¸à¦¾à¦°à¦¿ à¦¸à¦¾à¦Ÿà¦¿à¦¨ à¦°à§à¦®à¦¾à¦²à¥¤',
+    false,
+    (SELECT id FROM categories WHERE slug = 'rumal' LIMIT 1)
+  ),
+  (
+    'Designer Cotton Dupatta Orna',
+    'à¦¡à¦¿à¦œà¦¾à¦‡à¦¨à¦¾à¦° à¦•à¦Ÿà¦¨ à¦“à§œà¦¨à¦¾',
+    'designer-cotton-dupatta-orna',
+    950,
+    690,
+    50,
+    ARRAY['/product-9.webp'],
+    '100% pure cotton designer Orna with beautiful floral prints and tassels. Highly breathable and fashionable.',
+    'à¦¸à§à¦¨à§à¦¦à¦° à¦«à§à¦²à§‹à¦°à¦¾à¦² à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦à¦¬à¦‚ à¦à¦¾à¦²à¦° à¦¸à¦¹ à§§à§¦à§¦% à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦“à§œà¦¨à¦¾à¥¤ à¦†à¦°à¦¾à¦®à¦¦à¦¾à§Ÿà¦• à¦à¦¬à¦‚ à¦…à¦¤à§à¦¯à¦¨à§à¦¤ à¦«à§à¦¯à¦¾à¦¶à¦¨à§‡à¦¬à¦²à¥¤',
+    'Pure cotton designer Orna with floral prints.',
+    'à¦«à§à¦²à§‹à¦°à¦¾à¦² à¦ªà§à¦°à¦¿à¦¨à§à¦Ÿ à¦“ à¦à¦¾à¦²à¦° à¦¸à¦¹ à¦–à¦¾à¦à¦Ÿà¦¿ à¦¸à§à¦¤à¦¿ à¦¡à¦¿à¦œà¦¾à¦‡à¦¨à¦¾à¦° à¦“à§œà¦¨à¦¾à¥¤',
+    false,
+    (SELECT id FROM categories WHERE slug = 'orna' LIMIT 1)
+  )
+ON CONFLICT (slug) DO NOTHING;
 CREATE POLICY "Admin can view all customers" ON customers
   FOR SELECT USING (auth.jwt() ->> 'email' = 'redaabangladesh@gmail.com');
 CREATE POLICY "Admin can update all customers" ON customers
