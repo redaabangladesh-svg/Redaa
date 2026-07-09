@@ -13,9 +13,12 @@ export default function AdminLoginPage() {
   );
 }
 
+import { useLocale } from 'next-intl';
+
 function AdminLoginForm() {
   const [signingIn, setSigningIn] = useState(false);
   const searchParams = useSearchParams();
+  const locale = useLocale();
   const unauthorized = searchParams.get('error') === 'unauthorized';
 
   const handleGoogleLogin = async () => {
@@ -23,7 +26,7 @@ function AdminLoginForm() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/admin` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/admin` },
     });
   };
 
