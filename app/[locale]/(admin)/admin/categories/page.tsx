@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Plus, Pencil, Trash2, Save, X, Image as ImageIcon, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Image as ImageIcon, Upload, GripVertical } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 
 interface Category {
@@ -12,6 +12,7 @@ interface Category {
   slug: string;
   image: string | null;
   created_at: string;
+  sort_order: number | null;
 }
 
 function slugify(text: string) {
@@ -41,6 +42,8 @@ export default function AdminCategoriesPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   
   const [showAddForm, setShowAddForm] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   const loadCategories = async () => {
     setLoading(true);
@@ -48,12 +51,33 @@ export default function AdminCategoriesPage() {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true, nullsFirst: false });
 
     if (!error && data) {
       setCategories(data);
     }
     setLoading(false);
+  };
+
+  const handleDrop = async (targetIndex: number) => {
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      return;
+    }
+    const reordered = [...categories];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setCategories(reordered);
+    setDragIndex(null);
+
+    setReordering(true);
+    const supabase = createClient();
+    await Promise.all(
+      reordered.map((cat, i) =>
+        supabase.from('categories').update({ sort_order: i + 1 }).eq('id', cat.id)
+      )
+    );
+    setReordering(false);
   };
 
   useEffect(() => {
@@ -121,9 +145,10 @@ export default function AdminCategoriesPage() {
         loadCategories();
       }
     } else {
+      const nextOrder = categories.reduce((max, c) => Math.max(max, c.sort_order ?? 0), 0) + 1;
       const { error } = await supabase
         .from('categories')
-        .insert([payload]);
+        .insert([{ ...payload, sort_order: nextOrder }]);
 
       if (error) {
         alert(isBn ? 'নতুন ক্যাটাগরি তৈরি ব্যর্থ হয়েছে।' : 'Failed to create category.');
@@ -338,9 +363,15 @@ export default function AdminCategoriesPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-brand-border overflow-hidden shadow-sm">
+          {reordering && (
+            <div className="px-4 py-1.5 bg-brand-primary/5 text-[10px] font-bold text-brand-primary">
+              {isBn ? 'ক্রম সংরক্ষণ হচ্ছে...' : 'Saving order...'}
+            </div>
+          )}
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-brand-surface border-b border-brand-border text-[10px] font-bold text-brand-muted uppercase tracking-wider">
+                <th className="py-3.5 px-4 w-8"></th>
                 <th className="py-3.5 px-4 w-16">{isBn ? 'ছবি' : 'Image'}</th>
                 <th className="py-3.5 px-4">{isBn ? 'ক্যাটাগরির নাম (বাংলা / English)' : 'Name (English / Bengali)'}</th>
                 <th className="py-3.5 px-4 w-32">Slug</th>
@@ -350,13 +381,23 @@ export default function AdminCategoriesPage() {
             <tbody className="divide-y divide-brand-border text-xs font-semibold text-brand-text">
               {categories.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-brand-muted font-medium">
+                  <td colSpan={5} className="py-8 text-center text-brand-muted font-medium">
                     {isBn ? 'কোনো ক্যাটাগরি পাওয়া যায়নি।' : 'No categories found.'}
                   </td>
                 </tr>
               ) : (
-                categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-brand-surface/30 transition-colors">
+                categories.map((cat, index) => (
+                  <tr
+                    key={cat.id}
+                    draggable
+                    onDragStart={() => setDragIndex(index)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleDrop(index)}
+                    className={`hover:bg-brand-surface/30 transition-colors ${dragIndex === index ? 'opacity-40' : ''}`}
+                  >
+                    <td className="py-3.5 px-4 cursor-grab active:cursor-grabbing text-brand-muted">
+                      <GripVertical className="h-4 w-4" />
+                    </td>
                     <td className="py-3.5 px-4">
                       <div className="h-10 w-10 rounded-lg border border-brand-border bg-brand-surface overflow-hidden flex items-center justify-center text-brand-muted">
                         {cat.image ? (
